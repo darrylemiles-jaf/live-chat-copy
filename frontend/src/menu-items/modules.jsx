@@ -76,11 +76,28 @@ const modules = [
       {
         id: 'users',
         title: 'Users',
-        type: 'item',
-        url: '/portal/users',
+        type: 'collapse',
         icon: icons.UsergroupAddOutlined,
         breadcrumbs: false,
         // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        children: [
+          {
+            id: 'customers',
+            title: 'Customers',
+            type: 'item',
+            url: '/portal/users/customers',
+            icon: icons.UserOutlined,
+            breadcrumbs: false,
+          },
+          {
+            id: 'supports',
+            title: 'Supports',
+            type: 'item',
+            url: '/portal/users/supports',
+            icon: icons.UsergroupAddOutlined,
+            breadcrumbs: false,
+          }
+        ]
       }
     ]
   },
