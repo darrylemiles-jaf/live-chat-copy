@@ -20,8 +20,33 @@ const MainRoutes = {
           element: <Dashboard />
         },
         {
-          path: 'messages',
-          element: <h1>Messages</h1>
+          path: 'queue',
+          element: <></>
+        },
+        {
+          path: 'chats',
+          element: <></>
+        },
+        {
+          path: 'tickets',
+          element: <></>
+        },
+        {
+          path: 'users',
+          children: [
+            {
+              path: 'customers',
+              element: <></>
+            },
+            {
+              path: 'supports',
+              element: <></>
+            }
+          ]
+        },
+        {
+          path: 'notifications',
+          element: <></>
         },
       ]
     },
