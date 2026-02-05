@@ -20,8 +20,8 @@ const MainRoutes = {
           element: <Dashboard />
         },
         {
-          path: 'typography',
-          element: <h1>Test</h1>
+          path: 'messages',
+          element: <h1>Messages</h1>
         },
       ]
     },
