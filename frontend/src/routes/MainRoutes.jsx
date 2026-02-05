@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
+import UnderConstruction from '../components/maintenance/UnderConstruction';
 
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
 
@@ -17,36 +18,36 @@ const MainRoutes = {
       children: [
         {
           path: 'dashboard',
-          element: <Dashboard />
+          element: <UnderConstruction />
         },
         {
           path: 'queue',
-          element: <></>
+          element: <UnderConstruction />
         },
         {
           path: 'chats',
-          element: <></>
+          element: <UnderConstruction />
         },
         {
           path: 'tickets',
-          element: <></>
+          element: <UnderConstruction />
         },
         {
           path: 'users',
           children: [
             {
               path: 'customers',
-              element: <></>
+          element: <UnderConstruction />
             },
             {
               path: 'supports',
-              element: <></>
+          element: <UnderConstruction />
             }
           ]
         },
         {
           path: 'notifications',
-          element: <></>
+          element: <UnderConstruction />
         },
       ]
     },
