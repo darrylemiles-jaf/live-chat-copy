@@ -1,7 +1,7 @@
 // ==============================|| PRESET THEME - DEFAULT ||============================== //
 
 export default function Default(colors) {
-  const { blue, red, gold, cyan, green, grey } = colors;
+  const { blue, red, gold, cyan, green, grey, orange } = colors;
   const greyColors = {
     0: grey[0],
     50: grey[1],
@@ -83,6 +83,14 @@ export default function Default(colors) {
       main: green[5],
       dark: green[7],
       darker: green[9],
+      contrastText
+    },
+    orange: {
+      lighter: orange[0],
+      light: orange[3],
+      main: orange[5],
+      dark: orange[7],
+      darker: orange[9],
       contrastText
     },
     grey: greyColors
