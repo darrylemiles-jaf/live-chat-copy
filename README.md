@@ -1,6 +1,6 @@
 Live Chat
 
-Lightweight React + MUI frontend for a live-chat application (based on Mantis Material Free React).
+Lightweight React + MUI frontend for a live-chat application (based on Mantis Material React).
 
 ## Overview
 
