@@ -4,6 +4,8 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 
+const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -15,7 +17,7 @@ const MainRoutes = {
       children: [
         {
           path: 'dashboard',
-          element: <h1>Test11</h1>
+          element: <Dashboard />
         },
         {
           path: 'typography',
