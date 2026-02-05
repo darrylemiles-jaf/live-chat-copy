@@ -4,15 +4,28 @@ import {
   MessageOutlined,
   UserOutlined,
   HomeOutlined,
-  UsergroupAddOutlined
+  UsergroupAddOutlined,
+  BellOutlined
 } from '@ant-design/icons';
+
+import {
+  HumanQueue,
+  Ticket,
+  FaceAgent,
+  AccountGroup
+} from 'mdi-material-ui'
 
 const icons = {
   DashboardOutlined,
   MessageOutlined,
   UserOutlined,
   HomeOutlined,
-  UsergroupAddOutlined
+  UsergroupAddOutlined,
+  HumanQueue,
+  Ticket,
+  FaceAgent,
+  AccountGroup,
+  BellOutlined
 }
 
 const modules = [
@@ -34,16 +47,25 @@ const modules = [
     ]
   },
   {
-    id: 'group-ticketing',
-    title: 'Conversations',
+    id: 'group-messages',
+    title: 'Messages',
     type: 'group',
     // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
     children: [
       {
-        id: 'ticketing',
-        title: 'Messages',
+        id: 'queue',
+        title: 'Queue',
         type: 'item',
-        url: '/portal/messages',
+        url: '/portal/queue',
+        icon: icons.HumanQueue,
+        breadcrumbs: false,
+        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+      },
+      {
+        id: 'messages',
+        title: 'Chats',
+        type: 'item',
+        url: '/portal/chats',
         icon: icons.MessageOutlined,
         breadcrumbs: false,
         // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
@@ -61,7 +83,7 @@ const modules = [
         title: 'Tickets',
         type: 'item',
         url: '/portal/tickets',
-        icon: icons.MessageOutlined,
+        icon: icons.Ticket,
         breadcrumbs: false,
         // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
       }
@@ -77,7 +99,7 @@ const modules = [
         id: 'users',
         title: 'Users',
         type: 'collapse',
-        icon: icons.UsergroupAddOutlined,
+        icon: icons.AccountGroup,
         breadcrumbs: false,
         // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
         children: [
@@ -86,18 +108,35 @@ const modules = [
             title: 'Customers',
             type: 'item',
             url: '/portal/users/customers',
-            icon: icons.UserOutlined,
+            icon: icons.UsergroupAddOutlined,
             breadcrumbs: false,
           },
           {
             id: 'supports',
-            title: 'Supports',
+            title: 'Support Agents',
             type: 'item',
             url: '/portal/users/supports',
-            icon: icons.UsergroupAddOutlined,
+            icon: icons.FaceAgent,
             breadcrumbs: false,
           }
         ]
+      }
+    ]
+  },
+  {
+    id: 'group-notifcations',
+    title: 'Notifications',
+    type: 'group',
+    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    children: [
+      {
+        id: 'notifications',
+        title: 'Notifications',
+        type: 'item',
+        url: '/portal/notifications',
+        icon: icons.BellOutlined,
+        breadcrumbs: false,
+        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
       }
     ]
   },
