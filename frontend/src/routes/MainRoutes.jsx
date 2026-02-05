@@ -15,11 +15,11 @@ const MainRoutes = {
       children: [
         {
           path: 'dashboard',
-          element: <h1>Test11</h1>
+          element: <h1>Dashboard</h1>
         },
         {
-          path: 'typography',
-          element: <h1>Test</h1>
+          path: 'messages',
+          element: <h1>Messages</h1>
         },
       ]
     },
