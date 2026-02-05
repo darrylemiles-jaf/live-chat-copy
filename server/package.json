@@ -1,0 +1,29 @@
+{
+  "name": "live-chat-api",
+  "version": "1.0.0",
+  "description": "TBD",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon server.js"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "TBD"
+  },
+  "keywords": [
+    "api",
+    "live",
+    "chat",
+    "timora"
+  ],
+  "author": "Darryle Miles Bacay",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongoose": "^9.1.6"
+  }
+}
