@@ -18,7 +18,7 @@ const MainRoutes = {
       children: [
         {
           path: 'dashboard',
-          element: <UnderConstruction />
+          element: <Dashboard />
         },
         {
           path: 'queue',
@@ -37,11 +37,11 @@ const MainRoutes = {
           children: [
             {
               path: 'customers',
-          element: <UnderConstruction />
+              element: <UnderConstruction />
             },
             {
               path: 'supports',
-          element: <UnderConstruction />
+              element: <UnderConstruction />
             }
           ]
         },
