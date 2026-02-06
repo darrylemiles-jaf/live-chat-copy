@@ -15,6 +15,10 @@ import {
   AccountGroup
 } from 'mdi-material-ui'
 
+import {
+  ROLES
+} from '../constants/constants'
+
 const icons = {
   DashboardOutlined,
   MessageOutlined,
@@ -33,7 +37,7 @@ const modules = [
     id: 'group-dashboard',
     title: 'Navigation',
     type: 'group',
-    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
         id: 'dashboard',
@@ -42,7 +46,7 @@ const modules = [
         url: '/portal/dashboard',
         icon: icons.HomeOutlined,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }
     ]
   },
@@ -50,7 +54,7 @@ const modules = [
     id: 'group-messages',
     title: 'Messages',
     type: 'group',
-    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
         id: 'queue',
@@ -59,7 +63,7 @@ const modules = [
         url: '/portal/queue',
         icon: icons.HumanQueue,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       },
       {
         id: 'messages',
@@ -68,7 +72,7 @@ const modules = [
         url: '/portal/chats',
         icon: icons.MessageOutlined,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }
     ]
   },
@@ -76,7 +80,7 @@ const modules = [
     id: 'group-ticketing',
     title: 'Ticketing',
     type: 'group',
-    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
         id: 'conversations',
@@ -85,7 +89,7 @@ const modules = [
         url: '/portal/tickets',
         icon: icons.Ticket,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }
     ]
   },
@@ -93,7 +97,7 @@ const modules = [
     id: 'group-users',
     title: 'Users',
     type: 'group',
-    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
         id: 'users',
@@ -101,7 +105,7 @@ const modules = [
         type: 'collapse',
         icon: icons.AccountGroup,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
         children: [
           {
             id: 'customers',
@@ -127,7 +131,7 @@ const modules = [
     id: 'group-notifcations',
     title: 'Notifications',
     type: 'group',
-    // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
         id: 'notifications',
@@ -136,7 +140,7 @@ const modules = [
         url: '/portal/notifications',
         icon: icons.BellOutlined,
         breadcrumbs: false,
-        // access: [POSITIONS.POSITIONS_STAFF, POSITIONS.POSITIONS_MASTER_ADMIN],
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }
     ]
   },
