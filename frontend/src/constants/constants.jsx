@@ -1,4 +1,6 @@
 const APP_NAME = 'Timora Chat'
+const COMPANY_NAME = 'JAF Digital Group Inc.'
+
 
 const ROLES = {
     CENTRAL_ADMIN: {

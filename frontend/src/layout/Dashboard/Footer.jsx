@@ -3,21 +3,23 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import constants from '../../constants/constants';
+
 export default function Footer() {
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
       sx={{ gap: 1.5, alignItems: 'center', justifyContent: 'space-between', p: '24px 16px 0px', mt: 'auto' }}
     >
-      <Typography variant="caption">
-        &copy; All rights reserved
+      <Typography variant="body1" color="secondary">
+        2025 &copy; {constants.APP_NAME} By {constants.COMPANY_NAME}  
       </Typography>
       <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="https://mui.com/legal/privacy/" target="_blank" variant="caption" color="text.primary">
-          Privacy
-        </Link>
-        <Link href="https://mui.com/store/terms/" target="_blank" variant="caption" color="text.primary">
-          Terms
+        <Typography variant="body1" color="secondary">
+          Designed & Developed By
+        </Typography>
+        <Link href="https://jafdigital.co/" target="_blank" variant="body1" color="#064856">
+          {constants.COMPANY_NAME}
         </Link>
       </Stack>
     </Stack>
