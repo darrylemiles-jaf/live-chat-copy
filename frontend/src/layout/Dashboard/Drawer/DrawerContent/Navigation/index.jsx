@@ -10,7 +10,31 @@ import menuItem from 'menu-items';
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 export default function Navigation() {
-  const navGroups = menuItem.items.map((item) => {
+  const userRole = 'CENTRAL_ADMIN'; //subject to change based on login
+
+  const filterByRole = (items, role) => {
+    return items
+      .filter((item) => {
+        if (!item.access || item.access.includes(role)) {
+          if (item.children?.length) {
+            const filteredChildren = filterByRole(item.children, role);
+
+            if (!filteredChildren.length) {
+              return false;
+            }
+
+            item.children = filteredChildren;
+          }
+          return true;
+        }
+        return false;
+      })
+      .map((item) => ({ ...item }));
+  };
+
+  const filtered = filterByRole(menuItem.items, userRole);
+
+  const navGroups = filtered.map((item) => {
     switch (item.type) {
       case 'group':
         return <NavGroup key={item.id} item={item} />;
