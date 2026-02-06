@@ -61,7 +61,7 @@ export default function NotFound() {
                 <Button
                   variant="outlined"
                   size="large"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/portal/dashboard')}
                   sx={{
                     color: '#008E86',
                     borderColor: '#008E86',
