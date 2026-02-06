@@ -10,11 +10,10 @@ const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/',
-  element: <DashboardLayout />,
   children: [
     {
       path: 'portal',
+      element: <DashboardLayout />,
       children: [
         {
           path: 'dashboard',
