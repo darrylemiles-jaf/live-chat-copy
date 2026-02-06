@@ -9,7 +9,7 @@ const LogoMain = () => {
       alt=""
       style={{
         width: '100%',
-        height: '5dvh',
+        height: '18dvh',
         display: 'block',
         margin: '0 auto',
       }}
