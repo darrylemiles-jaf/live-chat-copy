@@ -8,12 +8,14 @@ import Typography from '@mui/material/Typography';
 // project imports
 import AuthWrapper from 'sections/auth/AuthWrapper';
 import AuthLogin from 'sections/auth/AuthLogin';
+import PageTitle from '../../components/PageTitle';
 
 // ================================|| JWT - LOGIN ||================================ //
 
 export default function Login() {
   return (
     <AuthWrapper>
+      <PageTitle title="Login" />
       <Grid container spacing={3}>
         <Grid size={12}>
           <Stack direction="row" sx={{ alignItems: 'baseline', justifyContent: 'space-between', mb: { xs: -0.5, sm: 0.5 } }}>

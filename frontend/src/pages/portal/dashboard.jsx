@@ -4,10 +4,12 @@ import { Forum, TimerSandComplete, AccountCheck } from 'mdi-material-ui';
 import React from 'react';
 
 import AnalyticalCard from '../../components/AnalyticalCard';
+import PageTitle from 'components/PageTitle';
 
 const Dashboard = () => {
   return (
     <React.Fragment>
+      <PageTitle title="Dashboard" />
       <Grid container spacing={2} size={12} justifyContent="center" alignItems="center">
         <Grid size={{ xs: 12, md: 4 }}>
           <AnalyticalCard icon={<Forum />} title={'Active Chats'} count={12} status={'ongoing'} />
