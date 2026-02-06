@@ -1,4 +1,5 @@
-const APP_NAME = 'Timora Chat'
+const APP_NAME = 'Timora Live Chat'
+const COMPANY_NAME = 'JAF Digital Group Inc.'
 
 const ROLES = {
     CENTRAL_ADMIN: {
@@ -17,5 +18,6 @@ const ROLES = {
 
 export {
     APP_NAME,
-    ROLES
+    ROLES,
+    COMPANY_NAME
 }
