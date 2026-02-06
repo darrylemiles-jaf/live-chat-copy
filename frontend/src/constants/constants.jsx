@@ -19,5 +19,6 @@ const ROLES = {
 
 export {
     APP_NAME,
+    COMPANY_NAME,
     ROLES
 }
