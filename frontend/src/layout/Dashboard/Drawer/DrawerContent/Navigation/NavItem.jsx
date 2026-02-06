@@ -10,6 +10,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
 
 // project imports
 import IconButton from 'components/@extended/IconButton';
@@ -54,79 +55,82 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
 
   const textColor = 'text.primary';
   const iconSelectedColor = 'primary.main';
+  const tooltipTitle = item?.title || '';
 
   return (
     <>
       <Box sx={{ position: 'relative' }}>
-        <ListItemButton
-          component={Link}
-          to={item.url}
-          target={itemTarget}
-          disabled={item.disabled}
-          selected={isSelected}
-          sx={(theme) => ({
-            zIndex: 1201,
-            pl: drawerOpen ? `${level * 28}px` : 1.5,
-            py: !drawerOpen && level === 1 ? 1.25 : 1,
-            ...(drawerOpen && {
-              '&:hover': { bgcolor: 'primary.lighter' },
-              '&.Mui-selected': {
-                bgcolor: 'primary.lighter',
-                borderRight: '2px solid',
-                borderColor: 'primary.main',
-                color: iconSelectedColor,
-                '&:hover': { color: iconSelectedColor, bgcolor: 'primary.lighter' }
-              }
-            }),
-            ...(!drawerOpen && {
-              '&:hover': { bgcolor: 'transparent' },
-              '&.Mui-selected': { '&:hover': { bgcolor: 'transparent' }, bgcolor: 'transparent' }
-            })
-          })}
-          onClick={() => itemHandler()}
-        >
-          {itemIcon && (
-            <ListItemIcon
-              sx={(theme) => ({
-                minWidth: 28,
-                color: isSelected ? iconSelectedColor : textColor,
-                ...(!drawerOpen && {
-                  borderRadius: 1.5,
-                  width: 36,
-                  height: 36,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  '&:hover': { bgcolor: 'secondary.lighter' }
-                }),
-                ...(!drawerOpen &&
-                  isSelected && {
-                    bgcolor: 'primary.lighter',
-                    '&:hover': { bgcolor: 'primary.lighter' }
-                  })
-              })}
-            >
-              {itemIcon}
-            </ListItemIcon>
-          )}
-          {(drawerOpen || (!drawerOpen && level !== 1)) && (
-            <ListItemText
-              primary={
-                <Typography variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor }}>
-                  {item.title}
-                </Typography>
-              }
-            />
-          )}
-          {(drawerOpen || (!drawerOpen && level !== 1)) && item.chip && (
-            <Chip
-              color={item.chip.color}
-              variant={item.chip.variant}
-              size={item.chip.size}
-              label={item.chip.label}
-              avatar={item.chip.avatar && <Avatar>{item.chip.avatar}</Avatar>}
-            />
-          )}
-        </ListItemButton>
+        <Tooltip title={tooltipTitle} placement="right">
+          <ListItemButton
+            component={Link}
+            to={item.url}
+            target={itemTarget}
+            disabled={item.disabled}
+            selected={isSelected}
+            sx={(theme) => ({
+              zIndex: 1201,
+              pl: drawerOpen ? `${level * 28}px` : 1.5,
+              py: !drawerOpen && level === 1 ? 1.25 : 1,
+              ...(drawerOpen && {
+                '&:hover': { bgcolor: 'primary.lighter' },
+                '&.Mui-selected': {
+                  bgcolor: 'primary.lighter',
+                  borderRight: '2px solid',
+                  borderColor: 'primary.main',
+                  color: iconSelectedColor,
+                  '&:hover': { color: iconSelectedColor, bgcolor: 'primary.lighter' }
+                }
+              }),
+              ...(!drawerOpen && {
+                '&:hover': { bgcolor: 'transparent' },
+                '&.Mui-selected': { '&:hover': { bgcolor: 'transparent' }, bgcolor: 'transparent' }
+              })
+            })}
+            onClick={() => itemHandler()}
+          >
+            {itemIcon && (
+              <ListItemIcon
+                sx={(theme) => ({
+                  minWidth: 28,
+                  color: isSelected ? iconSelectedColor : textColor,
+                  ...(!drawerOpen && {
+                    borderRadius: 1.5,
+                    width: 36,
+                    height: 36,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '&:hover': { bgcolor: 'secondary.lighter' }
+                  }),
+                  ...(!drawerOpen &&
+                    isSelected && {
+                      bgcolor: 'primary.lighter',
+                      '&:hover': { bgcolor: 'primary.lighter' }
+                    })
+                })}
+              >
+                {itemIcon}
+              </ListItemIcon>
+            )}
+            {(drawerOpen || (!drawerOpen && level !== 1)) && (
+              <ListItemText
+                primary={
+                  <Typography variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor }}>
+                    {item.title}
+                  </Typography>
+                }
+              />
+            )}
+            {(drawerOpen || (!drawerOpen && level !== 1)) && item.chip && (
+              <Chip
+                color={item.chip.color}
+                variant={item.chip.variant}
+                size={item.chip.size}
+                label={item.chip.label}
+                avatar={item.chip.avatar && <Avatar>{item.chip.avatar}</Avatar>}
+              />
+            )}
+          </ListItemButton>
+        </Tooltip>
         {(drawerOpen || (!drawerOpen && level !== 1)) &&
           item?.actions &&
           item?.actions.map((action, index) => {
