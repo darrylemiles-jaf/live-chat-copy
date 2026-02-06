@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { APP_NAME } from 'constants/constant';
+import { APP_NAME } from 'constants/constants';
 
 const PageTitle = ({ title }) => {
   return (
