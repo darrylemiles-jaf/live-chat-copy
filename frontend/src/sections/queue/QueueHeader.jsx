@@ -10,7 +10,7 @@ const QueueHeader = ({ palette }) => (
       alignItems: 'center',
       justifyContent: 'space-between',
       backgroundColor: palette.success.dark,
-      borderRadius: '18px',
+      borderRadius: 0,
       color: palette.primary.contrastText,
       px: { xs: 2, md: 3 },
       py: 1.5,

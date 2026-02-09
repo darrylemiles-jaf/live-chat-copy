@@ -28,7 +28,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
     elevation={0}
     sx={{
       height: '100%',
-      borderRadius: '20px',
+      borderRadius: 0,
       border: `1px solid ${palette.divider}`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
@@ -45,7 +45,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
         py: 1.5,
         backgroundColor: palette.success.dark,
         color: palette.primary.contrastText,
-        borderRadius: '20px 20px 12px 12px'
+        borderRadius: 0
       }}
     >
       <Stack direction="row" spacing={1} alignItems="center">
@@ -93,7 +93,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                 gap: 1.5,
                 px: 1.5,
                 py: 1.2,
-                borderRadius: '14px',
+                borderRadius: 0,
                 cursor: 'pointer',
                 backgroundColor: isSelected ? withAlpha(palette.primary.lighter, 0.45) : 'transparent',
                 border: isSelected ? `1px solid ${withAlpha(palette.primary.main, 0.2)}` : '1px solid transparent',
@@ -137,7 +137,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
         disabled={queue.length === 0}
         onClick={onViewMore}
         sx={{
-          borderRadius: '12px',
+          borderRadius: 0,
           borderColor: withAlpha(palette.primary.main, 0.35),
           color: palette.primary.main,
           backgroundColor: withAlpha(palette.primary.lighter, 0.4),
