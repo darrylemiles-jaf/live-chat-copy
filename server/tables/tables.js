@@ -1,6 +1,6 @@
 import usersTable from './usersTable.js';
 import chatsTable from './chatsTable.js';
-import messagesTaable from './messagesTaable.js';
+import messagesTaable from './messagesTable.js';
 
 
 const tables = async (dbConnection) => {
