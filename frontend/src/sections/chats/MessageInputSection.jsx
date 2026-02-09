@@ -5,10 +5,7 @@ import {
   IconButton,
   Stack
 } from '@mui/material';
-import {
-  Send as SendIcon,
-  AttachFile as AttachFileIcon
-} from '@mui/icons-material';
+import { SendOutlined, PaperClipOutlined } from '@ant-design/icons';
 
 const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPress }) => {
   return (
@@ -21,12 +18,12 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
       }}
     >
       <Stack direction="row" spacing={1} alignItems="flex-end">
-        <IconButton 
-          color="primary" 
+        <IconButton
+          color="primary"
           size="small"
           sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
         >
-          <AttachFileIcon />
+          <PaperClipOutlined />
         </IconButton>
         <TextField
           fullWidth
@@ -59,7 +56,7 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
             }
           }}
         >
-          <SendIcon />
+          <SendOutlined />
         </IconButton>
       </Stack>
     </Box>

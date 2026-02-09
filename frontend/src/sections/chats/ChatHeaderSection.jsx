@@ -7,10 +7,7 @@ import {
   Badge,
   Stack
 } from '@mui/material';
-import {
-  MoreVert as MoreVertIcon,
-  ArrowBack as ArrowBackIcon
-} from '@mui/icons-material';
+import { MoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 
 const ChatHeaderSection = ({ selectedChat, onBack }) => {
   return (
@@ -30,9 +27,9 @@ const ChatHeaderSection = ({ selectedChat, onBack }) => {
           sx={{ display: { xs: 'inline-flex', md: 'none' } }}
           onClick={onBack}
         >
-          <ArrowBackIcon />
+          <ArrowLeftOutlined />
         </IconButton>
-        
+
         <Badge
           overlap="circular"
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -62,7 +59,7 @@ const ChatHeaderSection = ({ selectedChat, onBack }) => {
       </Box>
       <Stack direction="row" spacing={1}>
         <IconButton>
-          <MoreVertIcon />
+          <MoreOutlined />
         </IconButton>
       </Stack>
     </Box>

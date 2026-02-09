@@ -12,7 +12,7 @@ import {
   Badge,
   Chip
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { SearchOutlined } from '@ant-design/icons';
 
 const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery, onSearchChange }) => {
   return (
@@ -37,7 +37,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery, onSea
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
+                <SearchOutlined style={{ fontSize: 18 }} />
               </InputAdornment>
             ),
           }}
@@ -53,7 +53,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery, onSea
       {/* Chat List */}
       <List sx={{ overflow: 'auto', flex: 1, pt: 0 }}>
         {chats
-          .filter(chat => 
+          .filter(chat =>
             chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
           )
