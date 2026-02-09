@@ -1,53 +1,35 @@
-import mysql from 'mysql2/promise';
+import mysql from 'mysql2';
+import dotenv from 'dotenv';
 import { colours } from '../constants/constants.js';
 
-let pool;
+dotenv.config();
 
-const connectDB = async () => {
+const pool = mysql.createPool({
+  host: process.env.NODE_ENV === 'development' ? process.env.DB_HOST_LOCAL : process.env.DB_HOST,
+  user: process.env.NODE_ENV === 'development' ? process.env.DB_USER_LOCAL : process.env.DB_USER,
+  password: process.env.NODE_ENV === 'development' ? process.env.DB_PASSWORD_LOCAL : process.env.DB_PASSWORD,
+  database: process.env.NODE_ENV === 'development' ? process.env.DB_NAME_LOCAL : process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+}).promise();
+
+(async () => {
   try {
-    const dbName = process.env.NODE_ENV === 'development'
-      ? process.env.DB_NAME_LOCAL
-      : process.env.DB_NAME;
-
-    const tempConnection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      port: process.env.DB_PORT || 3306
-    });
-
-    await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    console.log(colours.fg.cyan, `Database '${dbName}' checked/created`);
-    await tempConnection.end();
-
-    const config = {
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: dbName,
-      port: process.env.DB_PORT || 3306,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    };
-
-    pool = mysql.createPool(config);
-
-    // Test the connection
-    const connection = await pool.getConnection();
-    console.log(colours.fg.green, `MySQL Connected: ${dbName}`);
-    connection.release();
+    await pool.getConnection();
+    console.log(colours.fg.blue, `Successfully connected to the MySQL database: ${process.env.NODE_ENV === 'development' ? process.env.DB_NAME_LOCAL : process.env.DB_NAME}`);
   } catch (error) {
-    console.log(colours.fg.red, `Error: ${error.message}`);
-    process.exit(1);
+    if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+      console.error(colours.fg.red, 'Invalid MySQL credentials. Please check your username and password.');
+    } else if (error.code === 'ER_BAD_DB_ERROR') {
+      console.error(colours.fg.red, 'Database does not exist. Please verify the database name.');
+    } else if (error.code === 'ECONNREFUSED') {
+      console.error(colours.fg.red, 'Connection refused. Check if your MySQL server is running.');
+    } else {
+      console.error(colours.fg.red, `Error connecting to the database: ${error.message}`);
+    }
+    throw new Error(error.message);
   }
-};
+})();
 
-export const getPool = () => {
-  if (!pool) {
-    throw new Error('Database pool not initialized. Call connectDB first.');
-  }
-  return pool;
-};
-
-export default connectDB;
+export default pool;
