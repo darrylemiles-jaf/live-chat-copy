@@ -4,16 +4,16 @@ import UnderConstruction from '../../components/maintenance/UnderConstruction';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
-  { title: `Chats` }
+  { title: 'Queue' }
 ];
 
-const Chats = () => {
+const Queue = () => {
   return (
     <React.Fragment>
       <Breadcrumbs
-        heading="Chats"
+        heading="Queue"
         links={breadcrumbLinks}
-        subheading="View and manage your chats here."
+        subheading="View and manage your chat queue here."
       />
       <UnderConstruction />
 
@@ -21,4 +21,4 @@ const Chats = () => {
   )
 }
 
-export default Chats
+export default Queue
