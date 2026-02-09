@@ -1,9 +1,16 @@
 // users
 import usersTable from './usersTable.js';
+
+// tickets
+import ticketsTable from './ticketsTables.js';
+
 const tables = async (dbConnection) => {
   const queries = [
     // users
     usersTable,
+
+    // tickets
+    ticketsTable
   ];
 
   for (const query of queries) {

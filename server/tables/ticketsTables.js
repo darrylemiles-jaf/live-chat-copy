@@ -4,8 +4,8 @@ const ticketsTable = `CREATE TABLE IF NOT EXISTS tickets (
     description TEXT,
     status ENUM('open', 'in_progress', 'closed') DEFAULT 'open',
     priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
-    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`;
 
 export default ticketsTable;
