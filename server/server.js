@@ -2,6 +2,7 @@ import {
   colours,
   PROJECT_NAME
 } from './constants/constants.js';
+import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
 
 import express from 'express';
 import dotenv from 'dotenv';
@@ -27,6 +28,9 @@ app.use(express.urlencoded({ limit: '100mb', extended: true, parameterLimit: 500
 app.get(`/api/${API_VERSION}`, (req, res) => {
   res.send('API Gateway is running...');
 });
+
+app.use(errorHandler)
+app.use(notFound)
 
 const startServer = async () => {
   try {
