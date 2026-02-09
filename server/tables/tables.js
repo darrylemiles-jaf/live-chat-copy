@@ -1,6 +1,7 @@
 import usersTable from './usersTable.js';
 import chatsTable from './chatsTable.js';
-import messagesTaable from './messagesTable.js';
+import messagesTable from './messagesTable.js';
+import ticketsTable from './ticketsTable.js';
 
 
 const tables = async (dbConnection) => {
@@ -12,7 +13,12 @@ const tables = async (dbConnection) => {
     chatsTable,
 
     // messages
-    messagesTaable,
+    messagesTable,
+
+    // tickets
+    ticketsTable
+
+
   ];
 
   for (const query of queries) {
