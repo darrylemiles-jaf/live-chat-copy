@@ -1,7 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Grid, Paper } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Paper,
+  Stack,
+  Typography
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import { Close } from 'mdi-material-ui';
 
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import { withAlpha } from '../../utils/colorUtils';
@@ -75,13 +87,24 @@ const INITIAL_RESOLVED_TODAY = 12;
 
 // ==============================|| HELPER FUNCTIONS ||============================== //
 
-function shuffle(array) {
-  const copy = [...array];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
-  }
-  return copy;
+function getInitials(name) {
+  if (!name) return '?';
+  return name
+    .replace(/\./g, '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+}
+
+function getAvatarBg(palette, item) {
+  if (!palette) return undefined;
+
+  if (item?.priority === 'High') return palette.error.main;
+  if (item?.priority === 'Medium') return palette.warning.main;
+  if (item?.priority === 'Low') return palette.success.main;
+  return palette.primary.main;
 }
 
 // ==============================|| MAIN QUEUE COMPONENT ||============================== //
@@ -96,7 +119,7 @@ const Queue = () => {
   const [resolvedToday, setResolvedToday] = useState(INITIAL_RESOLVED_TODAY);
   const [selectedId, setSelectedId] = useState(queueItems[0]?.id ?? null);
   const [detailsTab, setDetailsTab] = useState('info');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
 
@@ -141,10 +164,13 @@ const Queue = () => {
     [queue.length, activeChats, resolvedToday, palette]
   );
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setQueue((prev) => shuffle(prev));
-    window.setTimeout(() => setIsRefreshing(false), 450);
+  const handleViewMore = () => {
+    if (queue.length === 0) return;
+    setIsQueueModalOpen(true);
+  };
+
+  const handleCloseQueueModal = () => {
+    setIsQueueModalOpen(false);
   };
 
   const handleOpenChat = () => {
@@ -166,7 +192,10 @@ const Queue = () => {
       <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
 
       <Box sx={{ mt: 2, borderRadius: '28px', border: `1px solid ${palette.divider}` }}>
-        <Paper elevation={14} sx={{ position: 'relative', overflow: 'hidden', borderRadius: '28px', p: { xs: 2, md: 3 } }}>
+        <Paper
+          elevation={0}
+          sx={{ position: 'relative', overflow: 'hidden', borderRadius: '28px', p: { xs: 2, md: 3 }, boxShadow: 'none' }}
+        >
           <QueueHeader palette={palette} />
 
           <Grid container spacing={2.5} size={12} alignItems="stretch" sx={{ width: '100%' }}>
@@ -176,8 +205,7 @@ const Queue = () => {
                 queue={queue}
                 selectedId={selectedId}
                 setSelectedId={setSelectedId}
-                isRefreshing={isRefreshing}
-                handleRefresh={handleRefresh}
+                onViewMore={handleViewMore}
               />
             </Grid>
 
@@ -198,6 +226,83 @@ const Queue = () => {
           </Grid>
         </Paper>
       </Box>
+
+      <Dialog
+        open={isQueueModalOpen}
+        onClose={handleCloseQueueModal}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { boxShadow: 'none', border: `1px solid ${palette.divider}` } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h6">All Queue</Typography>
+          <IconButton onClick={handleCloseQueueModal} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 2 }}>
+          <Stack spacing={1.25}>
+            {queue.length === 0 ? (
+              <Typography variant="body2" sx={{ color: palette.text.secondary }}>
+                No customers in queue.
+              </Typography>
+            ) : (
+              queue.map((item) => {
+                const isSelected = item.id === selectedId;
+                return (
+                  <Box
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedId(item.id);
+                      handleCloseQueueModal();
+                    }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1.5,
+                      px: 1.5,
+                      py: 1.2,
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      backgroundColor: isSelected ? withAlpha(palette.primary.lighter, 0.45) : 'transparent',
+                      border: isSelected ? `1px solid ${withAlpha(palette.primary.main, 0.2)}` : `1px solid ${palette.divider}`,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: withAlpha(palette.primary.lighter, 0.35)
+                      }
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Avatar
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          fontWeight: 700,
+                          bgcolor: getAvatarBg(palette, item)
+                        }}
+                      >
+                        {getInitials(item.name)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {item.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: palette.text.secondary }}>
+                          {item.email}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Typography variant="caption" sx={{ color: palette.text.secondary }}>
+                      {item.wait}
+                    </Typography>
+                  </Box>
+                );
+              })
+            )}
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </React.Fragment>
   );
 };

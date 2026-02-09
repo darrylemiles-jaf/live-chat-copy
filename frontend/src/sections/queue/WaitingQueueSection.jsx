@@ -23,7 +23,7 @@ function getAvatarBg(palette, item) {
   return palette.primary.main;
 }
 
-const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, isRefreshing, handleRefresh }) => (
+const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onViewMore }) => (
   <Paper
     elevation={0}
     sx={{
@@ -31,6 +31,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, isRefr
       borderRadius: '20px',
       border: `1px solid ${palette.divider}`,
       backgroundColor: palette.background.paper,
+      boxShadow: 'none',
       display: 'flex',
       flexDirection: 'column'
     }}
@@ -133,8 +134,8 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, isRefr
         fullWidth
         variant="outlined"
         startIcon={<DotsHorizontal />}
-        disabled={isRefreshing}
-        onClick={handleRefresh}
+        disabled={queue.length === 0}
+        onClick={onViewMore}
         sx={{
           borderRadius: '12px',
           borderColor: withAlpha(palette.primary.main, 0.35),
@@ -143,7 +144,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, isRefr
           fontWeight: 600
         }}
       >
-        {isRefreshing ? 'Loading…' : 'View More'}
+        View More
       </Button>
     </Box>
   </Paper>

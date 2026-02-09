@@ -11,6 +11,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
       borderRadius: '20px',
       border: `1px solid ${palette.divider}`,
       backgroundColor: palette.background.paper,
+      boxShadow: 'none',
       display: 'flex',
       flexDirection: 'column'
     }}
