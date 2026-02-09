@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
+import Tooltip from '@mui/material/Tooltip';
 
 // project imports
 import AppBarStyled from './AppBarStyled';
@@ -31,20 +32,22 @@ export default function Header() {
   // common header
   const mainHeader = (
     <Toolbar>
-      <IconButton
-        aria-label="open drawer"
-        onClick={() => handlerDrawerOpen(!drawerOpen)}
-        edge="start"
-        color="secondary"
-        variant="light"
-        sx={(theme) => ({
-          color: 'text.primary',
-          bgcolor: drawerOpen ? 'transparent' : 'grey.100',
-          ml: { xs: 0, lg: -2 }
-        })}
-      >
-        {!drawerOpen ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-      </IconButton>
+      <Tooltip title={drawerOpen ? 'Menu fold' : 'Menu unfold'}>
+        <IconButton
+          aria-label="open drawer"
+          onClick={() => handlerDrawerOpen(!drawerOpen)}
+          edge="start"
+          color="secondary"
+          variant="light"
+          sx={(theme) => ({
+            color: 'text.primary',
+            bgcolor: drawerOpen ? 'transparent' : 'grey.100',
+            ml: { xs: 0, lg: -2 }
+          })}
+        >
+          {!drawerOpen ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </IconButton>
+      </Tooltip>
       {headerContent}
     </Toolbar>
   );

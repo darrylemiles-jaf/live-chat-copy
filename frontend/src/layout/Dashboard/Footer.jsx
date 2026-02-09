@@ -18,7 +18,7 @@ export default function Footer() {
         <Typography variant="h6" color="text.secondary">
           Designed & Developed By
         </Typography>
-        <Link href="https://mui.com/store/terms/" target="_blank" variant="h6" color="#064856">
+        <Link href="https://jafdigital.co/" target="_blank" variant="h6" color="#064856">
           {COMPANY_NAME}
         </Link>
       </Stack>

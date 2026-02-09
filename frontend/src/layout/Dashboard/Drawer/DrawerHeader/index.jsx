@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+import Tooltip from '@mui/material/Tooltip';
+
 // project imports
 import DrawerHeaderStyled from './DrawerHeaderStyled';
 import Logo from 'components/logo';
@@ -21,7 +23,9 @@ export default function DrawerHeader({ open }) {
         
       }}
     >
-      <Logo isIcon={!open} sx={{ width: open ? 'auto' : 35, height: 35 }} />
+      <Tooltip title="Timora Live Chat" disableHoverListener={open}>
+        <Logo isIcon={!open} sx={{ width: open ? 'auto' : 35, height: 35 }} />
+      </Tooltip>
     </DrawerHeaderStyled>
   );
 }
