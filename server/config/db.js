@@ -9,17 +9,6 @@ const connectDB = async () => {
       ? process.env.DB_NAME_LOCAL
       : process.env.DB_NAME;
 
-    const tempConnection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      port: process.env.DB_PORT || 3306
-    });
-
-    await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    console.log(colours.fg.cyan, `Database '${dbName}' checked/created`);
-    await tempConnection.end();
-
     const config = {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
