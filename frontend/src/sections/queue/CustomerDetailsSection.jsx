@@ -28,7 +28,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
     elevation={0}
     sx={{
       height: '100%',
-      borderRadius: '20px',
+      borderRadius: 1,
       border: `1px solid ${palette.divider}`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
@@ -45,7 +45,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         py: 1.5,
         backgroundColor: palette.success.dark,
         color: palette.primary.contrastText,
-        borderRadius: '20px 20px 12px 12px'
+        borderRadius: 1
       }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -101,7 +101,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
       <Box
         sx={{
           mt: 2,
-          borderRadius: '16px',
+          borderRadius: 1,
           border: `1px solid ${palette.divider}`,
           backgroundColor: palette.background.default
         }}
@@ -112,7 +112,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             variant={detailsTab === 'info' ? 'contained' : 'text'}
             onClick={() => setDetailsTab('info')}
             sx={{
-              borderRadius: '10px',
+              borderRadius: 1,
               backgroundColor: detailsTab === 'info' ? palette.primary.main : 'transparent',
               color: detailsTab === 'info' ? palette.primary.contrastText : palette.text.secondary,
               fontWeight: 600,
@@ -126,7 +126,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             variant={detailsTab === 'conversation' ? 'contained' : 'text'}
             onClick={() => setDetailsTab('conversation')}
             sx={{
-              borderRadius: '10px',
+              borderRadius: 1,
               backgroundColor: detailsTab === 'conversation' ? palette.primary.main : 'transparent',
               color: detailsTab === 'conversation' ? palette.primary.contrastText : palette.text.secondary,
               fontWeight: 600,
@@ -208,7 +208,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           disabled={!selected}
           onClick={handleOpenChat}
           sx={{
-            borderRadius: '12px',
+            borderRadius: 1,
             backgroundColor: palette.success.dark,
             fontWeight: 600
           }}
@@ -222,7 +222,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           disabled={!selected}
           onClick={handleResolve}
           sx={{
-            borderRadius: '12px',
+            borderRadius: 1,
             borderColor: withAlpha(palette.primary.main, 0.35),
             color: palette.primary.main,
             fontWeight: 600

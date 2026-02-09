@@ -191,10 +191,10 @@ const Queue = () => {
     <React.Fragment>
       <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
 
-      <Box sx={{ mt: 2, borderRadius: 0, border: `1px solid ${palette.divider}` }}>
+      <Box sx={{ mt: 2, borderRadius: 1, border: `1px solid ${palette.divider}` }}>
         <Paper
           elevation={0}
-          sx={{ position: 'relative', overflow: 'hidden', borderRadius: 0, p: { xs: 2, md: 3 }, boxShadow: 'none' }}
+          sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1, p: { xs: 2, md: 3 }, boxShadow: 'none' }}
         >
           <QueueHeader palette={palette} />
 
@@ -232,7 +232,7 @@ const Queue = () => {
         onClose={handleCloseQueueModal}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { boxShadow: 'none', border: `1px solid ${palette.divider}`, borderRadius: 0 } }}
+        PaperProps={{ sx: { boxShadow: 'none', border: `1px solid ${palette.divider}`, borderRadius: 1 } }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6">All Queue</Typography>
@@ -263,7 +263,7 @@ const Queue = () => {
                       gap: 1.5,
                       px: 1.5,
                       py: 1.2,
-                      borderRadius: 0,
+                      borderRadius: 1,
                       cursor: 'pointer',
                       backgroundColor: isSelected ? withAlpha(palette.primary.lighter, 0.45) : 'transparent',
                       border: isSelected ? `1px solid ${withAlpha(palette.primary.main, 0.2)}` : `1px solid ${palette.divider}`,

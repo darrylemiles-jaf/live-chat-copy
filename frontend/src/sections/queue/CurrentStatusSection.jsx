@@ -8,7 +8,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
     elevation={0}
     sx={{
       height: '100%',
-      borderRadius: '20px',
+      borderRadius: 1,
       border: `1px solid ${palette.divider}`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
@@ -25,7 +25,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
         py: 1.5,
         backgroundColor: palette.success.dark,
         color: palette.primary.contrastText,
-        borderRadius: '20px 20px 12px 12px'
+        borderRadius: 1
       }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -52,7 +52,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
           key={card.id}
           sx={{
             flex: 1,
-            borderRadius: '16px',
+            borderRadius: 1,
             backgroundColor: card.bg,
             border: `1px solid ${card.border}`,
             px: 2,
