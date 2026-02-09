@@ -6,7 +6,13 @@ import DashboardLayout from 'layout/Dashboard';
 import UnderConstruction from '../components/maintenance/UnderConstruction';
 
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
+const Queue = Loadable(lazy(() => import('../pages/portal/queue')));
 const Chats = Loadable(lazy(() => import('../pages/portal/chats')));
+const Tickets = Loadable(lazy(() => import('../pages/portal/tickets')));
+const Customers = Loadable(lazy(() => import('../pages/portal/users/customers')));
+const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
+const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
+
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -22,7 +28,7 @@ const MainRoutes = {
         },
         {
           path: 'queue',
-          element: <UnderConstruction />
+          element: <Queue />
         },
         {
           path: 'chats',
@@ -30,24 +36,24 @@ const MainRoutes = {
         },
         {
           path: 'tickets',
-          element: <UnderConstruction />
+          element: <Tickets />
         },
         {
           path: 'users',
           children: [
             {
               path: 'customers',
-              element: <UnderConstruction />
+              element: <Customers />
             },
             {
               path: 'supports',
-              element: <UnderConstruction />
+              element: <SupportAgents />
             }
           ]
         },
         {
           path: 'notifications',
-          element: <UnderConstruction />
+          element: <Notifications />
         },
       ]
     },
