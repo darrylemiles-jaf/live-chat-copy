@@ -7,7 +7,10 @@ import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import connectDB from './config/db.js';
+import pool from './config/db.js';
+
+import usersRoutes from './routes/usersRoutes.js';
+import tables from './tables/tables.js';
 
 dotenv.config();
 
@@ -29,8 +32,11 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
   res.send('API Gateway is running...');
 });
 
-app.use(errorHandler)
-app.use(notFound)
+/* ============================ ROUTES ============================ */
+app.use(`/api/${API_VERSION}/users`, usersRoutes)
+
+app.use(notFound);
+app.use(errorHandler);
 
 const startServer = async () => {
   try {
@@ -41,13 +47,20 @@ const startServer = async () => {
         colours.reset
       )
     );
-
-    await connectDB();
   } catch (error) {
     console.error(error);
     process.exit(1);
   }
 };
 
+const createTables = async () => {
+  try {
+    await tables(pool);
+  } catch (error) {
+    console.error('Error setting up tables:', error);
+  }
+};
+
 // Invoke Start Application Function
 startServer();
+createTables()
