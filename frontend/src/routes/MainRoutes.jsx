@@ -6,6 +6,7 @@ import DashboardLayout from 'layout/Dashboard';
 import UnderConstruction from '../components/maintenance/UnderConstruction';
 
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
+const Chats = Loadable(lazy(() => import('../pages/portal/chats')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -25,7 +26,7 @@ const MainRoutes = {
         },
         {
           path: 'chats',
-          element: <UnderConstruction />
+          element: <Chats />
         },
         {
           path: 'tickets',

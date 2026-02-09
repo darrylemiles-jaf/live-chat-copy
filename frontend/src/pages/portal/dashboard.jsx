@@ -2,12 +2,16 @@ import { Grid } from '@mui/material';
 import { Forum, TimerSandComplete, AccountCheck } from 'mdi-material-ui';
 
 import React from 'react';
-
 import AnalyticalCard from '../../components/AnalyticalCard';
+import ScrollTop from '../../components/ScrollTop';
+import PageHead from '../../components/PageHead'
 
 const Dashboard = () => {
   return (
     <React.Fragment>
+      <PageHead title='Dashboard' description='Timora Live Chat Overview' />
+      <ScrollTop />
+
       <Grid container spacing={2} size={12} justifyContent="center" alignItems="center">
         <Grid size={{ xs: 12, md: 4 }}>
           <AnalyticalCard icon={<Forum />} title={'Active Chats'} count={12} status={'ongoing'} />
