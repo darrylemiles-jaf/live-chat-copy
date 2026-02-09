@@ -88,6 +88,10 @@ export default function Profile() {
           <Avatar alt="profile user" src={avatar1} size="sm" sx={{ '&:hover': { outline: '1px solid', outlineColor: 'primary.main' } }} />
         </ButtonBase>
       </Tooltip>
+
+      <Box component="span" sx={{ fontWeight: "bold", color: "black" }}>
+      John Doe
+      </Box>
       <Popper
         placement="bottom-end"
         open={open}
