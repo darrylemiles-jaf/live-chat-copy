@@ -9,9 +9,8 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 
 // assets
-import avatar from 'assets/images/users/TIMORA-DIsI-dJm.gif';
+import avatar from 'assets/images/users/timora-robot.gif';
 import AnimateButton from 'components/@extended/AnimateButton';
-import { LogoutOutlined } from '@ant-design/icons';
 
 // ==============================|| DRAWER CONTENT - NAVIGATION CARD ||============================== //
 
