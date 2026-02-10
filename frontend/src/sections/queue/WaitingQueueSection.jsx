@@ -104,16 +104,32 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
               }}
             >
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Avatar
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  variant="dot"
                   sx={{
-                    width: 40,
-                    height: 40,
-                    fontWeight: 700,
-                    bgcolor: getAvatarBg(palette, item)
+                    '& .MuiBadge-badge': {
+                      backgroundColor: item.online ? palette.success.main : palette.grey[400],
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      border: `2px solid ${palette.background.paper}`
+                    }
                   }}
                 >
-                  {getInitials(item.name)}
-                </Avatar>
+                  <Avatar
+                    src={item.avatar}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      fontWeight: 700,
+                      bgcolor: getAvatarBg(palette, item)
+                    }}
+                  >
+                    {getInitials(item.name)}
+                  </Avatar>
+                </Badge>
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {item.name}

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
+  Badge,
   Box,
   Dialog,
   DialogContent,
@@ -30,7 +31,10 @@ const queueItems = [
     name: 'John D.',
     wait: 'Waiting 5 min',
     email: 'johndoe@email.com',
+    lastMessage: 'Messages and calls are secured with end-to-end encryption...',
     priority: 'High',
+    avatar: '/src/assets/images/users/avatar-1.png',
+    online: true,
     orderId: '#12345',
     status: 'Billing Issue',
     issue: 'Problem with the recent billing charge',
@@ -41,7 +45,10 @@ const queueItems = [
     name: 'Emily S.',
     wait: 'Waiting 2 min',
     email: 'emily.s@company.com',
+    lastMessage: 'You: Need help with mobile login reset.',
     priority: 'Medium',
+    avatar: '/src/assets/images/users/avatar-2.png',
+    online: true,
     orderId: '#12346',
     status: 'Account Login',
     issue: 'Unable to reset password on mobile app',
@@ -52,7 +59,10 @@ const queueItems = [
     name: 'Michael T.',
     wait: 'Waiting 8 min',
     email: 'michael.t@email.com',
+    lastMessage: 'Card declined during checkout.',
     priority: 'High',
+    avatar: '/src/assets/images/users/avatar-3.png',
+    online: false,
     orderId: '#12347',
     status: 'Payment Failed',
     issue: 'Card declined at checkout',
@@ -63,7 +73,10 @@ const queueItems = [
     name: 'Sarah L.',
     wait: 'Waiting 3 min',
     email: 'sarah.l@company.com',
+    lastMessage: 'Package still shows delayed status.',
     priority: 'Low',
+    avatar: '/src/assets/images/users/avatar-4.png',
+    online: true,
     orderId: '#12348',
     status: 'Shipping Delay',
     issue: 'Package shows delayed status',
@@ -74,7 +87,10 @@ const queueItems = [
     name: 'David R.',
     wait: 'Waiting 1 min',
     email: 'david.r@email.com',
+    lastMessage: 'Following up on refund timeline.',
     priority: 'Medium',
+    avatar: '/src/assets/images/users/avatar-5.png',
+    online: true,
     orderId: '#12349',
     status: 'Refund Status',
     issue: 'Refund not received after 5 days',
@@ -274,16 +290,32 @@ const Queue = () => {
                     }}
                   >
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Avatar
+                      <Badge
+                        overlap="circular"
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        variant="dot"
                         sx={{
-                          width: 36,
-                          height: 36,
-                          fontWeight: 700,
-                          bgcolor: getAvatarBg(palette, item)
+                          '& .MuiBadge-badge': {
+                            backgroundColor: item.online ? palette.success.main : palette.grey[400],
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            border: `2px solid ${palette.background.paper}`
+                          }
                         }}
                       >
-                        {getInitials(item.name)}
-                      </Avatar>
+                        <Avatar
+                          src={item.avatar}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            fontWeight: 700,
+                            bgcolor: getAvatarBg(palette, item)
+                          }}
+                        >
+                          {getInitials(item.name)}
+                        </Avatar>
+                      </Badge>
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                           {item.name}

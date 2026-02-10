@@ -18,11 +18,11 @@ const QueueHeader = ({ palette }) => (
     }}
   >
     <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 0.2 }}>
-      Queue Message System
+      Queue Message
     </Typography>
     <Stack direction="row" spacing={1.5} alignItems="center">
       <Typography variant="subtitle1" sx={{ color: withAlpha(palette.primary.contrastText, 0.85) }}>
-        Online Agents: 3
+        Available Agents: 3
       </Typography>
       <CheckCircle sx={{ color: palette.success.lighter }} />
     </Stack>
