@@ -6,7 +6,7 @@ import { Gauge } from '@mui/x-charts/Gauge';
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import QueueDialog from '../../components/Dialog';
+import QueueDialog from '../../sections/QueueDialog';
 import MainCard from '../../components/MainCard';
 import ScrollTop from '../../components/ScrollTop';
 import PageHead from '../../components/PageHead';
