@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Paper } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
 import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
@@ -135,6 +136,7 @@ const fakeMessagesData = {
 
 // ============ MAIN COMPONENT ============
 const Chats = () => {
+  const location = useLocation();
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +146,17 @@ const Chats = () => {
     setSelectedChat(chat);
     setCurrentMessages(fakeMessagesData[chat.id] || []);
   };
+
+  // Auto-select chat from navigation state
+  useEffect(() => {
+    if (location.state?.chatId) {
+      const chat = fakeChatList.find(c => c.id === location.state.chatId);
+      if (chat) {
+        handleSelectChat(chat);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const handleBackToList = () => {
     setSelectedChat(null);
