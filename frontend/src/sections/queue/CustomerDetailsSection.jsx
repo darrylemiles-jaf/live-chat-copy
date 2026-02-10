@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { ChatOutline, CheckAll, DotsHorizontal } from 'mdi-material-ui';
 import { withAlpha } from '../../utils/colorUtils';
 
@@ -59,22 +59,38 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
     <Box sx={{ px: 2, py: 2, flex: 1 }}>
       <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar
+          <Badge
+            overlap="circular"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            variant="dot"
             sx={{
-              width: 48,
-              height: 48,
-              fontWeight: 700,
-              bgcolor: selected ? getAvatarBg(palette, selected) : palette.secondary.main
+              '& .MuiBadge-badge': {
+                backgroundColor: selected?.online ? palette.success.main : palette.grey[400],
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                border: `2px solid ${palette.background.paper}`
+              }
             }}
           >
-            {getInitials(selected?.name)}
-          </Avatar>
+            <Avatar
+              src={selected?.avatar}
+              sx={{
+                width: 48,
+                height: 48,
+                fontWeight: 700,
+                bgcolor: selected ? getAvatarBg(palette, selected) : palette.secondary.main
+              }}
+            >
+              {getInitials(selected?.name)}
+            </Avatar>
+          </Badge>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {selected?.name ?? 'Select a customer'}
             </Typography>
             <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-              {selected?.email ?? '—'}
+              {selected?.lastMessage ?? selected?.email ?? '—'}
             </Typography>
           </Box>
         </Stack>
@@ -140,6 +156,12 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         <Box sx={{ px: 2, py: 2 }}>
           {detailsTab === 'info' ? (
             <Stack spacing={1.2}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="subtitle2">Email:</Typography>
+                <Typography variant="subtitle2" sx={{ color: palette.text.secondary }}>
+                  {selected?.email ?? '—'}
+                </Typography>
+              </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="subtitle2">Order ID:</Typography>
                 <Typography variant="subtitle2" sx={{ color: palette.primary.main, fontWeight: 700 }}>
