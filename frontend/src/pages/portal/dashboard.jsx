@@ -18,10 +18,10 @@ const Dashboard = () => {
   const [queueModalOpen, setQueueModalOpen] = useState(false);
   const [agentDrawerOpen, setAgentDrawerOpen] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState(null);
-  
+
   // Mock data - matches chat IDs from chats page
   const recentChats = [
-    { id: 1, name: 'Banine', message: 'Messages and calls are secured with end-to-end encr...', time: '6m', avatar: 'BA' },
+    { id: 1, name: 'Meow', message: 'Messages and calls are secured with end-to-end encr...', time: '6m', avatar: 'BA' },
     { id: 2, name: 'Dave Spencer Sanchez Bacay', message: 'You: san na', time: '6m', avatar: 'DS' },
     { id: 3, name: '"Carry On" Basketball Club', message: 'Kuya Rupert: Kapag puno dun ka naglilista gol...', time: '8m', avatar: 'CO' },
     { id: 4, name: 'Shannon Paul Navarro Giron', message: 'Shannon Paul missed your call', time: '1h', avatar: 'SN' },
@@ -212,8 +212,8 @@ const Dashboard = () => {
               <Typography variant="subtitle2" color="text.secondary">
                 Recent chats
               </Typography>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={() => navigate('/portal/chats')}
                 sx={{ textTransform: 'none', color: '#008E86' }}
               >
@@ -223,11 +223,11 @@ const Dashboard = () => {
             <Divider sx={{ mb: 2 }} />
             <List sx={{ overflow: 'auto', flex: 1, width: '100%' }}>
               {recentChats.slice(0, 3).map((chat) => (
-                <ListItem 
-                  key={chat.id} 
-                  alignItems="flex-start" 
-                  sx={{ 
-                    px: 0, 
+                <ListItem
+                  key={chat.id}
+                  alignItems="flex-start"
+                  sx={{
+                    px: 0,
                     py: 1.5,
                     cursor: 'pointer',
                     '&:hover': {
@@ -237,10 +237,10 @@ const Dashboard = () => {
                   }}
                   onClick={() => navigate('/portal/chats', { state: { chatId: chat.id } })}
                 >
-                  <Avatar 
-                    sx={{ 
-                      bgcolor: '#008E86', 
-                      width: 40, 
+                  <Avatar
+                    sx={{
+                      bgcolor: '#008E86',
+                      width: 40,
                       height: 40,
                       mr: 2,
                       flexShrink: 0
@@ -252,7 +252,7 @@ const Dashboard = () => {
                     primary={chat.name}
                     secondary={chat.message}
                     primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                    secondaryTypographyProps={{ 
+                    secondaryTypographyProps={{
                       variant: 'caption',
                       sx: {
                         overflow: 'hidden',
@@ -278,8 +278,8 @@ const Dashboard = () => {
               <Typography variant="subtitle2" color="text.secondary">
                 Queue
               </Typography>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={() => setQueueModalOpen(true)}
                 sx={{ textTransform: 'none', color: '#008E86' }}
               >
@@ -298,10 +298,10 @@ const Dashboard = () => {
             <List sx={{ overflow: 'auto', flex: 1 }}>
               {queueData.slice(0, 4).map((item, index) => (
                 <ListItem key={index} alignItems="flex-start" sx={{ px: 0, py: 1.5 }}>
-                  <Box 
-                    sx={{ 
-                      bgcolor: '#9FBCBF', 
-                      color: '#1A3A3C', 
+                  <Box
+                    sx={{
+                      bgcolor: '#9FBCBF',
+                      color: '#1A3A3C',
                       borderRadius: '50%',
                       width: 32,
                       height: 32,
@@ -334,8 +334,8 @@ const Dashboard = () => {
               <Typography variant="subtitle2" color="text.secondary">
                 Agent status
               </Typography>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={() => setAgentDrawerOpen(true)}
                 sx={{ textTransform: 'none', color: '#008E86' }}
               >
@@ -366,8 +366,8 @@ const Dashboard = () => {
                               flexShrink: 0
                             }}
                           />
-                          <Typography 
-                            variant="body2" 
+                          <Typography
+                            variant="body2"
                             color="text.secondary"
                             sx={{ textTransform: 'capitalize' }}
                           >
@@ -415,10 +415,10 @@ const Dashboard = () => {
           <List sx={{ overflow: 'auto', p: 2.5, flex: 1 }}>
             {agentStatus.map((agent, index) => (
               <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
-                <Avatar 
-                  sx={{ 
-                    bgcolor: '#008E86', 
-                    width: 40, 
+                <Avatar
+                  sx={{
+                    bgcolor: '#008E86',
+                    width: 40,
                     height: 40,
                     mr: 2,
                     flexShrink: 0
@@ -440,8 +440,8 @@ const Dashboard = () => {
                       flexShrink: 0
                     }}
                   />
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{ textTransform: 'capitalize' }}
                   >
