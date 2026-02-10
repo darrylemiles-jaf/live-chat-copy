@@ -75,6 +75,11 @@ const createMessage = async (payload) => {
             `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
             [sender_id, usedChatId]
           );
+          // Update agent status to busy
+          await pool.query(
+            `UPDATE users SET status = 'busy' WHERE id = ?`,
+            [sender_id]
+          );
         } else {
           throw new Error('No available chats in queue to respond to');
         }
@@ -89,6 +94,11 @@ const createMessage = async (payload) => {
           await pool.query(
             `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
             [sender_id, chat_id]
+          );
+          // Update agent status to busy
+          await pool.query(
+            `UPDATE users SET status = 'busy' WHERE id = ?`,
+            [sender_id]
           );
         }
       }

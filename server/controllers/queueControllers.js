@@ -15,6 +15,21 @@ const getQueue = expressAsync(async (req, res) => {
   }
 });
 
+const getAvailableAgents = expressAsync(async (req, res) => {
+  try {
+    const agents = await queueServices.getAvailableAgents();
+    res.status(200).json({
+      success: true,
+      count: agents.length,
+      data: agents
+    });
+  } catch (error) {
+    console.error(`Error Occured: ` + error.message);
+    throw new Error(error.message);
+  }
+});
+
 export {
-  getQueue
+  getQueue,
+  getAvailableAgents
 }

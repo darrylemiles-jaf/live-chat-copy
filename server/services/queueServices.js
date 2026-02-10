@@ -41,6 +41,23 @@ const getQueue = async (query = {}) => {
   }
 }
 
+const getAvailableAgents = async () => {
+  try {
+    const [agents] = await pool.query(
+      `SELECT id, name, username, email, role, status 
+       FROM users 
+       WHERE role IN ('support_agent', 'admin') 
+       AND status = 'available'
+       ORDER BY name ASC`
+    );
+
+    return agents;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 export default {
-  getQueue
+  getQueue,
+  getAvailableAgents
 }
