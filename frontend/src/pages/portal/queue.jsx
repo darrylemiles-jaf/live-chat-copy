@@ -200,17 +200,7 @@ const Queue = () => {
           <QueueHeader palette={palette} />
 
           <Grid container spacing={2.5} size={12} alignItems="stretch" sx={{ width: '100%' }}>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <WaitingQueueSection
-                palette={palette}
-                queue={queue}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-                onViewMore={handleViewMore}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 3.5 }}>
               <CustomerDetailsSection
                 palette={palette}
                 selected={selected}
@@ -220,8 +210,17 @@ const Queue = () => {
                 handleResolve={handleResolve}
               />
             </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <WaitingQueueSection
+                palette={palette}
+                queue={queue}
+                selectedId={selectedId}
+                setSelectedId={setSelectedId}
+                onViewMore={handleViewMore}
+              />
+            </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 2.5 }}>
               <CurrentStatusSection palette={palette} statusCards={statusCards} />
             </Grid>
           </Grid>
