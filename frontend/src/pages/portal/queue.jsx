@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { withAlpha } from '../../utils/colorUtils';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
-import QueueDialog from '../../sections/QueueDialog';
+import QueueDialog from '../../sections/queue/QueueDialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
 import WaitingQueueSection from '../../sections/queue/WaitingQueueSection';
 import CustomerDetailsSection from '../../sections/queue/CustomerDetailsSection';
