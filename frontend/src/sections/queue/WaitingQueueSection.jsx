@@ -28,7 +28,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid #064856`,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -123,6 +123,9 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {item.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: palette.text.secondary }}>
+                    {item.lastMessage ?? item.email}
                   </Typography>
                 </Box>
               </Stack>

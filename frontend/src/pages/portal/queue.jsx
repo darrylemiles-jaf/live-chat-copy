@@ -1,23 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Avatar,
-  Badge,
-  Box,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  IconButton,
-  Paper,
-  Stack,
-  Typography
-} from '@mui/material';
+import { Box, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { Close } from 'mdi-material-ui';
 
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import { withAlpha } from '../../utils/colorUtils';
+import Breadcrumbs from '../../components/@extended/Breadcrumbs';
+import QueueDialog from '../../components/Dialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
 import WaitingQueueSection from '../../sections/queue/WaitingQueueSection';
 import CustomerDetailsSection from '../../sections/queue/CustomerDetailsSection';
@@ -36,7 +24,7 @@ const queueItems = [
     avatar: '/src/assets/images/users/avatar-1.png',
     online: true,
     orderId: '#12345',
-    status: 'Billing Issue',
+    status: 'In Queue',
     issue: 'Problem with the recent billing charge',
     notes: 'Customer has been waiting 5 minutes.'
   },
@@ -50,7 +38,7 @@ const queueItems = [
     avatar: '/src/assets/images/users/avatar-2.png',
     online: true,
     orderId: '#12346',
-    status: 'Account Login',
+    status: 'In Queue',
     issue: 'Unable to reset password on mobile app',
     notes: 'Customer tried reset twice.'
   },
@@ -64,7 +52,7 @@ const queueItems = [
     avatar: '/src/assets/images/users/avatar-3.png',
     online: false,
     orderId: '#12347',
-    status: 'Payment Failed',
+    status: 'In Queue',
     issue: 'Card declined at checkout',
     notes: 'Needs manual verification.'
   },
@@ -78,7 +66,7 @@ const queueItems = [
     avatar: '/src/assets/images/users/avatar-4.png',
     online: true,
     orderId: '#12348',
-    status: 'Shipping Delay',
+    status: 'In Queue',
     issue: 'Package shows delayed status',
     notes: 'Requested updated ETA.'
   },
@@ -92,7 +80,7 @@ const queueItems = [
     avatar: '/src/assets/images/users/avatar-5.png',
     online: true,
     orderId: '#12349',
-    status: 'Refund Status',
+    status: 'In Queue',
     issue: 'Refund not received after 5 days',
     notes: 'Asked for refund timeline.'
   }
@@ -208,10 +196,7 @@ const Queue = () => {
       <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
 
       <Box sx={{ mt: 2, borderRadius: 1, border: `1px solid ${palette.divider}` }}>
-        <Paper
-          elevation={0}
-          sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1, p: { xs: 2, md: 3 }, boxShadow: 'none' }}
-        >
+        <Paper elevation={0} sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1, p: { xs: 2, md: 3 }, boxShadow: 'none' }}>
           <QueueHeader palette={palette} />
 
           <Grid container spacing={2.5} size={12} alignItems="stretch" sx={{ width: '100%' }}>
@@ -243,98 +228,17 @@ const Queue = () => {
         </Paper>
       </Box>
 
-      <Dialog
+      <QueueDialog
         open={isQueueModalOpen}
         onClose={handleCloseQueueModal}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { boxShadow: 'none', border: `1px solid ${palette.divider}`, borderRadius: 1 } }}
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">All Queue</Typography>
-          <IconButton onClick={handleCloseQueueModal} size="small">
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 2 }}>
-          <Stack spacing={1.25}>
-            {queue.length === 0 ? (
-              <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                No customers in queue.
-              </Typography>
-            ) : (
-              queue.map((item) => {
-                const isSelected = item.id === selectedId;
-                return (
-                  <Box
-                    key={item.id}
-                    onClick={() => {
-                      setSelectedId(item.id);
-                      handleCloseQueueModal();
-                    }}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 1.5,
-                      px: 1.5,
-                      py: 1.2,
-                      borderRadius: 1,
-                      cursor: 'pointer',
-                      backgroundColor: isSelected ? withAlpha(palette.primary.lighter, 0.45) : 'transparent',
-                      border: isSelected ? `1px solid ${withAlpha(palette.primary.main, 0.2)}` : `1px solid ${palette.divider}`,
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: withAlpha(palette.primary.lighter, 0.35)
-                      }
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Badge
-                        overlap="circular"
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        variant="dot"
-                        sx={{
-                          '& .MuiBadge-badge': {
-                            backgroundColor: item.online ? palette.success.main : palette.grey[400],
-                            width: 10,
-                            height: 10,
-                            borderRadius: '50%',
-                            border: `2px solid ${palette.background.paper}`
-                          }
-                        }}
-                      >
-                        <Avatar
-                          src={item.avatar}
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            fontWeight: 700,
-                            bgcolor: getAvatarBg(palette, item)
-                          }}
-                        >
-                          {getInitials(item.name)}
-                        </Avatar>
-                      </Badge>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                          {item.name}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-                          {item.email}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                    <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-                      {item.wait}
-                    </Typography>
-                  </Box>
-                );
-              })
-            )}
-          </Stack>
-        </DialogContent>
-      </Dialog>
+        queue={queue}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        palette={palette}
+        withAlpha={withAlpha}
+        getAvatarBg={getAvatarBg}
+        getInitials={getInitials}
+      />
     </React.Fragment>
   );
 };
