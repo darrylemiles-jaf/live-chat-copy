@@ -25,12 +25,12 @@ export default function Default(colors) {
 
   return {
     primary: {
-      lighter: blue[0],
+      lighter: '#E0F0F1',
       100: blue[1],
       200: blue[2],
       light: blue[3],
       400: blue[4],
-      main: blue[5],
+      main: '#245665',
       dark: blue[6],
       700: blue[7],
       darker: blue[8],
