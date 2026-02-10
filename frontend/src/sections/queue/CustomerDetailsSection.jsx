@@ -93,9 +93,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         </Typography>
       </Stack>
 
-     
-      
-
       <Box
         sx={{
           mt: 2,
@@ -145,7 +142,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="subtitle2">Order ID:</Typography>
+                <Typography variant="subtitle2">ID:</Typography>
                 <Typography variant="subtitle2" sx={{ color: palette.primary.main, fontWeight: 700 }}>
                   {selected?.orderId ?? '—'}
                 </Typography>
@@ -163,22 +160,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                 />
               </Stack>
               <Divider />
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Issue Details:
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                  {selected?.issue ?? '—'}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Notes:
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                  {selected?.notes ?? '—'}
-                </Typography>
-              </Box>
             </Stack>
           ) : (
             <Stack spacing={1.25}>
