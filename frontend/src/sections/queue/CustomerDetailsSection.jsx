@@ -1,6 +1,5 @@
 import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { ChatOutline, CheckAll, DotsHorizontal } from 'mdi-material-ui';
-import { withAlpha } from '../../utils/colorUtils';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -28,7 +27,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid #064856`,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -87,9 +86,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {selected?.name ?? 'Select a customer'}
             </Typography>
-            <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-              {selected?.lastMessage ?? selected?.email ?? '—'}
-            </Typography>
           </Box>
         </Stack>
         <Typography variant="body2" sx={{ color: palette.text.secondary }}>
@@ -97,20 +93,8 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         </Typography>
       </Stack>
 
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 2 }}>
-        <Typography variant="subtitle2" sx={{ color: palette.text.secondary }}>
-          Priority:
-        </Typography>
-        <Chip
-          label={selected?.priority ?? '—'}
-          size="small"
-          sx={{
-            fontWeight: 700,
-            color: palette.common.white,
-            backgroundColor: selected?.priority === 'High' ? palette.error.main : palette.warning.main
-          }}
-        />
-      </Stack>
+     
+      
 
       <Box
         sx={{
@@ -200,9 +184,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             <Stack spacing={1.25}>
               <Typography variant="subtitle2">Conversation</Typography>
               <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                {selected
-                  ? 'Conversation preview is not connected yet. Use Open Chat to continue.'
-                  : 'Select a customer to view their conversation.'}
+                {selected?.lastMessage ?? 'No conversation history available.'}
               </Typography>
               <Divider />
               <Stack spacing={0.75}>
