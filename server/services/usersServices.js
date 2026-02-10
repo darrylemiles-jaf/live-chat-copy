@@ -27,7 +27,13 @@ const getUsers = async (query = {}) => {
     const total = countRows[0].count;
 
     const [users] = await pool.query(
-      `SELECT * FROM users ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT 
+      id,
+      username,
+      email,
+      name,
+      role
+      FROM users ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...values, limit, offset]
     );
 
