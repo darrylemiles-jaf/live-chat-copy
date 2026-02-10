@@ -44,14 +44,15 @@ const createMessage = async (payload) => {
     // If no chat_id provided, find or create a chat
     if (!chat_id) {
       if (sender_role === 'client') {
-        // Client: Find their active chat or create a new one with agent_id null
-        const [activeChats] = await pool.query(
-          `SELECT * FROM chats WHERE client_id = ? AND status IN ('queued', 'active')`, [sender_id]
+        // Client: Can only have ONE active or queued chat at a time
+        const [existingChat] = await pool.query(
+          `SELECT * FROM chats WHERE client_id = ? AND status IN ('queued', 'active') LIMIT 1`,
+          [sender_id]
         );
 
-        if (activeChats.length > 0) {
-          // Reuse existing chat
-          usedChatId = activeChats[0].id;
+        if (existingChat.length > 0) {
+          // Reuse existing chat - client can only have one
+          usedChatId = existingChat[0].id;
         } else {
           // Create new chat with agent_id null (queued for agent assignment)
           const [chatResult] = await pool.query(
@@ -61,29 +62,21 @@ const createMessage = async (payload) => {
           usedChatId = chatResult.insertId;
         }
       } else {
-        // Agent/Admin: Find a queued chat to respond to or their active chat
-        const [activeChats] = await pool.query(
-          `SELECT * FROM chats WHERE agent_id = ? AND status = 'active'`, [sender_id]
+        // Agent/Admin: Can handle MULTIPLE active chats
+        // When agent sends message without chat_id, pick oldest queued chat
+        const [queuedChats] = await pool.query(
+          `SELECT * FROM chats WHERE agent_id IS NULL AND status = 'queued' ORDER BY created_at ASC LIMIT 1`
         );
 
-        if (activeChats.length > 0) {
-          usedChatId = activeChats[0].id;
-        } else {
-          // Find a queued chat without an agent and assign this agent
-          const [queuedChats] = await pool.query(
-            `SELECT * FROM chats WHERE agent_id IS NULL AND status = 'queued' ORDER BY created_at ASC LIMIT 1`
+        if (queuedChats.length > 0) {
+          usedChatId = queuedChats[0].id;
+          // Assign agent and activate chat
+          await pool.query(
+            `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
+            [sender_id, usedChatId]
           );
-
-          if (queuedChats.length > 0) {
-            usedChatId = queuedChats[0].id;
-            // Assign agent and activate chat
-            await pool.query(
-              `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
-              [sender_id, usedChatId]
-            );
-          } else {
-            throw new Error('No available chats to respond to');
-          }
+        } else {
+          throw new Error('No available chats in queue to respond to');
         }
       }
     } else {
