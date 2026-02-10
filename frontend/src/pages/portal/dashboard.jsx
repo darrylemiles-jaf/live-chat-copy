@@ -1,17 +1,23 @@
 import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import QueueDialog from '../../sections/queue/QueueDialog';
 import MainCard from '../../components/MainCard';
 import ScrollTop from '../../components/ScrollTop';
 import PageHead from '../../components/PageHead';
+import { withAlpha } from '../../utils/colorUtils';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const palette = theme.vars?.palette ?? theme.palette;
   const [queueModalOpen, setQueueModalOpen] = useState(false);
   const [agentDrawerOpen, setAgentDrawerOpen] = useState(false);
+  const [selectedQueueId, setSelectedQueueId] = useState(null);
   
   // Mock data - matches chat IDs from chats page
   const recentChats = [
@@ -24,15 +30,122 @@ const Dashboard = () => {
   ];
 
   const queueData = [
-    { name: 'Sarah Johnson', waitTime: '2m 15s', topic: 'Technical Support' },
-    { name: 'Michael Chen', waitTime: '4m 30s', topic: 'Billing Question' },
-    { name: 'Emily Rodriguez', waitTime: '5m 45s', topic: 'Product Inquiry' },
-    { name: 'David Kim', waitTime: '7m 20s', topic: 'Account Issue' },
-    { name: 'Jessica Martinez', waitTime: '8m 10s', topic: 'General Support' },
-    { name: 'James Wilson', waitTime: '9m 30s', topic: 'Technical Support' },
-    { name: 'Lisa Anderson', waitTime: '11m 05s', topic: 'Refund Request' },
-    { name: 'Robert Taylor', waitTime: '12m 40s', topic: 'Product Inquiry' }
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      email: 'sarah.j@email.com',
+      lastMessage: 'Waiting for an agent response.',
+      waitTime: '2m 15s',
+      wait: '2m 15s',
+      topic: 'Technical Support',
+      priority: 'High',
+      avatar: '/src/assets/images/users/avatar-1.png',
+      online: true
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      email: 'michael.c@email.com',
+      lastMessage: 'Billing question about last invoice.',
+      waitTime: '4m 30s',
+      wait: '4m 30s',
+      topic: 'Billing Question',
+      priority: 'Medium',
+      avatar: '/src/assets/images/users/avatar-2.png',
+      online: true
+    },
+    {
+      id: 3,
+      name: 'Emily Rodriguez',
+      email: 'emily.r@email.com',
+      lastMessage: 'Asking about product availability.',
+      waitTime: '5m 45s',
+      wait: '5m 45s',
+      topic: 'Product Inquiry',
+      priority: 'Low',
+      avatar: '/src/assets/images/users/avatar-3.png',
+      online: false
+    },
+    {
+      id: 4,
+      name: 'David Kim',
+      email: 'david.k@email.com',
+      lastMessage: 'Account access issue on login.',
+      waitTime: '7m 20s',
+      wait: '7m 20s',
+      topic: 'Account Issue',
+      priority: 'High',
+      avatar: '/src/assets/images/users/avatar-4.png',
+      online: true
+    },
+    {
+      id: 5,
+      name: 'Jessica Martinez',
+      email: 'jessica.m@email.com',
+      lastMessage: 'General support request.',
+      waitTime: '8m 10s',
+      wait: '8m 10s',
+      topic: 'General Support',
+      priority: 'Medium',
+      avatar: '/src/assets/images/users/avatar-5.png',
+      online: true
+    },
+    {
+      id: 6,
+      name: 'James Wilson',
+      email: 'james.w@email.com',
+      lastMessage: 'Technical support needed.',
+      waitTime: '9m 30s',
+      wait: '9m 30s',
+      topic: 'Technical Support',
+      priority: 'High',
+      avatar: '/src/assets/images/users/avatar-6.png',
+      online: false
+    },
+    {
+      id: 7,
+      name: 'Lisa Anderson',
+      email: 'lisa.a@email.com',
+      lastMessage: 'Refund request update.',
+      waitTime: '11m 05s',
+      wait: '11m 05s',
+      topic: 'Refund Request',
+      priority: 'Medium',
+      avatar: '/src/assets/images/users/avatar-7.png',
+      online: true
+    },
+    {
+      id: 8,
+      name: 'Robert Taylor',
+      email: 'robert.t@email.com',
+      lastMessage: 'Product inquiry details.',
+      waitTime: '12m 40s',
+      wait: '12m 40s',
+      topic: 'Product Inquiry',
+      priority: 'Low',
+      avatar: '/src/assets/images/users/avatar-8.png',
+      online: false
+    }
   ];
+
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name
+      .replace(/\./g, '')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0].toUpperCase())
+      .join('');
+  };
+
+  const getAvatarBg = (palette, item) => {
+    if (!palette) return undefined;
+    if (item?.priority === 'High') return palette.error.main;
+    if (item?.priority === 'Medium') return palette.warning.main;
+    if (item?.priority === 'Low') return palette.success.main;
+    return palette.primary.main;
+  };
 
   const agentStatus = [
     { name: 'Ash Monk', status: 'available', avatar: 'AM' },
@@ -272,65 +385,17 @@ const Dashboard = () => {
       </Grid>
 
       {/* Queue Modal */}
-      <Modal
+      <QueueDialog
         open={queueModalOpen}
         onClose={() => setQueueModalOpen(false)}
-        aria-labelledby="queue-modal-title"
-      >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: { xs: '90%', sm: 600 },
-          maxHeight: '80vh',
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          boxShadow: 24,
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <Box sx={{ p: 2.5, bgcolor: '#064856', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
-            <Typography id="queue-modal-title" variant="h6" component="h2" color="inherit">
-              Queue
-            </Typography>
-            <IconButton onClick={() => setQueueModalOpen(false)} size="small" sx={{ color: 'white' }}>
-              <Close />
-            </IconButton>
-          </Box>
-          <List sx={{ overflow: 'auto', p: 2.5 }}>
-            {queueData.map((item, index) => (
-              <ListItem key={index} alignItems="flex-start" sx={{ px: 0, py: 1.5 }}>
-                <Box 
-                  sx={{ 
-                    bgcolor: '#9FBCBF', 
-                    color: '#1A3A3C', 
-                    borderRadius: '50%',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 2,
-                    flexShrink: 0
-                  }}
-                >
-                  <Typography variant="body2" fontWeight={600} color="inherit">
-                    {index + 1}
-                  </Typography>
-                </Box>
-                <ListItemText
-                  primary={item.name}
-                  secondary={`${item.waitTime} • ${item.topic}`}
-                  primaryTypographyProps={{ variant: 'body2' }}
-                  secondaryTypographyProps={{ variant: 'caption' }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Modal>
+        queue={queueData}
+        selectedId={selectedQueueId}
+        onSelect={setSelectedQueueId}
+        palette={palette}
+        withAlpha={withAlpha}
+        getAvatarBg={getAvatarBg}
+        getInitials={getInitials}
+      />
 
       {/* Agent Status Drawer */}
       <Drawer

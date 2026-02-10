@@ -7,7 +7,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid #064856`,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       boxShadow: 'none',
       display: 'flex',
       flexDirection: 'column'
