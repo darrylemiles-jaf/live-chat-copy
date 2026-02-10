@@ -46,7 +46,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         borderRadius: 1
       }}
     >
-      <Typography variant="subtitle1" color='#000'>
+      <Typography variant="subtitle1" color="#000">
         Customer Details
       </Typography>
       <IconButton size="small" sx={{ color: '#000000' }}>
@@ -234,21 +234,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           }}
         >
           Open Chat
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<CheckAll />}
-          disabled={!selected}
-          onClick={handleResolve}
-          sx={{
-            borderRadius: 1,
-            borderColor: '#064856',
-            color: '#064856',
-            fontWeight: 600
-          }}
-        >
-          Mark as Resolved
         </Button>
       </Stack>
     </Box>
