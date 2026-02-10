@@ -7,6 +7,7 @@ import { withAlpha } from '../../utils/colorUtils';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
+import HistoryQueueSection from '../../sections/queue/HistoryQueueSection';
 import WaitingQueueSection from '../../sections/queue/WaitingQueueSection';
 import CustomerDetailsSection from '../../sections/queue/CustomerDetailsSection';
 import CurrentStatusSection from '../../sections/queue/CurrentStatusSection';
@@ -85,6 +86,12 @@ const queueItems = [
     notes: 'Asked for refund timeline.'
   }
 ];
+
+const historyQueueItems = queueItems.map((item) => ({
+  ...item,
+  wait: 'Done',
+  status: 'Done'
+}));
 
 const INITIAL_ACTIVE_CHATS = 3;
 const INITIAL_RESOLVED_TODAY = 12;
@@ -222,6 +229,9 @@ const Queue = () => {
 
             <Grid size={{ xs: 12, md: 2.5 }}>
               <CurrentStatusSection palette={palette} statusCards={statusCards} />
+            </Grid>
+            <Grid size={12}>
+              <HistoryQueueSection palette={palette} history={historyQueueItems} />
             </Grid>
           </Grid>
         </Paper>
