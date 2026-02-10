@@ -1,7 +1,5 @@
-import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { CheckCircle } from 'mdi-material-ui';
-import { withAlpha } from '../../utils/colorUtils';
 
 const QueueHeader = ({ palette }) => (
   <Box
@@ -9,22 +7,17 @@ const QueueHeader = ({ palette }) => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: palette.success.dark,
       borderRadius: 1,
-      color: palette.primary.contrastText,
       px: { xs: 2, md: 3 },
       py: 1.5,
       mb: 3
     }}
   >
-    <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 0.2 }}>
-      Queue Message
-    </Typography>
     <Stack direction="row" spacing={1.5} alignItems="center">
-      <Typography variant="subtitle1" sx={{ color: withAlpha(palette.primary.contrastText, 0.85) }}>
+      <Typography variant="subtitle1" sx={{ color: '#000000' }}>
         Available Agents: 3
       </Typography>
-      <CheckCircle sx={{ color: palette.success.lighter }} />
+      <CheckCircle sx={{ color: '#00A99D' }} />
     </Stack>
   </Box>
 );

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { ChatOutline, CheckAll, DotsHorizontal } from 'mdi-material-ui';
 import { withAlpha } from '../../utils/colorUtils';
@@ -29,7 +28,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid ${palette.divider}`,
+      border: `1px solid #064856`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -43,15 +42,14 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         justifyContent: 'space-between',
         px: 2,
         py: 1.5,
-        backgroundColor: palette.success.dark,
         color: palette.primary.contrastText,
         borderRadius: 1
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Typography variant="subtitle1" color='#000'>
         Customer Details
       </Typography>
-      <IconButton size="small" sx={{ color: withAlpha(palette.primary.contrastText, 0.9) }}>
+      <IconButton size="small" sx={{ color: '#000000' }}>
         <DotsHorizontal />
       </IconButton>
     </Box>
@@ -245,8 +243,8 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           onClick={handleResolve}
           sx={{
             borderRadius: 1,
-            borderColor: withAlpha(palette.primary.main, 0.35),
-            color: palette.primary.main,
+            borderColor: '#064856',
+            color: '#064856',
             fontWeight: 600
           }}
         >
