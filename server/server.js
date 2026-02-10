@@ -8,9 +8,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import pool from './config/db.js';
-
-import usersRoutes from './routes/usersRoutes.js';
 import tables from './tables/tables.js';
+
+/* ============================ ROUTE IMPORTS ============================ */
+import usersRoutes from './routes/usersRoutes.js';
+import messagesRoutes from './routes/messagesRoutes.js';
 
 dotenv.config();
 
@@ -34,6 +36,7 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
 
 /* ============================ ROUTES ============================ */
 app.use(`/api/${API_VERSION}/users`, usersRoutes)
+app.use(`/api/${API_VERSION}/messages`, messagesRoutes)
 
 app.use(notFound);
 app.use(errorHandler);
