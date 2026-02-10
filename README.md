@@ -1,46 +1,63 @@
 Live Chat
 
-Lightweight React + MUI frontend for a live-chat application (based on Mantis Material React).
+Full-stack live-chat application with a React + MUI frontend and a Node.js/Express backend (based on Mantis Material React).
 
 ## Overview
 
-This repository contains the frontend for a live-chat application using React, Vite, and Material UI. It includes a customizable theme system located under `frontend/src/themes` to adapt colors and palettes.
+This repository contains both the frontend (React, Vite, Material UI) and the backend (Node.js, Express, SQLite) for a live-chat application. The frontend features a customizable theme system under `frontend/src/themes`. The backend provides REST APIs and manages users, chats, tickets, and messages.
 
 ## Features
+
+### Frontend
 
 - React 19 + Vite
 - Material UI theming and overrides
 - Theme palettes and utilities in `frontend/src/themes`
 - Example auth and dashboard pages
 
+### Server
+
+- Node.js + Express backend
+- SQLite database (via `server/config/db.js`)
+- REST API for users, chats, tickets, and messages
+- Modular structure: controllers, services, routes, middlewares
+
 ## Prerequisites
 
 - Node.js (recommended v18+)
 - npm (bundled with Node.js)
 
-## Quick Start (frontend)
+## Quick Start
 
-1. Install dependencies
+### 1. Frontend
 
 ```bash
 cd frontend
 npm install
+npm run start # start dev server
 ```
 
-2. Run development server
+Other scripts:
+
+- `npm run build` — production build
+- `npm run preview` — preview production build
+- `npm run lint` — run ESLint
+- `npm run lint:fix` — fix lint issues
+- `npm run prettier` — format source files
+
+### 2. Server
 
 ```bash
-npm run start
+cd server
+npm install
+npm run start # start backend server
 ```
 
-3. Build for production
-
-```bash
-npm run build
-npm run preview
-```
+The server runs on the port specified in `server.js` (default: 5000). It uses SQLite for storage (see `server/config/db.js`).
 
 ## Useful Scripts
+
+### Frontend
 
 - `npm run start` — run dev server (Vite)
 - `npm run build` — production build
@@ -49,7 +66,11 @@ npm run preview
 - `npm run lint:fix` — fix lint issues
 - `npm run prettier` — format source files
 
-## Theme & Colors
+### Server
+
+- `npm run start` — start backend server
+
+## Theme & Colors (Frontend)
 
 Theme configuration lives in `frontend/src/themes`.
 
@@ -74,6 +95,13 @@ Suggested color highlights used in the theme:
   - `src/` — app source files
     - `themes/` — theme, palettes, overrides
     - `components/`, `pages/`, `layout/` — UI structure
+- `server/` — Node.js backend
+  - `config/` — database config
+  - `controllers/` — request handlers
+  - `middlewares/` — Express middlewares
+  - `routes/` — API endpoints
+  - `services/` — business logic
+  - `tables/` — SQLite table definitions
 
 ## Contributing
 
