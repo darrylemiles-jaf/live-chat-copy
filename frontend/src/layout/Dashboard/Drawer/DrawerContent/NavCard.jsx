@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 
 // assets
-import avatar from 'assets/images/users/avatar-group.png';
+import avatar from 'assets/images/users/TIMORA-DIsI-dJm.gif';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { LogoutOutlined } from '@ant-design/icons';
 
