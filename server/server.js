@@ -13,6 +13,7 @@ import tables from './tables/tables.js';
 /* ============================ ROUTE IMPORTS ============================ */
 import usersRoutes from './routes/usersRoutes.js';
 import messagesRoutes from './routes/messagesRoutes.js';
+import chatsRoutes from './routes/chatsRoutes.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
 /* ============================ ROUTES ============================ */
 app.use(`/api/${API_VERSION}/users`, usersRoutes)
 app.use(`/api/${API_VERSION}/messages`, messagesRoutes)
+app.use(`/api/${API_VERSION}/chats`, chatsRoutes)
 
 app.use(notFound);
 app.use(errorHandler);

@@ -10,11 +10,6 @@ export const createMessageSchema = {
     type: 'number',
     min: 1
   },
-  sender_role: {
-    required: true,
-    type: 'string',
-    enum: ['client', 'support_agent', 'admin']
-  },
   message: {
     required: true,
     type: 'string',
