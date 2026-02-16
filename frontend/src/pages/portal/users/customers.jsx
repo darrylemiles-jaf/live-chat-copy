@@ -126,23 +126,31 @@ const Customers = () => {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                backgroundColor: '#e3f2fd',
+                backgroundColor: '#E6F7F6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: '#1976d2',
+                color: '#008E86',
                 fontSize: '16px'
               }}
             >
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                {row.name}
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600,
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                ID: {row.id}
               </Typography>
               <Typography variant="subtitle2" color="initial">
-                {row.id}
+                {row.name}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 {row.email}
@@ -219,11 +227,6 @@ const Customers = () => {
           <Button onClick={handleCloseModal} color="inherit">
             {modalMode === 'view' ? 'Close' : 'Cancel'}
           </Button>
-          {modalMode === 'view' && (
-            <Button onClick={() => setModalMode('edit')} variant="contained" color="primary">
-              Edit
-            </Button>
-          )}
           {modalMode !== 'view' && (
             <Button onClick={handleSave} variant="contained" color="primary">
               {modalMode === 'create' ? 'Create Customer' : 'Save Changes'}
