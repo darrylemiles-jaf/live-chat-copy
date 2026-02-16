@@ -46,7 +46,35 @@ const Tickets = () => {
     {
       id: 'TCK-1001',
       subject: 'Login issue on mobile',
-      description: 'Users cannot log in on Android after the latest release.',
+      description: `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p>Users cannot log in on Android after the latest release.</p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`,
       priority: 'High',
       status: 'Open',
       assignee: 'Amira Hassan',
@@ -57,7 +85,35 @@ const Tickets = () => {
     {
       id: 'TCK-1002',
       subject: 'Billing email not received',
-      description: 'Customer reports missing invoice email and needs a resend.',
+      description: `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p>Customer reports missing invoice email and needs a resend.</p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`,
       priority: 'Medium',
       status: 'Pending',
       assignee: 'Jonas Cole',
@@ -68,7 +124,35 @@ const Tickets = () => {
     {
       id: 'TCK-1003',
       subject: 'Chat widget slow to load',
-      description: 'Chat widget takes over 5 seconds to load on first visit.',
+      description: `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p>Chat widget takes over 5 seconds to load on first visit.</p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`,
       priority: 'Low',
       status: 'Resolved',
       assignee: 'Priya Singh',
@@ -79,7 +163,35 @@ const Tickets = () => {
     {
       id: 'TCK-1004',
       subject: 'Cannot export transcripts',
-      description: 'Export transcripts feature returns error',
+      description: `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p>Export transcripts feature returns error</p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`,
       priority: 'High',
       status: 'Open',
       assignee: 'Mason Ortiz',
@@ -90,7 +202,35 @@ const Tickets = () => {
     {
       id: 'TCK-1005',
       subject: 'Notifications not syncing',
-      description: 'Notifications not appearing across devices',
+      description: `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p>Notifications not appearing across devices</p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`,
       priority: 'Medium',
       status: 'In Progress',
       assignee: 'Lina Park',
@@ -112,11 +252,40 @@ const Tickets = () => {
   };
 
   const handleCreateClick = () => {
+    const emptyDescription = `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+<p></p>
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`;
     setSelectedTicket(null);
     setFormData({
       id: '',
       subject: '',
-      description: '',
+      description: emptyDescription,
       priority: 'Medium',
       status: 'Open',
       assignee: '',
