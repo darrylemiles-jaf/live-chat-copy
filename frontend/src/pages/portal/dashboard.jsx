@@ -4,7 +4,7 @@ import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
 import { LineChart } from '@mui/x-charts/LineChart';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import MainCard from '../../components/MainCard';
@@ -148,7 +148,7 @@ const Dashboard = () => {
     return palette.primary.main;
   };
 
-  const agentStatus = [
+  const rawAgentStatus = [
     { name: 'Ash Monk', status: 'available', avatar: 'AM' },
     { name: 'Danica Johnson', status: 'busy', avatar: 'DJ' },
     { name: 'Ebenezer Grey', status: 'busy', avatar: 'EG' },
@@ -161,6 +161,16 @@ const Dashboard = () => {
     { name: 'Reece Martin', status: 'busy', avatar: 'RM' },
     { name: 'Robyn Mers', status: 'available', avatar: 'RM' }
   ];
+
+  // Sort agents: Available first, then Busy (limit 10), then Away, then others
+  const sortedAgentStatus = useMemo(() => {
+    const avail = rawAgentStatus.filter((a) => a.status === 'available').sort((x, y) => x.name.localeCompare(y.name));
+    const busy = rawAgentStatus.filter((a) => a.status === 'busy').sort((x, y) => x.name.localeCompare(y.name));
+    const away = rawAgentStatus.filter((a) => a.status === 'away').sort((x, y) => x.name.localeCompare(y.name));
+    const others = rawAgentStatus.filter((a) => !['available', 'busy', 'away'].includes(a.status)).sort((x, y) => x.name.localeCompare(y.name));
+    const busyLimited = busy.slice(0, 10);
+    return [...avail, ...busyLimited, ...away, ...others];
+  }, [rawAgentStatus]);
 
   return (
     <React.Fragment>
@@ -356,7 +366,7 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {agentStatus.slice(0, 8).map((agent, index) => (
+                  {sortedAgentStatus.slice(0, 8).map((agent, index) => (
                     <TableRow key={index} sx={{ '&:last-child td': { border: 0 } }}>
                       <TableCell component="th" scope="row">{agent.name}</TableCell>
                       <TableCell align="right">
@@ -366,7 +376,7 @@ const Dashboard = () => {
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              bgcolor: agent.status === 'available' ? '#4caf50' : '#f44336',
+                              bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#ffb300' : '#f44336',
                               flexShrink: 0
                             }}
                           />
@@ -417,7 +427,7 @@ const Dashboard = () => {
             </IconButton>
           </Box>
           <List sx={{ overflow: 'auto', p: 2.5, flex: 1 }}>
-            {agentStatus.map((agent, index) => (
+            {sortedAgentStatus.map((agent, index) => (
               <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
                 <Avatar 
                   sx={{ 
@@ -440,7 +450,7 @@ const Dashboard = () => {
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      bgcolor: agent.status === 'available' ? '#4caf50' : '#f44336',
+                      bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#ffb300' : '#f44336',
                       flexShrink: 0
                     }}
                   />
