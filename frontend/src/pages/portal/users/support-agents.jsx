@@ -86,7 +86,6 @@ const SupportAgents = () => {
   };
 
   const handleCreate = () => {
-    // Generate new agent ID
     const maxId = Math.max(...agents.map((a) => parseInt(a.id.split('-')[1])));
     const newAgent = {
       ...formData,
@@ -99,8 +98,6 @@ const SupportAgents = () => {
   };
 
   const getStatusColor = useCallback((status) => {
-    // Map existing status values to display label and color
-    // User mapping: Available (green), Busy (yellow), Away (red)
     switch (status) {
       case 'Active':
         return { label: 'Available', color: '#4caf50' };
@@ -140,7 +137,17 @@ const SupportAgents = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography  sx={{ fontWeight: 600 }}>#{row.id}</Typography>
+              <Typography  
+                sx={{ 
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                #{row.id}
+              </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.name}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
             </Box>
@@ -172,7 +179,6 @@ const SupportAgents = () => {
     [agents]
   );
 
-  // Filter state
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
@@ -190,7 +196,6 @@ const SupportAgents = () => {
       return true;
     });
 
-    // Order: Available -> Busy -> Away -> others
     const weight = (r) => {
       const label = mapStatusLabel(r.status);
       if (label === 'Available') return 0;
@@ -263,9 +268,8 @@ const SupportAgents = () => {
         columns={columns}
         rows={filteredRowsForTable}
         searchableColumns={['id', 'name', 'email', 'role', 'status']}
+        onRowClick={handleViewById}
         settings={{
-          // Use a non-existent orderBy key so ReusableTable's internal sort
-          // leaves our pre-sorted `rows` order unchanged.
           orderBy: '__originalOrder',
           order: 'asc',
           otherActionButton: (
@@ -297,8 +301,7 @@ const SupportAgents = () => {
         }}
       />
 
-      {/* View Agent Modal */}
-      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
+      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="md" fullWidth>
         <DialogTitle sx={{ color: customGreen[5], fontWeight: 700 }}>
           Agent Details
         </DialogTitle>
@@ -308,7 +311,7 @@ const SupportAgents = () => {
             viewConfig={viewConfig}
             styles={{
               accentColor: customGreen[5],
-              backgroundColor: '#e8f5e9'
+              backgroundColor: customGreen[0]
             }}
           />
         </DialogContent>
@@ -316,15 +319,23 @@ const SupportAgents = () => {
           <Button onClick={handleCloseViewModal} color="inherit">
             Close
           </Button>
-          <IconButton onClick={handleEditClick} color="primary">
-            <EditOutlined />
-          </IconButton>
+          <Button
+            onClick={handleEditClick}
+            variant="contained"
+            startIcon={<EditOutlined />}
+            sx={{
+              bgcolor: customGreen[8],
+              color: '#fff',
+              '&:hover': { bgcolor: customGreen[7] }
+            }}
+          >
+            Edit Agent
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Edit Agent Modal */}
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
-        <DialogTitle>Update Agent</DialogTitle>
+        <DialogTitle sx={{ color: customGold[7], fontWeight: 700 }}>Update Agent</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
@@ -366,15 +377,23 @@ const SupportAgents = () => {
           <Button onClick={handleCloseEditModal} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" color="primary">
+          <Button 
+            onClick={handleSave} 
+            variant="contained"
+            sx={{
+              bgcolor: customGold[5],
+              color: '#000',
+              fontWeight: 600,
+              '&:hover': { bgcolor: customGold[6] }
+            }}
+          >
             Save Changes
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Create Agent Modal */}
       <Dialog open={openCreateModal} onClose={handleCloseCreateModal} maxWidth="sm" fullWidth>
-        <DialogTitle>Create Agent</DialogTitle>
+        <DialogTitle sx={{ color: customGreen[8], fontWeight: 700 }}>Create New Agent</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -384,6 +403,7 @@ const SupportAgents = () => {
               onChange={handleFormChange}
               placeholder="Full name"
               fullWidth
+              required
             />
             <TextField
               label="Email"
@@ -392,6 +412,8 @@ const SupportAgents = () => {
               onChange={handleFormChange}
               placeholder="Email address"
               fullWidth
+              required
+              type="email"
             />
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
@@ -415,7 +437,17 @@ const SupportAgents = () => {
           <Button onClick={handleCloseCreateModal} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleCreate} variant="contained" color="primary">
+          <Button 
+            onClick={handleCreate} 
+            variant="contained"
+            startIcon={<PlusOutlined />}
+            sx={{
+              bgcolor: customGreen[8],
+              color: '#fff',
+              fontWeight: 600,
+              '&:hover': { bgcolor: customGreen[7] }
+            }}
+          >
             Create Agent
           </Button>
         </DialogActions>
