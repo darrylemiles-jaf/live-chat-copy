@@ -67,9 +67,9 @@ const SupportAgents = () => {
       case 'Active':
         return { label: 'Available', color: '#4caf50' };
       case 'Inactive':
-        return { label: 'Away', color: '#f44336' };
+        return { label: 'Away', color: '#ffb300' };
       case 'Suspended':
-        return { label: 'Busy', color: '#ffb300' };
+        return { label: 'Busy', color: '#f44336' };
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
