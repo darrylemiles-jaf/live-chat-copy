@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@ant-design/icons': path.resolve(__dirname, 'node_modules/@ant-design/icons')
-        // Add more aliases as needed
-      }
+      },
+      dedupe: ['react', 'react-dom']
     },
     plugins: [react(), jsconfigPaths()],
     build: {
@@ -59,7 +59,15 @@ export default defineConfig(({ mode }) => {
       // target: 'baseline-widely-available', // This is now the default
     },
     optimizeDeps: {
-      include: ['@mui/material/Tooltip', 'react', 'react-dom', 'react-router-dom']
+      include: [
+        '@mui/material/Tooltip',
+        '@tiptap/react',
+        '@tiptap/starter-kit',
+        '@tiptap/extension-placeholder',
+        'react',
+        'react-dom',
+        'react-router-dom'
+      ]
     }
   };
 });
