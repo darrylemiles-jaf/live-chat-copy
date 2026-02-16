@@ -26,11 +26,51 @@ const TicketDetailView = ({ ticket }) => {
   const danger = palette.error.main;
   const info = palette.info.main;
   
+  const staticDescription = `
+<h3>Ticket Creation Guidelines</h3>
+<p>Please review the ticket submission requirements before continuing.</p>
+
+${ticket.description ? `<p>${ticket.description}</p>` : ''}
+
+<h2>Support Ticket Submission Policy</h2>
+<p><strong>Effective Date:</strong> February 16, 2026</p>
+
+<h4>1. Purpose</h4>
+<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
+
+<h4>2. Required Information</h4>
+<ul>
+  <li>A concise subject that summarizes the issue.</li>
+  <li>A clear description with steps to reproduce, if applicable.</li>
+  <li>Impact level and expected business effect.</li>
+  <li>Current environment details (app version, device, browser).</li>
+</ul>
+
+<h4>3. Priority Guidelines</h4>
+<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
+
+<h4>4. Sensitive Data</h4>
+<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
+
+<h4>5. Response Expectations</h4>
+<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
+`;
+
   const [openModal, setOpenModal] = useState(false);
+  const [ticketData, setTicketData] = useState({
+    id: ticket.id,
+    subject: ticket.subject,
+    priority: ticket.priority,
+    status: ticket.status,
+    assignee: ticket.assignee,
+    email: ticket.email || '',
+    updatedAt: ticket.updatedAt
+  });
+  const [description, setDescription] = useState(staticDescription);
   const [formData, setFormData] = useState({
     id: ticket.id,
     subject: ticket.subject,
-    description: ticket.description || '',
+    description: staticDescription,
     priority: ticket.priority,
     status: ticket.status,
     assignee: ticket.assignee,
@@ -38,20 +78,29 @@ const TicketDetailView = ({ ticket }) => {
   });
 
   const handleOpenModal = () => {
+    setFormData({
+      id: ticketData.id,
+      subject: ticketData.subject,
+      description: description,
+      priority: ticketData.priority,
+      status: ticketData.status,
+      assignee: ticketData.assignee,
+      email: ticketData.email
+    });
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    // Reset form data
+    // Reset form data to current ticket data
     setFormData({
-      id: ticket.id,
-      subject: ticket.subject,
-      description: ticket.description || '',
-      priority: ticket.priority,
-      status: ticket.status,
-      assignee: ticket.assignee,
-      email: ticket.email || ''
+      id: ticketData.id,
+      subject: ticketData.subject,
+      description: description,
+      priority: ticketData.priority,
+      status: ticketData.status,
+      assignee: ticketData.assignee,
+      email: ticketData.email
     });
   };
 
@@ -63,6 +112,18 @@ const TicketDetailView = ({ ticket }) => {
   };
 
   const handleSave = () => {
+    // Update ticket data and description
+    setTicketData({
+      id: formData.id,
+      subject: formData.subject,
+      priority: formData.priority,
+      status: formData.status,
+      assignee: formData.assignee,
+      email: formData.email,
+      updatedAt: new Date().toISOString()
+    });
+    setDescription(formData.description);
+    
     // Save logic here - you can add API call
     console.log('Saving ticket with data:', formData);
     setOpenModal(false);
@@ -99,20 +160,20 @@ const TicketDetailView = ({ ticket }) => {
   return (
     <React.Fragment>
       <Breadcrumbs links={[{ title: 'Home', to: '/' }, { title: 'Tickets', to: '/portal/tickets' }, { title: `#${ticket.id}` }]} />
-      <Box sx={{ mt: 3, bgcolor: palette.background.default, minHeight: '100vh' }}>
+      <Box sx={{  bgcolor: palette.background.default, minHeight: '100vh' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
-            <Typography variant="h1" color="initial">
-              {ticket.subject}
+            <Typography variant="h1" color="initial"  sx={{ mb: 6 }}>
+              {ticketData.subject}
             </Typography>
-            <Typography variant="h6" color="initial">{`Ticket ID: ${ticket.id}`}</Typography>
+            <Typography variant="h6" color="initial">{`Ticket ID: ${ticketData.id}`}</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
               <Typography>Priority:</Typography>
               <Chip
-                label={ticket.priority}
+                label={ticketData.priority}
                 size="small"
                 sx={{
-                  bgcolor: getPriorityColor(ticket.priority),
+                  bgcolor: getPriorityColor(ticketData.priority),
                   color: palette.common.white,
                   fontWeight: 600
                 }}
@@ -120,9 +181,9 @@ const TicketDetailView = ({ ticket }) => {
               <Typography>Status:</Typography>
               <Chip
                 size="small"
-                label={ticket.status}
+                label={ticketData.status}
                 sx={{
-                  bgcolor: getStatusColor(ticket.status),
+                  bgcolor: getStatusColor(ticketData.status),
                   color: palette.common.white,
                   fontWeight: 600
                 }}
@@ -152,42 +213,14 @@ const TicketDetailView = ({ ticket }) => {
               Description:
             </Typography>
             <Editor
-              value={`
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-${ticket.description ? `<p>${ticket.description}</p>` : ''}
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`}
+              value={description}
               editable={false}
               showToolbar={false}
               minHeight={260}
             />
           </Paper>
 
-          <Paper sx={{ p: 3, alignSelf: 'start', position: 'sticky', top: 80 }}>
+          <Paper sx={{ p: 3, alignSelf: 'start', position: 'sticky', top: 80  }}>
             <Typography variant="subtitle2" sx={{ color: palette.text.secondary, mb: 2 }}>
               Assignee
             </Typography>
@@ -205,11 +238,11 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
                   color: palette.text.secondary
                 }}
               >
-                {(ticket.assignee || 'NA').slice(0, 2).toUpperCase()}
+                {(ticketData.assignee || 'NA').slice(0, 2).toUpperCase()}
               </Box>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {ticket.assignee}
+                  {ticketData.assignee}
                 </Typography>
                 <Typography variant="caption" sx={{ color: palette.text.secondary }}>
                   Assignee
@@ -224,7 +257,14 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
                 Updated
               </Typography>
               <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                {ticket.updatedAt}
+                {new Date(ticketData.updatedAt).toLocaleString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric', 
+                  hour: 'numeric', 
+                  minute: '2-digit', 
+                  hour12: true 
+                })}
               </Typography>
             </Box>
           </Paper>
