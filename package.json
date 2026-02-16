@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "npm run server --prefix server",
+    "client": "npm run start --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  }
+}
