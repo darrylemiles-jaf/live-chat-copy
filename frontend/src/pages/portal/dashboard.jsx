@@ -376,7 +376,7 @@ const Dashboard = () => {
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#ffb300' : '#f44336',
+                              bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
                               flexShrink: 0
                             }}
                           />
@@ -450,7 +450,7 @@ const Dashboard = () => {
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#ffb300' : '#f44336',
+                      bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
                       flexShrink: 0
                     }}
                   />
