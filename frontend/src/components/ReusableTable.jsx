@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { InputAdornment, TextField, Typography, TableSortLabel, Skeleton, IconButton, Menu, MenuItem, Checkbox } from '@mui/material';
+import { InputAdornment, TextField, Typography, TableSortLabel, Skeleton, IconButton, Menu, MenuItem, Checkbox, Tooltip } from '@mui/material';
 import { SearchOutlined, MoreOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
 import PropTypes from 'prop-types';
@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import TablePagination from '@mui/material/TablePagination';
 import MainCard from './MainCard';
 
-const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns = [], noMessage = 'No Matching Records found' }) => {
+const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns = [], noMessage = 'No Matching Records found', onRowClick }) => {
   const {
     order: defaultOrder = 'asc',
     orderBy: defaultOrderBy = 'createdAt',
@@ -263,24 +263,26 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                 </TableRow>
               ) : (
                 displayRows.map((row, index) => (
-                  <TableRow
-                    hover
-                    sx={{
-                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : theme.palette.action.hover,
-                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                      animation: 'fadeIn 0.3s ease-in-out',
-                      '@keyframes fadeIn': {
-                        from: { opacity: 0, transform: 'translateY(5px)' },
-                        to: { opacity: 1, transform: 'translateY(0)' }
-                      },
-                      '&:hover': {
-                        backgroundColor: theme.palette.action.selected,
-                        transform: 'translateY(-2px)',
-                        boxShadow: theme.shadows[1]
-                      }
-                    }}
-                    key={row.id || index}
-                  >
+                  <Tooltip key={row.id || index} title={onRowClick ? "Click to view details" : ""} arrow placement="left">
+                    <TableRow
+                      hover
+                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      sx={{
+                        backgroundColor: index % 2 === 0 ? theme.palette.background.paper : theme.palette.action.hover,
+                        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                        animation: 'fadeIn 0.3s ease-in-out',
+                        cursor: onRowClick ? 'pointer' : 'default',
+                        '@keyframes fadeIn': {
+                          from: { opacity: 0, transform: 'translateY(5px)' },
+                          to: { opacity: 1, transform: 'translateY(0)' }
+                        },
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.selected,
+                          transform: 'translateY(-2px)',
+                          boxShadow: theme.shadows[1]
+                        }
+                      }}
+                    >
                     {columns
                       .filter((col) => visibleColumns.includes(col.id))
                       .map((column) => (
@@ -312,6 +314,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                         </TableCell>
                       ))}
                   </TableRow>
+                  </Tooltip>
                 ))
               )}
             </TableBody>
