@@ -1,20 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
+import UserDetailsView from '../../../components/UserDetailsView';
   
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
 
 const Customers = () => {
-  const [openModal, setOpenModal] = useState(false);
-  const [modalMode, setModalMode] = useState('view');
+  const [openViewModal, setOpenViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    email: '',
-    phone: ''
-  });
 
   const [customers, setCustomers] = useState([
     {
@@ -55,37 +49,14 @@ const Customers = () => {
     }
   ]);
 
-  const handleEditClick = (customer) => {
-    setSelectedCustomer(customer);
-    setFormData(customer);
-    setModalMode('edit');
-    setOpenModal(true);
-  };
-
   const handleViewClick = (customer) => {
     setSelectedCustomer(customer);
-    setFormData(customer);
-    setModalMode('view');
-    setOpenModal(true);
+    setOpenViewModal(true);
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
+  const handleCloseViewModal = () => {
+    setOpenViewModal(false);
     setSelectedCustomer(null);
-    setFormData({});
-    setModalMode('view');
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
-    // Update existing customer
-    setCustomers(customers.map((customer) => (customer.id === formData.id ? formData : customer)));
-    console.log('Updating customer:', formData);
-    handleCloseModal();
   };
 
   const columns = useMemo(
@@ -142,9 +113,42 @@ const Customers = () => {
 
   const rows = useMemo(() => customers, [customers]);
 
+  const viewConfig = {
+    avatar: {
+      nameField: 'name',
+      subtitleField: 'email'
+    },
+    infoSections: [
+      {
+        title: 'Personal Information',
+        columns: '1fr 1fr',
+        fields: [
+          {
+            label: 'Customer ID',
+            field: 'id',
+            valueStyle: { color: '#008E86' }
+          },
+          {
+            label: 'Email',
+            field: 'email'
+          },
+          {
+            label: 'Name',
+            field: 'name'
+          },
+          {
+            label: 'Phone',
+            field: 'phone'
+          }
+        ]
+      }
+    ]
+  };
+
   return (
     <React.Fragment>
       <Breadcrumbs heading="Customers" links={breadcrumbLinks} subheading="View and manage your customers here." />
+      
       <ReusableTable
         columns={columns}
         rows={rows}
@@ -156,51 +160,24 @@ const Customers = () => {
         }}
       />
 
-      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {modalMode === 'edit' ? 'Update Customer' : 'Customer Details'}
+      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#008E86', fontWeight: 700 }}>
+          Customer Details
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField label="Customer ID" value={formData.id || ''} placeholder="CUST-0000" disabled fullWidth />
-            <TextField
-              label="Name"
-              name="name"
-              value={formData.name || ''}
-              onChange={handleFormChange}
-              disabled={modalMode === 'view'}
-              placeholder="Full name"
-              fullWidth
-            />
-            <TextField
-              label="Email"
-              name="email"
-              value={formData.email || ''}
-              onChange={handleFormChange}
-              disabled={modalMode === 'view'}
-              placeholder="Email address"
-              fullWidth
-            />
-            <TextField
-              label="Phone"
-              name="phone"
-              value={formData.phone || ''}
-              onChange={handleFormChange}
-              disabled={modalMode === 'view'}
-              placeholder="+63 (555) 123-4567"
-              fullWidth
-            />
-          </Box>
+          <UserDetailsView
+            data={selectedCustomer}
+            viewConfig={viewConfig}
+            styles={{
+              accentColor: '#008E86',
+              backgroundColor: '#E6F7F6'
+            }}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModal} color="inherit">
-            {modalMode === 'view' ? 'Close' : 'Cancel'}
+          <Button onClick={handleCloseViewModal} color="inherit">
+            Close
           </Button>
-          {modalMode !== 'view' && (
-            <Button onClick={handleSave} variant="contained" color="primary">
-              Save Changes
-            </Button>
-          )}
         </DialogActions>
       </Dialog>
     </React.Fragment>

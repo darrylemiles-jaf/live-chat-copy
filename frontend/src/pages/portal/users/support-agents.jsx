@@ -3,25 +3,24 @@ import { useTheme } from '@mui/material/styles';
 import { customGreen } from "../../../themes/palette";
 import { customGold } from "../../../themes/palette";
 import { customRed } from "../../../themes/palette";
-import {
-  Button,
+import {  Button,
   Box,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  Avatar
+  IconButton
 } from '@mui/material';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
+import UserDetailsView from '../../../components/UserDetailsView';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -29,39 +28,50 @@ const breadcrumbLinks = [
 ];
 
 const SupportAgents = () => {
-  const [openModal, setOpenModal] = useState(false);
-  const [modalMode, setModalMode] = useState('view');
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
+  const [agents, setAgents] = useState([
+    { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
+    { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
+    { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
+    { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
+    { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
+  ]);
 
-  const handleEditClick = (agent) => {
-    setSelectedAgent(agent);
-    setFormData(agent);
-    setModalMode('edit');
-    setOpenModal(true);
+  const handleEditClick = () => {
+    setFormData(selectedAgent);
+    setOpenViewModal(false);
+    setOpenEditModal(true);
   };
 
   const handleViewById = (agent) => {
     setSelectedAgent(agent);
-    setFormData(agent);
-    setModalMode('view');
-    setOpenModal(true);
+    setOpenViewModal(true);
   };
 
   const theme = useTheme();
 
-  const handleCreateClick = () => {
+  const handleCloseViewModal = () => {
+    setOpenViewModal(false);
     setSelectedAgent(null);
-    setFormData({ id: '', name: '', email: '', role: 'Support Agent', status: 'Active' });
-    setModalMode('create');
-    setOpenModal(true);
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedAgent(null);
+  const handleCloseEditModal = () => {
+    setOpenEditModal(false);
     setFormData({});
-    setModalMode('view');
+  };
+
+  const handleCreateClick = () => {
+    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Active', successfulAssists: 0 });
+    setOpenCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setOpenCreateModal(false);
+    setFormData({});
   };
 
   const handleFormChange = (e) => {
@@ -70,8 +80,23 @@ const SupportAgents = () => {
   };
 
   const handleSave = () => {
-    console.log(`${modalMode === 'create' ? 'Creating' : 'Updating'} agent:`, formData);
-    handleCloseModal();
+    // Update existing agent
+    setAgents(agents.map((agent) => (agent.id === formData.id ? formData : agent)));
+    console.log('Updating agent:', formData);
+    handleCloseEditModal();
+  };
+
+  const handleCreate = () => {
+    // Generate new agent ID
+    const maxId = Math.max(...agents.map((a) => parseInt(a.id.split('-')[1])));
+    const newAgent = {
+      ...formData,
+      id: `AGT-${String(maxId + 1).padStart(4, '0')}`,
+      successfulAssists: 0
+    };
+    setAgents([newAgent, ...agents]);
+    console.log('Creating agent:', newAgent);
+    handleCloseCreateModal();
   };
 
   const getStatusColor = useCallback((status) => {
@@ -158,14 +183,8 @@ const SupportAgents = () => {
   );
 
   const rows = useMemo(
-    () => [
-      { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
-      { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
-      { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
-      { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
-      { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
-    ],
-    []
+    () => agents,
+    [agents]
   );
 
   // Filter state
@@ -202,11 +221,59 @@ const SupportAgents = () => {
     });
   }, [rows, filterRole, filterStatus]);
 
-  const modalStatusInfo = useMemo(() => getStatusColor(formData.status), [formData.status, getStatusColor]);
+  const viewConfig = {
+    avatar: {
+      nameField: 'name',
+      subtitleField: 'role'
+    },
+    stats: [
+      {
+        field: 'successfulAssists',
+        label: 'Successful assists',
+        defaultValue: 0
+      }
+    ],
+    infoSections: [
+      {
+        title: 'Personal Information',
+        columns: '1fr 1fr',
+        fields: [
+          {
+            label: 'Member ID',
+            field: 'id',
+            valueStyle: { color: customGreen[5] }
+          },
+          {
+            label: 'Email',
+            field: 'email'
+          },
+          {
+            label: 'Role',
+            field: 'role'
+          },
+          {
+            label: 'Status',
+            render: (data) => {
+              const info = getStatusColor(data.status);
+              return (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: info.color }} />
+                  <Typography variant="body2" sx={{ color: customGreen[5] }}>
+                    {info.label}
+                  </Typography>
+                </Box>
+              );
+            }
+          }
+        ]
+      }
+    ]
+  };
 
   return (
     <React.Fragment>
       <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+      
       <ReusableTable
         columns={columns}
         rows={filteredRowsForTable}
@@ -238,87 +305,134 @@ const SupportAgents = () => {
               </FormControl>
               <Button variant="outlined" color="inherit" onClick={() => { setFilterRole(''); setFilterStatus(''); }}>Clear</Button>
               <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick}>
-                Create Agent
+                Add Agent
               </Button>
             </Box>
           )
         }}
       />
 
-      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={modalMode === 'view' ? { color: customGreen[5], fontWeight: 700 } : {}}>{modalMode === 'create' ? 'Create Agent' : modalMode === 'edit' ? 'Update Agent' : 'View Agent'}</DialogTitle>
+      {/* View Agent Modal */}
+      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: customGreen[5], fontWeight: 700 }}>
+          Agent Details
+        </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          {modalMode === 'view' ? (
-            <Box sx={{ display: 'flex', gap: 2, mt: 1, alignItems: 'flex-start' }}>
-              <Box sx={{ width: 240, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, textAlign: 'center' }}>
-                <Avatar sx={{ width: 96, height: 96, mx: 'auto', mb: 1, bgcolor: '#e8f5e9', color: customGreen[5], fontWeight: 700 }}>{(formData.name || '?').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
-                <Typography variant="h6" sx={{ mt: 1 }}>{formData.name || '-'}</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{formData.role || '-'}</Typography>
-
-                <Box sx={{ mt: 2 }}>
-                  <Box sx={{ p: 1.25, borderRadius: 1, border: '1px solid', borderColor: 'divider', minWidth: 180, textAlign: 'center' }}>
-                    <Typography variant="h4" sx={{ color: customGreen[5], fontWeight: 700, lineHeight: 1 }}>{formData.successfulAssists ?? 0}</Typography>
-                    <Typography variant="caption" color="text.secondary">Successful assists</Typography>
-                  </Box>
-                </Box>
-              </Box>
-
-              <Box sx={{ flex: 1, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, color: customGreen[5], fontWeight: 700 }}>Personal Information</Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 1 }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Member ID</Typography>
-                    <Typography variant="body2" sx={{ color: customGreen[5] }}>{formData.id || '-'}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Email</Typography>
-                    <Typography variant="body2">{formData.email || '-'}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Role</Typography>
-                    <Typography variant="body2">{formData.role || '-'}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">Status</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: modalStatusInfo.color }} />
-                      <Typography variant="body2" sx={{ color: customGreen[5] }}>{mapStatusLabel(formData.status)}</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              {modalMode !== 'create' && (
-                <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
-              )}
-              <TextField label="Name" name="name" value={formData.name || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Full name" fullWidth />
-              <TextField label="Email" name="email" value={formData.email || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Email address" fullWidth />
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select name="role" value={formData.role || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Role">
-                  <MenuItem value="Agent">Agent</MenuItem>
-                  <MenuItem value="Senior Agent">Senior Agent</MenuItem>
-                  <MenuItem value="Team Lead">Team Lead</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select name="status" value={formData.status || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Status">
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Inactive">Inactive</MenuItem>
-                  <MenuItem value="Suspended">Suspended</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          )}
+          <UserDetailsView
+            data={selectedAgent}
+            viewConfig={viewConfig}
+            styles={{
+              accentColor: customGreen[5],
+              backgroundColor: '#e8f5e9'
+            }}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModal} color="inherit">{modalMode === 'view' ? 'Close' : 'Cancel'}</Button>
-          {modalMode !== 'view' && (
-            <Button onClick={handleSave} variant="contained" color="primary">{modalMode === 'create' ? 'Create Agent' : 'Save Changes'}</Button>
-          )}
+          <Button onClick={handleCloseViewModal} color="inherit">
+            Close
+          </Button>
+          <IconButton onClick={handleEditClick} color="primary">
+            <EditOutlined />
+          </IconButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Agent Modal */}
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Update Agent</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleFormChange}
+              placeholder="Full name"
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleFormChange}
+              placeholder="Email address"
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select name="role" value={formData.role || ''} onChange={handleFormChange} label="Role">
+                <MenuItem value="Agent">Agent</MenuItem>
+                <MenuItem value="Senior Agent">Senior Agent</MenuItem>
+                <MenuItem value="Team Lead">Team Lead</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Suspended">Suspended</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} variant="contained" color="primary">
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Agent Modal */}
+      <Dialog open={openCreateModal} onClose={handleCloseCreateModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Create Agent</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleFormChange}
+              placeholder="Full name"
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleFormChange}
+              placeholder="Email address"
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select name="role" value={formData.role || ''} onChange={handleFormChange} label="Role">
+                <MenuItem value="Agent">Agent</MenuItem>
+                <MenuItem value="Senior Agent">Senior Agent</MenuItem>
+                <MenuItem value="Team Lead">Team Lead</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Suspended">Suspended</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCreateModal} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleCreate} variant="contained" color="primary">
+            Create Agent
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
