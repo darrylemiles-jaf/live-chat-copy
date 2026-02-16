@@ -1,5 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
+import { customGreen } from "../../../themes/palette";
+import { customGold } from "../../../themes/palette";
+import { customRed } from "../../../themes/palette";
 import {
   Button,
   Box,
@@ -29,7 +32,7 @@ const SupportAgents = () => {
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [selectedAgent, setSelectedAgent] = useState(null);
-  const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '' });
+  const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
 
   const handleEditClick = (agent) => {
     setSelectedAgent(agent);
@@ -76,11 +79,11 @@ const SupportAgents = () => {
     // User mapping: Available (green), Busy (yellow), Away (red)
     switch (status) {
       case 'Active':
-        return { label: 'Available', color: '#4caf50' };
+        return { label: 'Available', color: customGreen[3] };
       case 'Inactive':
-        return { label: 'Away', color: '#ffb300' };
+        return { label: 'Away', color: customGold[3] };
       case 'Suspended':
-        return { label: 'Busy', color: '#f44336' };
+        return { label: 'Busy', color: customRed[3] };
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -106,7 +109,7 @@ const SupportAgents = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: '#2e7d32',
+                color: customGreen[5],
                 fontSize: '16px'
               }}
             >
@@ -120,7 +123,7 @@ const SupportAgents = () => {
                   color: 'text.secondary',
                   cursor: 'pointer',
                   textDecoration: 'none',
-                  '&:hover': { color: '#2e7d32', textDecoration: 'underline' },
+                  '&:hover': { color: customGreen[5], textDecoration: 'underline' },
                   display: 'block',
                   mb: 0.5
                 }}
@@ -156,11 +159,11 @@ const SupportAgents = () => {
 
   const rows = useMemo(
     () => [
-      { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active' },
-      { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active' },
-      { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended' },
-      { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active' },
-      { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive' }
+      { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
+      { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
+      { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
+      { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
+      { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
     ],
     []
   );
@@ -243,21 +246,29 @@ const SupportAgents = () => {
       />
 
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={modalMode === 'view' ? { color: '#2e7d32', fontWeight: 700 } : {}}>{modalMode === 'create' ? 'Create Agent' : modalMode === 'edit' ? 'Update Agent' : 'View Agent'}</DialogTitle>
+        <DialogTitle sx={modalMode === 'view' ? { color: customGreen[5], fontWeight: 700 } : {}}>{modalMode === 'create' ? 'Create Agent' : modalMode === 'edit' ? 'Update Agent' : 'View Agent'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           {modalMode === 'view' ? (
-            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-              <Box sx={{ width: 220, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, textAlign: 'center' }}>
-                <Avatar sx={{ width: 96, height: 96, mx: 'auto', mb: 1, bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 700 }}>{(formData.name || '?').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
+            <Box sx={{ display: 'flex', gap: 2, mt: 1, alignItems: 'flex-start' }}>
+              <Box sx={{ width: 240, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, textAlign: 'center' }}>
+                <Avatar sx={{ width: 96, height: 96, mx: 'auto', mb: 1, bgcolor: '#e8f5e9', color: customGreen[5], fontWeight: 700 }}>{(formData.name || '?').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
                 <Typography variant="h6" sx={{ mt: 1 }}>{formData.name || '-'}</Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{formData.role || '-'}</Typography>
+
+                <Box sx={{ mt: 2 }}>
+                  <Box sx={{ p: 1.25, borderRadius: 1, border: '1px solid', borderColor: 'divider', minWidth: 180, textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ color: customGreen[5], fontWeight: 700, lineHeight: 1 }}>{formData.successfulAssists ?? 0}</Typography>
+                    <Typography variant="caption" color="text.secondary">Successful assists</Typography>
+                  </Box>
+                </Box>
               </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, color: '#2e7d32', fontWeight: 700 }}>Personal Information</Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+
+              <Box sx={{ flex: 1, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: customGreen[5], fontWeight: 700 }}>Personal Information</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 1 }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Member ID</Typography>
-                    <Typography variant="body2" sx={{ color: '#2e7d32' }}>{formData.id || '-'}</Typography>
+                    <Typography variant="body2" sx={{ color: customGreen[5] }}>{formData.id || '-'}</Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Email</Typography>
@@ -271,7 +282,7 @@ const SupportAgents = () => {
                     <Typography variant="caption" color="text.secondary">Status</Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: modalStatusInfo.color }} />
-                      <Typography variant="body2" sx={{ color: '#2e7d32' }}>{mapStatusLabel(formData.status)}</Typography>
+                      <Typography variant="body2" sx={{ color: customGreen[5] }}>{mapStatusLabel(formData.status)}</Typography>
                     </Box>
                   </Box>
                 </Box>
