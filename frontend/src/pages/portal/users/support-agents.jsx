@@ -104,11 +104,11 @@ const SupportAgents = () => {
     // User mapping: Available (green), Busy (yellow), Away (red)
     switch (status) {
       case 'Active':
-        return { label: 'Available', color: customGreen[3] };
+        return { label: 'Available', color: '#4caf50' };
       case 'Inactive':
-        return { label: 'Away', color: customGold[3] };
+        return { label: 'Away', color: '#ffb300' };
       case 'Suspended':
-        return { label: 'Busy', color: customRed[3] };
+        return { label: 'Busy', color: '#f44336' };
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -134,28 +134,14 @@ const SupportAgents = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: customGreen[5],
+                color: '#2e7d32',
                 fontSize: '16px'
               }}
             >
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography
-                noWrap
-                variant="caption"
-                sx={{
-                  color: 'text.secondary',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  '&:hover': { color: customGreen[5], textDecoration: 'underline' },
-                  display: 'block',
-                  mb: 0.5
-                }}
-                onClick={() => handleViewById(row)}
-              >
-                ID: {row.id}
-              </Typography>
+              <Typography  sx={{ fontWeight: 600 }}>#{row.id}</Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.name}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
             </Box>
@@ -191,12 +177,12 @@ const SupportAgents = () => {
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  const uniqueRoles = useMemo(() => Array.from(new Set((rows || []).map((r) => r.role))).sort(), [rows]);
+  const uniqueRoles = useMemo(() => Array.from(new Set(rows.map((r) => r.role))).sort(), [rows]);
 
   const mapStatusLabel = (rowStatus) => getStatusColor(rowStatus).label;
 
   const filteredRowsForTable = useMemo(() => {
-    const filtered = (rows || []).filter((r) => {
+    const filtered = rows.filter((r) => {
       if (filterRole && r.role !== filterRole) return false;
       if (filterStatus) {
         const label = mapStatusLabel(r.status);
