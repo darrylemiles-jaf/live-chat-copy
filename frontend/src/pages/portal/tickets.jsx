@@ -22,6 +22,7 @@ import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../components/ReusableTable';
 import TicketDetailView from '../../sections/tickets/TicketDetailView';
 import ConvertDate from '../../components/ConvertDate';
+import Editor from '../../components/Editor';
 
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Tickets' }];
 
@@ -77,6 +78,10 @@ const Tickets = () => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  
+  const handleDescriptionChange = (content) => {
+    setFormData((prev) => ({ ...prev, description: content }));
   };
 
   const handleSave = () => {
@@ -322,17 +327,18 @@ const Tickets = () => {
                   placeholder="Enter ticket subject"
                   fullWidth
                 />
-                <TextField
-                  label="Description"
-                  name="description"
-                  value={formData.description || ''}
-                  onChange={handleFormChange}
-                  disabled={modalMode === 'view'}
-                  placeholder="Enter ticket description"
-                  fullWidth
-                  multiline
-                  rows={3}
-                />
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
+                    Description
+                  </Typography>
+                  <Editor
+                    value={formData.description || ''}
+                    onChange={handleDescriptionChange}
+                    editable={modalMode !== 'view'}
+                    showToolbar={modalMode !== 'view'}
+                    minHeight={150}
+                  />
+                </Box>
                 <TextField
                   label="Assignee"
                   name="assignee"
