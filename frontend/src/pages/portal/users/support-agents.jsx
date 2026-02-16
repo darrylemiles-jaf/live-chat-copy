@@ -9,13 +9,18 @@ import {  Button,
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  IconButton
 } from '@mui/material';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
-import ViewModal from '../../../components/ViewModal';
-import EditModal from '../../../components/EditModal';
+import UserDetailsView from '../../../components/UserDetailsView';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -216,57 +221,6 @@ const SupportAgents = () => {
     });
   }, [rows, filterRole, filterStatus]);
 
-  const editModalFields = [
-    { name: 'id', label: 'Agent ID', disabled: true, placeholder: 'AGT-0000' },
-    { name: 'name', label: 'Name', placeholder: 'Full name' },
-    { name: 'email', label: 'Email', placeholder: 'Email address' },
-    {
-      name: 'role',
-      label: 'Role',
-      type: 'select',
-      options: [
-        { value: 'Agent', label: 'Agent' },
-        { value: 'Senior Agent', label: 'Senior Agent' },
-        { value: 'Team Lead', label: 'Team Lead' }
-      ]
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Suspended', label: 'Suspended' }
-      ]
-    }
-  ];
-
-  const createModalFields = [
-    { name: 'name', label: 'Name', placeholder: 'Full name' },
-    { name: 'email', label: 'Email', placeholder: 'Email address' },
-    {
-      name: 'role',
-      label: 'Role',
-      type: 'select',
-      options: [
-        { value: 'Agent', label: 'Agent' },
-        { value: 'Senior Agent', label: 'Senior Agent' },
-        { value: 'Team Lead', label: 'Team Lead' }
-      ]
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
-        { value: 'Suspended', label: 'Suspended' }
-      ]
-    }
-  ];
-
   const viewConfig = {
     avatar: {
       nameField: 'name',
@@ -358,40 +312,129 @@ const SupportAgents = () => {
         }}
       />
 
-      <ViewModal
-        open={openViewModal}
-        onClose={handleCloseViewModal}
-        onEdit={handleEditClick}
-        title="Agent Details"
-        data={selectedAgent}
-        viewConfig={viewConfig}
-        styles={{
-          titleColor: customGreen[5],
-          accentColor: customGreen[5],
-          backgroundColor: '#e8f5e9'
-        }}
-      />
+      {/* View Agent Modal */}
+      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: customGreen[5], fontWeight: 700 }}>
+          Agent Details
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <UserDetailsView
+            data={selectedAgent}
+            viewConfig={viewConfig}
+            styles={{
+              accentColor: customGreen[5],
+              backgroundColor: '#e8f5e9'
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseViewModal} color="inherit">
+            Close
+          </Button>
+          <IconButton onClick={handleEditClick} color="primary">
+            <EditOutlined />
+          </IconButton>
+        </DialogActions>
+      </Dialog>
 
-      <EditModal
-        open={openEditModal}
-        onClose={handleCloseEditModal}
-        title="Update Agent"
-        data={formData}
-        onChange={handleFormChange}
-        onSave={handleSave}
-        fields={editModalFields}
-      />
+      {/* Edit Agent Modal */}
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Update Agent</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleFormChange}
+              placeholder="Full name"
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleFormChange}
+              placeholder="Email address"
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select name="role" value={formData.role || ''} onChange={handleFormChange} label="Role">
+                <MenuItem value="Agent">Agent</MenuItem>
+                <MenuItem value="Senior Agent">Senior Agent</MenuItem>
+                <MenuItem value="Team Lead">Team Lead</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Suspended">Suspended</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} variant="contained" color="primary">
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <EditModal
-        open={openCreateModal}
-        onClose={handleCloseCreateModal}
-        title="Create Agent"
-        data={formData}
-        onChange={handleFormChange}
-        onSave={handleCreate}
-        fields={createModalFields}
-        saveButtonText="Create Agent"
-      />
+      {/* Create Agent Modal */}
+      <Dialog open={openCreateModal} onClose={handleCloseCreateModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Create Agent</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleFormChange}
+              placeholder="Full name"
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleFormChange}
+              placeholder="Email address"
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Role</InputLabel>
+              <Select name="role" value={formData.role || ''} onChange={handleFormChange} label="Role">
+                <MenuItem value="Agent">Agent</MenuItem>
+                <MenuItem value="Senior Agent">Senior Agent</MenuItem>
+                <MenuItem value="Team Lead">Team Lead</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Suspended">Suspended</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCreateModal} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleCreate} variant="contained" color="primary">
+            Create Agent
+          </Button>
+        </DialogActions>
+      </Dialog>
     </React.Fragment>
   );
 };

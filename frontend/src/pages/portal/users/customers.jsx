@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
-import ViewModal from '../../../components/ViewModal';
+import UserDetailsView from '../../../components/UserDetailsView';
   
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
 
@@ -160,18 +160,26 @@ const Customers = () => {
         }}
       />
 
-      <ViewModal
-        open={openViewModal}
-        onClose={handleCloseViewModal}
-        title="Customer Details"
-        data={selectedCustomer}
-        viewConfig={viewConfig}
-        styles={{
-          titleColor: '#008E86',
-          accentColor: '#008E86',
-          backgroundColor: '#E6F7F6'
-        }}
-      />
+      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#008E86', fontWeight: 700 }}>
+          Customer Details
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <UserDetailsView
+            data={selectedCustomer}
+            viewConfig={viewConfig}
+            styles={{
+              accentColor: '#008E86',
+              backgroundColor: '#E6F7F6'
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseViewModal} color="inherit">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </React.Fragment>
   );
 };
