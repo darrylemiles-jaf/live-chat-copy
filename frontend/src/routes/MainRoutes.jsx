@@ -12,6 +12,7 @@ const Tickets = Loadable(lazy(() => import('../pages/portal/tickets')));
 const Customers = Loadable(lazy(() => import('../pages/portal/users/customers')));
 const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
+const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
 
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -58,6 +59,10 @@ const MainRoutes = {
         {
           path: 'notifications',
           element: <Notifications />
+        },
+        {
+          path: 'profile',
+          element: <Profile />
         },
       ]
     },
