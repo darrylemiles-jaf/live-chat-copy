@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import {
   Button,
   Box,
@@ -12,7 +13,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip
+  Chip,
+  Avatar
 } from '@mui/material';
 import { PlusOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
@@ -35,6 +37,15 @@ const SupportAgents = () => {
     setModalMode('edit');
     setOpenModal(true);
   };
+
+  const handleViewById = (agent) => {
+    setSelectedAgent(agent);
+    setFormData(agent);
+    setModalMode('view');
+    setOpenModal(true);
+  };
+
+  const theme = useTheme();
 
   const handleCreateClick = () => {
     setSelectedAgent(null);
@@ -102,7 +113,21 @@ const SupportAgents = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography  sx={{ fontWeight: 600 }}>#{row.id}</Typography>
+              <Typography
+                noWrap
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  '&:hover': { color: '#2e7d32', textDecoration: 'underline' },
+                  display: 'block',
+                  mb: 0.5
+                }}
+                onClick={() => handleViewById(row)}
+              >
+                ID: {row.id}
+              </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.name}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
             </Box>
@@ -144,12 +169,12 @@ const SupportAgents = () => {
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  const uniqueRoles = useMemo(() => Array.from(new Set(rows.map((r) => r.role))).sort(), [rows]);
+  const uniqueRoles = useMemo(() => Array.from(new Set((rows || []).map((r) => r.role))).sort(), [rows]);
 
   const mapStatusLabel = (rowStatus) => getStatusColor(rowStatus).label;
 
   const filteredRowsForTable = useMemo(() => {
-    const filtered = rows.filter((r) => {
+    const filtered = (rows || []).filter((r) => {
       if (filterRole && r.role !== filterRole) return false;
       if (filterStatus) {
         const label = mapStatusLabel(r.status);
@@ -173,6 +198,8 @@ const SupportAgents = () => {
       return a.name.localeCompare(b.name);
     });
   }, [rows, filterRole, filterStatus]);
+
+  const modalStatusInfo = useMemo(() => getStatusColor(formData.status), [formData.status, getStatusColor]);
 
   return (
     <React.Fragment>
@@ -216,31 +243,65 @@ const SupportAgents = () => {
       />
 
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle>{modalMode === 'create' ? 'Create Agent' : modalMode === 'edit' ? 'Update Agent' : 'View Agent'}</DialogTitle>
+        <DialogTitle sx={modalMode === 'view' ? { color: '#2e7d32', fontWeight: 700 } : {}}>{modalMode === 'create' ? 'Create Agent' : modalMode === 'edit' ? 'Update Agent' : 'View Agent'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            {modalMode !== 'create' && (
-              <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
-            )}
-            <TextField label="Name" name="name" value={formData.name || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Full name" fullWidth />
-            <TextField label="Email" name="email" value={formData.email || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Email address" fullWidth />
-            <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select name="role" value={formData.role || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Role">
-                <MenuItem value="Agent">Agent</MenuItem>
-                <MenuItem value="Senior Agent">Senior Agent</MenuItem>
-                <MenuItem value="Team Lead">Team Lead</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select name="status" value={formData.status || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Status">
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Suspended">Suspended</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          {modalMode === 'view' ? (
+            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+              <Box sx={{ width: 220, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, textAlign: 'center' }}>
+                <Avatar sx={{ width: 96, height: 96, mx: 'auto', mb: 1, bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 700 }}>{(formData.name || '?').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
+                <Typography variant="h6" sx={{ mt: 1 }}>{formData.name || '-'}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{formData.role || '-'}</Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: '#2e7d32', fontWeight: 700 }}>Personal Information</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Member ID</Typography>
+                    <Typography variant="body2" sx={{ color: '#2e7d32' }}>{formData.id || '-'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Email</Typography>
+                    <Typography variant="body2">{formData.email || '-'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Role</Typography>
+                    <Typography variant="body2">{formData.role || '-'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Status</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: modalStatusInfo.color }} />
+                      <Typography variant="body2" sx={{ color: '#2e7d32' }}>{mapStatusLabel(formData.status)}</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              {modalMode !== 'create' && (
+                <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
+              )}
+              <TextField label="Name" name="name" value={formData.name || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Full name" fullWidth />
+              <TextField label="Email" name="email" value={formData.email || ''} onChange={handleFormChange} disabled={modalMode === 'view'} placeholder="Email address" fullWidth />
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                <Select name="role" value={formData.role || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Role">
+                  <MenuItem value="Agent">Agent</MenuItem>
+                  <MenuItem value="Senior Agent">Senior Agent</MenuItem>
+                  <MenuItem value="Team Lead">Team Lead</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select name="status" value={formData.status || ''} onChange={handleFormChange} disabled={modalMode === 'view'} label="Status">
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Inactive">Inactive</MenuItem>
+                  <MenuItem value="Suspended">Suspended</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal} color="inherit">{modalMode === 'view' ? 'Close' : 'Cancel'}</Button>
