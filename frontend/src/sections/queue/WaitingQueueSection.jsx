@@ -1,4 +1,3 @@
-import React from 'react';
 import { Avatar, Badge, Box, Button, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { DotsHorizontal } from 'mdi-material-ui';
 import { withAlpha } from '../../utils/colorUtils';
@@ -29,7 +28,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid ${palette.divider}`,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -43,33 +42,24 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
         justifyContent: 'space-between',
         px: 2,
         py: 1.5,
-        backgroundColor: palette.success.dark,
-        color: palette.primary.contrastText,
         borderRadius: 1
       }}
     >
-      <Stack direction="row" spacing={1} alignItems="center">
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Typography variant="subtitle1" color='#000' sx={{ fontWeight: 600 }}>
           Waiting Queue
         </Typography>
         <Badge
           color="error"
           badgeContent={queue.length}
-          sx={{
-            '& .MuiBadge-badge': {
-              backgroundColor: palette.error.main,
-              color: palette.error.contrastText,
-              fontWeight: 700
-            }
-          }}
         />
       </Stack>
-      <IconButton size="small" sx={{ color: withAlpha(palette.primary.contrastText, 0.9) }}>
+      <IconButton size="small" sx={{ color: '#000000' }}>
         <DotsHorizontal />
       </IconButton>
     </Box>
 
-    <Stack spacing={0} sx={{ px: 2, py: 1.5, flex: 1 }}>
+    <Stack spacing={1} sx={{ px: 2, py: 1.5, flex: 1 }}>
       {queue.length === 0 ? (
         <Box sx={{ px: 1.5, py: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, color: palette.text.primary }}>
@@ -134,6 +124,9 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {item.name}
                   </Typography>
+                  <Typography variant="caption" sx={{ color: palette.text.secondary }}>
+                    {item.lastMessage ?? item.email}
+                  </Typography>
                 </Box>
               </Stack>
               <Typography variant="caption" sx={{ color: palette.text.secondary, minWidth: 86, textAlign: 'right' }}>
@@ -154,9 +147,8 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
         onClick={onViewMore}
         sx={{
           borderRadius: 1,
-          borderColor: withAlpha(palette.primary.main, 0.35),
-          color: palette.primary.main,
-          backgroundColor: withAlpha(palette.primary.lighter, 0.4),
+          borderColor: '#025869',
+          color: '#025869',
           fontWeight: 600
         }}
       >

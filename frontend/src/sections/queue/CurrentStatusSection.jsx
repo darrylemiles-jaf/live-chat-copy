@@ -1,7 +1,5 @@
-import React from 'react';
 import { Box, IconButton, Paper, Typography } from '@mui/material';
 import { DotsHorizontal } from 'mdi-material-ui';
-import { withAlpha } from '../../utils/colorUtils';
 
 const CurrentStatusSection = ({ palette, statusCards }) => (
   <Paper
@@ -9,8 +7,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid ${palette.divider}`,
-      backgroundColor: palette.background.paper,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       boxShadow: 'none',
       display: 'flex',
       flexDirection: 'column'
@@ -23,15 +20,13 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
         justifyContent: 'space-between',
         px: 2,
         py: 1.5,
-        backgroundColor: palette.success.dark,
-        color: palette.primary.contrastText,
         borderRadius: 1
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Typography variant="subtitle1" color='#000' sx={{ fontWeight: 600 }}>
         Current Status
       </Typography>
-      <IconButton size="small" sx={{ color: withAlpha(palette.primary.contrastText, 0.9) }}>
+      <IconButton size="small" sx={{ color: '#000000' }}>
         <DotsHorizontal />
       </IconButton>
     </Box>

@@ -1,7 +1,5 @@
-import React from 'react';
 import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { ChatOutline, CheckAll, DotsHorizontal } from 'mdi-material-ui';
-import { withAlpha } from '../../utils/colorUtils';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -29,7 +27,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid ${palette.divider}`,
+      border: `1px solid rgba(6, 72, 86, 0.15)`,
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -43,15 +41,14 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
         justifyContent: 'space-between',
         px: 2,
         py: 1.5,
-        backgroundColor: palette.success.dark,
         color: palette.primary.contrastText,
         borderRadius: 1
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Typography variant="subtitle1" color="#000">
         Customer Details
       </Typography>
-      <IconButton size="small" sx={{ color: withAlpha(palette.primary.contrastText, 0.9) }}>
+      <IconButton size="small" sx={{ color: '#000000' }}>
         <DotsHorizontal />
       </IconButton>
     </Box>
@@ -89,29 +86,11 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {selected?.name ?? 'Select a customer'}
             </Typography>
-            <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-              {selected?.lastMessage ?? selected?.email ?? '—'}
-            </Typography>
           </Box>
         </Stack>
         <Typography variant="body2" sx={{ color: palette.text.secondary }}>
           {selected?.wait ?? ''}
         </Typography>
-      </Stack>
-
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 2 }}>
-        <Typography variant="subtitle2" sx={{ color: palette.text.secondary }}>
-          Priority:
-        </Typography>
-        <Chip
-          label={selected?.priority ?? '—'}
-          size="small"
-          sx={{
-            fontWeight: 700,
-            color: palette.common.white,
-            backgroundColor: selected?.priority === 'High' ? palette.error.main : palette.warning.main
-          }}
-        />
       </Stack>
 
       <Box
@@ -163,7 +142,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="subtitle2">Order ID:</Typography>
+                <Typography variant="subtitle2">ID:</Typography>
                 <Typography variant="subtitle2" sx={{ color: palette.primary.main, fontWeight: 700 }}>
                   {selected?.orderId ?? '—'}
                 </Typography>
@@ -181,30 +160,12 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                 />
               </Stack>
               <Divider />
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Issue Details:
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                  {selected?.issue ?? '—'}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Notes:
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                  {selected?.notes ?? '—'}
-                </Typography>
-              </Box>
             </Stack>
           ) : (
             <Stack spacing={1.25}>
               <Typography variant="subtitle2">Conversation</Typography>
               <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                {selected
-                  ? 'Conversation preview is not connected yet. Use Open Chat to continue.'
-                  : 'Select a customer to view their conversation.'}
+                {selected?.lastMessage ?? 'No conversation history available.'}
               </Typography>
               <Divider />
               <Stack spacing={0.75}>
@@ -236,21 +197,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           }}
         >
           Open Chat
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<CheckAll />}
-          disabled={!selected}
-          onClick={handleResolve}
-          sx={{
-            borderRadius: 1,
-            borderColor: withAlpha(palette.primary.main, 0.35),
-            color: palette.primary.main,
-            fontWeight: 600
-          }}
-        >
-          Mark as Resolved
         </Button>
       </Stack>
     </Box>
