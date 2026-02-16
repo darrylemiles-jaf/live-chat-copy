@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Button, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
-import { PlusOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
-
+  
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
 
 const Customers = () => {
@@ -22,37 +21,37 @@ const Customers = () => {
       id: 'CUST-1001',
       name: 'Sarah Williams',
       email: 'sarah.williams@techcorp.com',
-      phone: '+1 (555) 123-4567'
+      phone: '+63 (555) 123-4567'
     },
     {
       id: 'CUST-1002',
       name: 'Michael Chen',
       email: 'michael.chen@innovate.io',
-      phone: '+1 (555) 234-5678'
+      phone: '+63 (555) 234-5678'
     },
     {
       id: 'CUST-1003',
       name: 'Emma Rodriguez',
       email: 'emma.r@globalventures.com',
-      phone: '+1 (555) 345-6789'
+      phone: '+63 (555) 345-6789'
     },
     {
       id: 'CUST-1004',
       name: 'James Thompson',
       email: 'j.thompson@startup.co',
-      phone: '+1 (555) 456-7890'
+      phone: '+63 (555) 456-7890'
     },
     {
       id: 'CUST-1005',
       name: 'Olivia Martinez',
       email: 'olivia@enterprise.com',
-      phone: '+1 (555) 567-8901'
+      phone: '+63 (555) 567-8901'
     },
     {
       id: 'CUST-1006',
       name: 'David Kim',
       email: 'david.kim@digital.net',
-      phone: '+1 (555) 678-9012'
+      phone: '+63 (555) 678-9012'
     }
   ]);
 
@@ -70,18 +69,6 @@ const Customers = () => {
     setOpenModal(true);
   };
 
-  const handleCreateClick = () => {
-    setSelectedCustomer(null);
-    setFormData({
-      id: '',
-      name: '',
-      email: '',
-      phone: ''
-    });
-    setModalMode('create');
-    setOpenModal(true);
-  };
-
   const handleCloseModal = () => {
     setOpenModal(false);
     setSelectedCustomer(null);
@@ -95,20 +82,9 @@ const Customers = () => {
   };
 
   const handleSave = () => {
-    if (modalMode === 'create') {
-      // Generate new customer ID
-      const maxId = Math.max(...customers.map((c) => parseInt(c.id.split('-')[1])));
-      const newCustomer = {
-        ...formData,
-        id: `CUST-${String(maxId + 1).padStart(4, '0')}`
-      };
-      setCustomers([newCustomer, ...customers]);
-      console.log('Creating customer:', newCustomer);
-    } else if (modalMode === 'edit') {
-      // Update existing customer
-      setCustomers(customers.map((customer) => (customer.id === formData.id ? formData : customer)));
-      console.log('Updating customer:', formData);
-    }
+    // Update existing customer
+    setCustomers(customers.map((customer) => (customer.id === formData.id ? formData : customer)));
+    console.log('Updating customer:', formData);
     handleCloseModal();
   };
 
@@ -138,9 +114,9 @@ const Customers = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
+              <Typography
+                variant="subtitle1"
+                sx={{
                   fontWeight: 600,
                   '&:hover': {
                     textDecoration: 'underline'
@@ -176,24 +152,17 @@ const Customers = () => {
         onRowClick={handleViewClick}
         settings={{
           orderBy: 'id',
-          order: 'asc',
-          otherActionButton: (
-            <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick}>
-              Create Customer
-            </Button>
-          )
+          order: 'asc'
         }}
       />
 
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {modalMode === 'create' ? 'Create Customer' : modalMode === 'edit' ? 'Update Customer' : 'Customer Details'}
+          {modalMode === 'edit' ? 'Update Customer' : 'Customer Details'}
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            {modalMode !== 'create' && (
-              <TextField label="Customer ID" value={formData.id || ''} placeholder="CUST-0000" disabled fullWidth />
-            )}
+            <TextField label="Customer ID" value={formData.id || ''} placeholder="CUST-0000" disabled fullWidth />
             <TextField
               label="Name"
               name="name"
@@ -218,7 +187,7 @@ const Customers = () => {
               value={formData.phone || ''}
               onChange={handleFormChange}
               disabled={modalMode === 'view'}
-              placeholder="+1 (555) 123-4567"
+              placeholder="+63 (555) 123-4567"
               fullWidth
             />
           </Box>
@@ -229,7 +198,7 @@ const Customers = () => {
           </Button>
           {modalMode !== 'view' && (
             <Button onClick={handleSave} variant="contained" color="primary">
-              {modalMode === 'create' ? 'Create Customer' : 'Save Changes'}
+              Save Changes
             </Button>
           )}
         </DialogActions>
