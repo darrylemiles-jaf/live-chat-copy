@@ -2,6 +2,7 @@ import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, Table, Tabl
 import { useTheme } from '@mui/material/styles';
 import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
+import { LineChart } from '@mui/x-charts/LineChart';
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -171,37 +172,46 @@ const Dashboard = () => {
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           <MainCard sx={{ p: 2.5, height: '100%', minHeight: 280, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Live tickets
+              New vs Closed
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="h2" fontWeight={500} gutterBottom>
-              23
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Open
-            </Typography>
-            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5, position: 'relative' }}>
-              <Typography variant="h3" fontWeight={500}>
-                16
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Unassigned
-              </Typography>
-              <Badge
-                badgeContent="!"
-                color="error"
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: theme.vars?.palette?.info?.main ?? '#00bcd4' }} />
+                <Typography variant="caption">New</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: theme.vars?.palette?.success?.main ?? '#4caf50' }} />
+                <Typography variant="caption">Closed</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ width: '100%', height: 200 }}>
+              <LineChart
+                hideLegend
+                height={200}
+                grid={{ horizontal: true, vertical: false }}
+                xAxis={[{ scaleType: 'point', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], tickSize: 7, disableLine: true }]}
+                yAxis={[{ tickSize: 7, disableLine: true }]}
+                margin={{ left: 20, right: 20 }}
+                series={[
+                  { type: 'line', data: [12, 15, 10, 8, 9, 11, 15], label: 'New', id: 'new', stroke: theme.vars?.palette?.info?.main ?? '#00bcd4', strokeWidth: 2, showMark: true },
+                  { type: 'line', data: [5, 6, 7, 4, 3, 6, 8], label: 'Closed', id: 'closed', stroke: theme.vars?.palette?.success?.main ?? '#4caf50', strokeWidth: 2, showMark: true }
+                ]}
                 sx={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -8,
-                  '& .MuiBadge-badge': {
-                    fontSize: '1rem',
-                    height: 28,
-                    minWidth: 28,
-                    borderRadius: '50%'
-                  }
+                  '& .MuiChartsGrid-line': { strokeDasharray: '4 4', stroke: theme.vars.palette.divider },
+                  '& .MuiChartsAxis-root.MuiChartsAxis-directionX .MuiChartsAxis-tick': { stroke: 'transparent' }
                 }}
               />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>15</Typography>
+                <Typography variant="body2" color="text.secondary">New (week)</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>8</Typography>
+                <Typography variant="body2" color="text.secondary">Closed (week)</Typography>
+              </Box>
             </Box>
           </MainCard>
         </Grid>
@@ -297,31 +307,25 @@ const Dashboard = () => {
             </Box>
             <List sx={{ overflow: 'auto', flex: 1 }}>
               {queueData.slice(0, 4).map((item, index) => (
-                <ListItem key={index} alignItems="flex-start" sx={{ px: 0, py: 1.5 }}>
-                  <Box
-                    sx={{
-                      bgcolor: '#9FBCBF',
-                      color: '#1A3A3C',
-                      borderRadius: '50%',
-                      width: 32,
-                      height: 32,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mr: 2,
-                      flexShrink: 0
-                    }}
+                <ListItem key={index} alignItems="center" sx={{ px: 0, py: 1.5 }}>
+                  <Avatar
+                    src={item.avatar}
+                    alt={item.name}
+                    sx={{ width: 40, height: 40, mr: 2, flexShrink: 0, bgcolor: '#9FBCBF', color: '#1A3A3C' }}
                   >
-                    <Typography variant="body2" fontWeight={600} color="inherit">
-                      {index + 1}
-                    </Typography>
-                  </Box>
+                    {getInitials(item.name)}
+                  </Avatar>
                   <ListItemText
                     primary={item.name}
                     secondary={`${item.waitTime} • ${item.topic}`}
                     primaryTypographyProps={{ variant: 'body2' }}
                     secondaryTypographyProps={{ variant: 'caption' }}
                   />
+                  <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: 40, flexShrink: 0 }}>
+                    <Typography variant="body2" fontWeight={700} sx={{ color: theme.vars?.palette?.text?.primary ?? 'inherit' }}>
+                      {index + 1}
+                    </Typography>
+                  </Box>
                 </ListItem>
               ))}
             </List>

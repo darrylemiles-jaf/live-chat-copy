@@ -39,6 +39,10 @@ const MainRoutes = {
           element: <Tickets />
         },
         {
+          path: 'tickets/:ticketId',
+          element: <Tickets />
+        },
+        {
           path: 'users',
           children: [
             {
