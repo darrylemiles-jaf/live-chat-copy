@@ -10,7 +10,7 @@ const greyAscent = ['#fafafa', '#bfbfbf', '#434343', '#1f1f1f'];
 // ==============================|| CUSTOM COLOR PALETTES ||============================== //
 
 // Green palette - based on #008E86, #064856, #3B7080, #12515D
-const customGreen = [
+export const customGreen = [
   '#E6F7F6',  // 0 - lighter
   '#B3E7E3',  // 1 
   '#80D7D0',  // 2
@@ -24,7 +24,7 @@ const customGreen = [
 ];
 
 // Red palette - based on #B53654
-const customRed = [
+export const customRed = [
   '#FCE8ED',  // 0 - lighter
   '#F5BFD0',  // 1
   '#EE96B3',  // 2 - light
@@ -38,7 +38,7 @@ const customRed = [
 ];
 
 // Gold/Yellow palette - based on #FFB400
-const customGold = [
+export const customGold = [
   '#FFF8E5',  // 0 - lighter
   '#FFEDB8',  // 1
   '#FFE18A',  // 2
