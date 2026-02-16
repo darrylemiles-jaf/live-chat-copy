@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
-import { customGreen } from "../../../themes/palette";
-import { customGold } from "../../../themes/palette";
-import { customRed } from "../../../themes/palette";
+import { customGreen, customGold, customRed } from "../../../themes/palette";
+
 import {  Button,
   Box,
   Typography,
