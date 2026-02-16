@@ -41,6 +41,64 @@ const Tickets = () => {
     assignee: '',
     email: ''
   });
+  
+  const [tickets, setTickets] = useState([
+    {
+      id: 'TCK-1001',
+      subject: 'Login issue on mobile',
+      description: 'Users cannot log in on Android after the latest release.',
+      priority: 'High',
+      status: 'Open',
+      assignee: 'Amira Hassan',
+      email: 'amira.hassan@company.com',
+      avatar: '/images/users/avatar-1.png',
+      updatedAt: '2026-02-10'
+    },
+    {
+      id: 'TCK-1002',
+      subject: 'Billing email not received',
+      description: 'Customer reports missing invoice email and needs a resend.',
+      priority: 'Medium',
+      status: 'Pending',
+      assignee: 'Jonas Cole',
+      email: 'jonas.cole@company.com',
+      avatar: '/images/users/avatar-2.png',
+      updatedAt: '2026-02-09'
+    },
+    {
+      id: 'TCK-1003',
+      subject: 'Chat widget slow to load',
+      description: 'Chat widget takes over 5 seconds to load on first visit.',
+      priority: 'Low',
+      status: 'Resolved',
+      assignee: 'Priya Singh',
+      email: 'priya.singh@company.com',
+      avatar: '/images/users/avatar-3.png',
+      updatedAt: '2026-02-08'
+    },
+    {
+      id: 'TCK-1004',
+      subject: 'Cannot export transcripts',
+      description: 'Export transcripts feature returns error',
+      priority: 'High',
+      status: 'Open',
+      assignee: 'Mason Ortiz',
+      email: 'mason.ortiz@company.com',
+      avatar: '/images/users/avatar-4.png',
+      updatedAt: '2026-02-07'
+    },
+    {
+      id: 'TCK-1005',
+      subject: 'Notifications not syncing',
+      description: 'Notifications not appearing across devices',
+      priority: 'Medium',
+      status: 'In Progress',
+      assignee: 'Lina Park',
+      email: 'lina.park@company.com',
+      avatar: '/images/users/avatar-5.png',
+      updatedAt: '2026-02-06'
+    }
+  ]);
 
   const handleViewClick = (ticket) => {
     navigate(`/portal/tickets/${encodeURIComponent(ticket.id)}`);
@@ -83,9 +141,34 @@ const Tickets = () => {
   const handleDescriptionChange = (content) => {
     setFormData((prev) => ({ ...prev, description: content }));
   };
+  
+  const stripHtml = useCallback((html) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }, []);
 
   const handleSave = () => {
-    console.log(`${modalMode === 'create' ? 'Creating' : 'Updating'} ticket:`, formData);
+    if (modalMode === 'create') {
+      // Generate new ticket ID
+      const maxId = Math.max(...tickets.map(t => parseInt(t.id.split('-')[1])));
+      const newTicket = {
+        ...formData,
+        id: `TCK-${String(maxId + 1).padStart(4, '0')}`,
+        updatedAt: new Date().toISOString().split('T')[0],
+        avatar: '/images/users/avatar-1.png'
+      };
+      setTickets([newTicket, ...tickets]);
+      console.log('Creating ticket:', newTicket);
+    } else if (modalMode === 'edit') {
+      // Update existing ticket
+      setTickets(tickets.map(ticket => 
+        ticket.id === formData.id 
+          ? { ...formData, updatedAt: new Date().toISOString().split('T')[0] }
+          : ticket
+      ));
+      console.log('Updating ticket:', formData);
+    }
     handleCloseModal();
   };
 
@@ -129,7 +212,7 @@ const Tickets = () => {
         renderCell: (row) => (
           <Box sx={{ width: '100%', overflow: 'hidden' }}>
             <Typography variant="body2" noWrap>
-              {row.description || '-'}
+              {row.description ? stripHtml(row.description) : '-'}
             </Typography>
           </Box>
         )
@@ -209,68 +292,12 @@ const Tickets = () => {
         )
       }
     ],
-    [getPriorityColor, getStatusColor]
+    [getPriorityColor, getStatusColor, stripHtml]
   );
 
   const rows = useMemo(
-    () => [
-      {
-        id: 'TCK-1001',
-        subject: 'Login issue on mobile',
-        description: 'Users cannot log in on Android after the latest release.',
-        priority: 'High',
-        status: 'Open',
-        assignee: 'Amira Hassan',
-        email: 'amira.hassan@company.com',
-        avatar: '/images/users/avatar-1.png',
-        updatedAt: '2026-02-10'
-      },
-      {
-        id: 'TCK-1002',
-        subject: 'Billing email not received',
-        description: 'Customer reports missing invoice email and needs a resend.',
-        priority: 'Medium',
-        status: 'Pending',
-        assignee: 'Jonas Cole',
-        email: 'jonas.cole@company.com',
-        avatar: '/images/users/avatar-2.png',
-        updatedAt: '2026-02-09'
-      },
-      {
-        id: 'TCK-1003',
-        subject: 'Chat widget slow to load',
-        description: 'Chat widget takes over 5 seconds to load on first visit.',
-        priority: 'Low',
-        status: 'Resolved',
-        assignee: 'Priya Singh',
-        email: 'priya.singh@company.com',
-        avatar: '/images/users/avatar-3.png',
-        updatedAt: '2026-02-08'
-      },
-      {
-        id: 'TCK-1004',
-        subject: 'Cannot export transcripts',
-        description: 'Export transcripts feature returns error',
-        priority: 'High',
-        status: 'Open',
-        assignee: 'Mason Ortiz',
-        email: 'mason.ortiz@company.com',
-        avatar: '/images/users/avatar-4.png',
-        updatedAt: '2026-02-07'
-      },
-      {
-        id: 'TCK-1005',
-        subject: 'Notifications not syncing',
-        description: 'Notifications not appearing across devices',
-        priority: 'Medium',
-        status: 'In Progress',
-        assignee: 'Lina Park',
-        email: 'lina.park@company.com',
-        avatar: '/images/users/avatar-5.png',
-        updatedAt: '2026-02-06'
-      }
-    ],
-    []
+    () => tickets,
+    [tickets]
   );
 
   const ticketInView = useMemo(
