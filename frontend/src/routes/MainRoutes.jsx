@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
+import AuthGuard from 'layout/Auth/AuthGuard';
 import UnderConstruction from '../components/maintenance/UnderConstruction';
 
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
@@ -21,7 +22,11 @@ const MainRoutes = {
   children: [
     {
       path: 'portal',
-      element: <DashboardLayout />,
+      element: (
+        <AuthGuard>
+          <DashboardLayout />
+        </AuthGuard>
+      ),
       children: [
         {
           path: 'dashboard',
