@@ -26,9 +26,7 @@ export default function ProfileTab() {
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       <ListItemButton>
         <ListItemIcon>
-          <EditOutlined />
         </ListItemIcon>
-        <ListItemText primary="Edit Profile" />
       </ListItemButton>
       <ListItemButton onClick={handleViewProfile}>
         <ListItemIcon>
