@@ -14,93 +14,48 @@ import {
   MenuItem,
   Stack
 } from '@mui/material';
-import { EditOutlined, CloseOutlined } from '@ant-design/icons';
+import { EditOutlined, CloseOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import React, { useState } from 'react';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import Editor from '../../components/Editor';
+import TicketsAPI from '../../api/tickets';
 
-const TicketDetailView = ({ ticket }) => {
+const TicketDetailView = ({ ticket, onBack, onUpdate }) => {
   const theme = useTheme();
   const palette = theme.palette;
   const warning = palette.warning.main;
   const danger = palette.error.main;
   const info = palette.info.main;
-  
-  const staticDescription = `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-${ticket.description ? `<p>${ticket.description}</p>` : ''}
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`;
 
   const [openModal, setOpenModal] = useState(false);
-  const [ticketData, setTicketData] = useState({
-    id: ticket.id,
-    subject: ticket.subject,
-    priority: ticket.priority,
-    status: ticket.status,
-    assignee: ticket.assignee,
-    email: ticket.email || '',
-    updatedAt: ticket.updatedAt
-  });
-  const [description, setDescription] = useState(staticDescription);
+  const [description, setDescription] = useState(ticket.description || '');
   const [formData, setFormData] = useState({
     id: ticket.id,
-    subject: ticket.subject,
-    description: staticDescription,
+    title: ticket.title || ticket.subject,
+    description: ticket.description || '',
     priority: ticket.priority,
-    status: ticket.status,
-    assignee: ticket.assignee,
-    email: ticket.email || ''
+    status: ticket.status
   });
 
   const handleOpenModal = () => {
     setFormData({
-      id: ticketData.id,
-      subject: ticketData.subject,
+      id: ticket.id,
+      title: ticket.title || ticket.subject,
       description: description,
-      priority: ticketData.priority,
-      status: ticketData.status,
-      assignee: ticketData.assignee,
-      email: ticketData.email
+      priority: ticket.priority,
+      status: ticket.status
     });
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    // Reset form data to current ticket data
     setFormData({
-      id: ticketData.id,
-      subject: ticketData.subject,
+      id: ticket.id,
+      title: ticket.title || ticket.subject,
       description: description,
-      priority: ticketData.priority,
-      status: ticketData.status,
-      assignee: ticketData.assignee,
-      email: ticketData.email
+      priority: ticket.priority,
+      status: ticket.status
     });
   };
 
@@ -111,46 +66,46 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
     }));
   };
 
-  const handleSave = () => {
-    // Update ticket data and description
-    setTicketData({
-      id: formData.id,
-      subject: formData.subject,
-      priority: formData.priority,
-      status: formData.status,
-      assignee: formData.assignee,
-      email: formData.email,
-      updatedAt: new Date().toISOString()
-    });
-    setDescription(formData.description);
-    
-    // Save logic here - you can add API call
-    console.log('Saving ticket with data:', formData);
-    setOpenModal(false);
+  const handleSave = async () => {
+    try {
+      await TicketsAPI.updateTicket(formData.id, {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        status: formData.status
+      });
+      setDescription(formData.description);
+      setOpenModal(false);
+      if (onUpdate) {
+        onUpdate(formData);
+      }
+    } catch (error) {
+      console.error('Error updating ticket:', error);
+    }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Open':
-        return info;
-      case 'Pending':
-        return warning;
-      case 'In Progress':
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
+      case 'new':
         return palette.primary.main;
-      case 'Resolved':
-        return palette.success.main;
+      case 'in_progress':
+        return info;
+      case 'closed':
+        return palette.grey[500];
       default:
         return palette.grey[500];
     }
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High':
+    const priorityLower = priority?.toLowerCase();
+    switch (priorityLower) {
+      case 'high':
         return danger;
-      case 'Medium':
+      case 'medium':
         return warning;
-      case 'Low':
+      case 'low':
         return palette.success.main;
       default:
         return palette.grey[500];
@@ -161,19 +116,21 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
     <React.Fragment>
       <Breadcrumbs links={[{ title: 'Home', to: '/' }, { title: 'Tickets', to: '/portal/tickets' }, { title: `#${ticket.id}` }]} />
       <Box sx={{  bgcolor: palette.background.default, minHeight: '100vh' }}>
+        <Box sx={{ mb: 2 }}>
+        </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant="h1" color="initial"  sx={{ mb: 6 }}>
-              {ticketData.subject}
+              {ticket.title || ticket.subject}
             </Typography>
-            <Typography variant="h6" color="initial">{`Ticket ID: ${ticketData.id}`}</Typography>
+            <Typography variant="h6" color="initial">{`Ticket ID: ${ticket.id}`}</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
               <Typography>Priority:</Typography>
               <Chip
-                label={ticketData.priority}
+                label={ticket.priority?.charAt(0).toUpperCase() + ticket.priority?.slice(1)}
                 size="small"
                 sx={{
-                  bgcolor: getPriorityColor(ticketData.priority),
+                  bgcolor: getPriorityColor(ticket.priority),
                   color: palette.common.white,
                   fontWeight: 600
                 }}
@@ -181,9 +138,9 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
               <Typography>Status:</Typography>
               <Chip
                 size="small"
-                label={ticketData.status}
+                label={ticket.status?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 sx={{
-                  bgcolor: getStatusColor(ticketData.status),
+                  bgcolor: getStatusColor(ticket.status),
                   color: palette.common.white,
                   fontWeight: 600
                 }}
@@ -221,50 +178,37 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
           </Paper>
 
           <Paper sx={{ p: 3, alignSelf: 'start', position: 'sticky', top: 80  }}>
-            <Typography variant="subtitle2" sx={{ color: palette.text.secondary, mb: 2 }}>
-              Assignee
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  bgcolor: palette.grey[200],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  color: palette.text.secondary
-                }}
-              >
-                {(ticketData.assignee || 'NA').slice(0, 2).toUpperCase()}
-              </Box>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {ticketData.assignee}
-                </Typography>
-                <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-                  Assignee
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
             <Box>
               <Typography variant="subtitle2" sx={{ color: palette.text.secondary, mb: 1 }}>
-                Updated
+                Created At
               </Typography>
               <Typography variant="body2" sx={{ color: palette.text.secondary }}>
-                {new Date(ticketData.updatedAt).toLocaleString('en-US', { 
+                {ticket.created_at ? new Date(ticket.created_at).toLocaleString('en-US', { 
                   month: 'short', 
                   day: 'numeric', 
                   year: 'numeric', 
                   hour: 'numeric', 
                   minute: '2-digit', 
                   hour12: true 
-                })}
+                }) : 'N/A'}
+              </Typography>
+            </Box>
+            
+            <Divider sx={{ my: 2 }} />
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ color: palette.text.secondary, mb: 1 }}>
+                Updated At
+              </Typography>
+              <Typography variant="body2" sx={{ color: palette.text.secondary }}>
+                {ticket.updated_at ? new Date(ticket.updated_at).toLocaleString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric', 
+                  hour: 'numeric', 
+                  minute: '2-digit', 
+                  hour12: true 
+                }) : 'N/A'}
               </Typography>
             </Box>
           </Paper>
@@ -300,9 +244,9 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
             
             <TextField
               fullWidth
-              label="Subject"
-              value={formData.subject}
-              onChange={(e) => handleInputChange('subject', e.target.value)}
+              label="Title"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
             />
             
             <Box>
@@ -320,28 +264,14 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
             
             <TextField
               fullWidth
-              label="Assignee"
-              value={formData.assignee}
-              onChange={(e) => handleInputChange('assignee', e.target.value)}
-            />
-            
-            <TextField
-              fullWidth
-              label="Email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-            />
-            
-            <TextField
-              fullWidth
               select
               label="Priority"
               value={formData.priority}
               onChange={(e) => handleInputChange('priority', e.target.value)}
             >
-              <MenuItem value="Low">Low</MenuItem>
-              <MenuItem value="Medium">Medium</MenuItem>
-              <MenuItem value="High">High</MenuItem>
+              <MenuItem value="low">Low</MenuItem>
+              <MenuItem value="medium">Medium</MenuItem>
+              <MenuItem value="high">High</MenuItem>
             </TextField>
             
             <TextField
@@ -351,10 +281,9 @@ ${ticket.description ? `<p>${ticket.description}</p>` : ''}
               value={formData.status}
               onChange={(e) => handleInputChange('status', e.target.value)}
             >
-              <MenuItem value="Open">Open</MenuItem>
-              <MenuItem value="Pending">Pending</MenuItem>
-              <MenuItem value="In Progress">In Progress</MenuItem>
-              <MenuItem value="Resolved">Resolved</MenuItem>
+              <MenuItem value="new">New</MenuItem>
+              <MenuItem value="in_progress">In Progress</MenuItem>
+              <MenuItem value="closed">Closed</MenuItem>
             </TextField>
           </Stack>
         </DialogContent>
