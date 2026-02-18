@@ -1,5 +1,9 @@
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+
+// utils
+import { logout } from 'utils/auth';
+
 // material-ui
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -22,6 +26,10 @@ export default function ProfileTab() {
     navigate('/portal/profile');
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       <ListItemButton>
@@ -35,7 +43,7 @@ export default function ProfileTab() {
         <ListItemText primary="View Profile" />
       </ListItemButton>
 
-      <ListItemButton>
+      <ListItemButton onClick={handleLogout}>
         <ListItemIcon>
           <LogoutOutlined />
         </ListItemIcon>

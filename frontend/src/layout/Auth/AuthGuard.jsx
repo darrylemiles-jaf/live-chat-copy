@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isAuthenticated } from 'utils/auth';
 
 // ==============================|| AUTH GUARD ||============================== //
 
@@ -7,16 +8,12 @@ const AuthGuard = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('serviceToken');
-    
-    if (!token) {
+    if (!isAuthenticated()) {
       navigate('/login', { replace: true });
     }
   }, [navigate]);
 
-  const token = localStorage.getItem('serviceToken');
-
-  if (!token) {
+  if (!isAuthenticated()) {
     return null;
   }
 

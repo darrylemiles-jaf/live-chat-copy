@@ -1,8 +1,11 @@
 import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
+
+// utils
+import { getCurrentUser } from 'utils/auth';
 import ButtonBase from '@mui/material/ButtonBase';
 import CardContent from '@mui/material/CardContent';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
@@ -50,6 +53,12 @@ function a11yProps(index) {
 
 export default function Profile() {
   const theme = useTheme();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -90,7 +99,7 @@ export default function Profile() {
       </Tooltip>
 
       <Box component="span" sx={{ fontWeight: "bold", color: "black" }}>
-      John Doe
+        {user?.name || user?.username || 'User'}
       </Box>
       <Popper
         placement="bottom-end"
@@ -121,9 +130,9 @@ export default function Profile() {
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
-                            <Typography variant="h6">John Doe</Typography>
+                            <Typography variant="h6">{user?.name || user?.username || 'User'}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              UI/UX Designer
+                              {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'User'}
                             </Typography>
                           </Stack>
                         </Stack>
