@@ -1,19 +1,15 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 
 // material-ui
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
-import Link from '@mui/material/Link';
 import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 // third-party
 import * as Yup from 'yup';
@@ -22,6 +18,7 @@ import { Formik } from 'formik';
 // project imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
+import { customGreen } from 'themes/palette';
 
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
@@ -30,8 +27,6 @@ import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
-  const [checked, setChecked] = React.useState(false);
-
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -43,7 +38,7 @@ export default function AuthLogin({ isDemo = false }) {
 
   return (
     <>
-      <Formik
+      <Formik 
         initialValues={{
           email: 'info@codedthemes.com',
           password: '123456',
@@ -59,10 +54,19 @@ export default function AuthLogin({ isDemo = false }) {
       >
         {({ errors, handleBlur, handleChange, touched, values }) => (
           <form noValidate>
-            <Grid container spacing={3}>
+            <Grid container spacing={3} sx={{ paddingTop: 5 }}>
               <Grid size={12}>
-                <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-login">Email Address</InputLabel>
+                <Stack sx={{ gap: 1.5 }}>
+                  <InputLabel 
+                    htmlFor="email-login"
+                    sx={{ 
+                      color: customGreen[7],
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Email Address
+                  </InputLabel>
                   <OutlinedInput
                     id="email-login"
                     type="email"
@@ -70,9 +74,26 @@ export default function AuthLogin({ isDemo = false }) {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Enter your email"
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
+                    sx={{
+                      borderRadius: 2,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[2],
+                        borderWidth: '2px',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[5],
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[7],
+                        borderWidth: '2px',
+                      },
+                      '& input': {
+                        py: 1.5,
+                      }
+                    }}
                   />
                 </Stack>
                 {touched.email && errors.email && (
@@ -82,8 +103,17 @@ export default function AuthLogin({ isDemo = false }) {
                 )}
               </Grid>
               <Grid size={12}>
-                <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="password-login">Password</InputLabel>
+                <Stack sx={{ gap: 1.5 }}>
+                  <InputLabel 
+                    htmlFor="password-login"
+                    sx={{ 
+                      color: customGreen[7],
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Password
+                  </InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -100,13 +130,36 @@ export default function AuthLogin({ isDemo = false }) {
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
-                          color="secondary"
+                          sx={{ 
+                            color: customGreen[6],
+                            '&:hover': {
+                              color: customGreen[7],
+                              backgroundColor: customGreen[0],
+                            }
+                          }}
                         >
                           {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                         </IconButton>
                       </InputAdornment>
                     }
-                    placeholder="Enter password"
+                    placeholder="Enter your password"
+                    sx={{
+                      borderRadius: 2,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[2],
+                        borderWidth: '2px',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[5],
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: customGreen[7],
+                        borderWidth: '2px',
+                      },
+                      '& input': {
+                        py: 1.5,
+                      }
+                    }}
                   />
                 </Stack>
                 {touched.password && errors.password && (
@@ -115,29 +168,31 @@ export default function AuthLogin({ isDemo = false }) {
                   </FormHelperText>
                 )}
               </Grid>
-              <Grid sx={{ mt: -1 }} size={12}>
-                <Stack direction="row" sx={{ gap: 2, alignItems: 'baseline', justifyContent: 'space-between' }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={checked}
-                        onChange={(event) => setChecked(event.target.checked)}
-                        name="checked"
-                        color="primary"
-                        size="small"
-                      />
-                    }
-                    label={<Typography variant="h6">Keep me sign in</Typography>}
-                  />
-                  <Link variant="h6" component={RouterLink} to="#" color="text.primary">
-                    Forgot Password?
-                  </Link>
-                </Stack>
-              </Grid>
-              <Grid size={12}>
+              <Grid size={12} sx={{ mt: 1 }}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
-                    Login
+                  <Button 
+                    fullWidth 
+                    size="large" 
+                    variant="contained"
+                    sx={{
+                      backgroundColor: customGreen[7],
+                      color: '#fff',
+                      py: 1.75,
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      boxShadow: 'none',
+                      '&:hover': {
+                        backgroundColor: customGreen[8],
+                        boxShadow: `0 4px 12px ${customGreen[3]}`,
+                      },
+                      '&:active': {
+                        backgroundColor: customGreen[9],
+                      }
+                    }}
+                  >
+                    Sign In
                   </Button>
                 </AnimateButton>
               </Grid>
