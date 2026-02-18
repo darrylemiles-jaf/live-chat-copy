@@ -157,12 +157,20 @@ const createUser = async (userData) => {
   }
 };
 
-const authUser = async (email) => {
+const authUser = async (email, password) => {
   if (!email) {
     return {
       statusCode: 400,
       success: false,
       message: "Email is required"
+    };
+  }
+
+  if (!password) {
+    return {
+      statusCode: 400,
+      success: false,
+      message: "Password is required"
     };
   }
 
@@ -198,6 +206,17 @@ const authUser = async (email) => {
         password: DEFAULT_PASSWORD,
       });
 
+      // Verify password matches the default
+      const isPasswordValid = await bcrypt.compare(password, newUser.data.password);
+      
+      if (!isPasswordValid) {
+        return {
+          statusCode: 401,
+          success: false,
+          message: "Invalid email or password"
+        };
+      }
+
       const token = generateUserToken(newUser.data);
 
       return {
@@ -210,7 +229,28 @@ const authUser = async (email) => {
     }
   }
 
+  // User exists, validate password
   const user = await getUserByEmail(email);
+  
+  if (!user.success) {
+    return {
+      statusCode: 401,
+      success: false,
+      message: "Invalid email or password"
+    };
+  }
+
+  // Compare password
+  const isPasswordValid = await bcrypt.compare(password, user.data.password);
+  
+  if (!isPasswordValid) {
+    return {
+      statusCode: 401,
+      success: false,
+      message: "Invalid email or password"
+    };
+  }
+
   const token = generateUserToken(user.data);
 
   return {
