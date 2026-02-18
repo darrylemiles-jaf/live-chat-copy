@@ -1,4 +1,4 @@
-import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer } from '@mui/material';
+import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer, TextField, FormControl, InputLabel, Select, MenuItem, Pagination } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [agentDrawerOpen, setAgentDrawerOpen] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState(null);
 
-  // Mock data - matches chat IDs from chats page
+  
   const recentChats = [
     { id: 1, name: 'Meow', message: 'Messages and calls are secured with end-to-end encr...', time: '6m', avatar: 'BA' },
     { id: 2, name: 'Dave Spencer Sanchez Bacay', message: 'You: san na', time: '6m', avatar: 'DS' },
@@ -162,7 +162,7 @@ const Dashboard = () => {
     { name: 'Robyn Mers', status: 'available', avatar: 'RM' }
   ];
 
-  // Sort agents: Available first, then Busy (limit 10), then Away, then others
+  
   const sortedAgentStatus = useMemo(() => {
     const avail = rawAgentStatus.filter((a) => a.status === 'available').sort((x, y) => x.name.localeCompare(y.name));
     const busy = rawAgentStatus.filter((a) => a.status === 'busy').sort((x, y) => x.name.localeCompare(y.name));
@@ -171,6 +171,46 @@ const Dashboard = () => {
     const busyLimited = busy.slice(0, 10);
     return [...avail, ...busyLimited, ...away, ...others];
   }, [rawAgentStatus]);
+
+  
+  const [agentSearch, setAgentSearch] = useState('');
+  const [agentStatusFilter, setAgentStatusFilter] = useState('all');
+  const [agentPage, setAgentPage] = useState(1);
+  const itemsPerPage = 5;
+  const closeAgentDrawer = () => {
+    setAgentDrawerOpen(false);
+    setAgentSearch('');
+    setAgentStatusFilter('all');
+    setAgentPage(1);
+  };
+
+  const filteredSortedAgents = useMemo(() => {
+    let list = [...rawAgentStatus];
+
+    // If no filters/search active -> show available first (preserve raw order)
+    if (!agentSearch && (!agentStatusFilter || agentStatusFilter === 'all')) {
+      const avail = list.filter((a) => a.status === 'available');
+      const busy = list.filter((a) => a.status === 'busy');
+      const away = list.filter((a) => a.status === 'away');
+      const others = list.filter((a) => !['available', 'busy', 'away'].includes(a.status));
+      return [...avail, ...busy, ...away, ...others];
+    }
+
+    if (agentSearch) {
+      const q = agentSearch.toLowerCase();
+      list = list.filter((a) => a.name.toLowerCase().includes(q));
+    }
+
+    if (agentStatusFilter && agentStatusFilter !== 'all') {
+      list = list.filter((a) => a.status === agentStatusFilter);
+    }
+
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    return list;
+  }, [rawAgentStatus, agentStatusFilter, agentSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredSortedAgents.length / itemsPerPage));
+  const displayedAgents = filteredSortedAgents.slice((agentPage - 1) * itemsPerPage, agentPage * itemsPerPage);
 
   return (
     <React.Fragment>
@@ -291,7 +331,7 @@ const Dashboard = () => {
           </MainCard>
         </Grid>
 
-        {/* Bottom Row */}
+        {}
         <Grid size={{ xs: 12, lg: 8 }}>
           <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -415,19 +455,43 @@ const Dashboard = () => {
       <Drawer
         anchor="right"
         open={agentDrawerOpen}
-        onClose={() => setAgentDrawerOpen(false)}
+        onClose={closeAgentDrawer}
       >
         <Box sx={{ width: { xs: '100vw', sm: 400 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ p: 2.5, bgcolor: '#064856', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" component="h2" color="inherit">
               Agent Status
             </Typography>
-            <IconButton onClick={() => setAgentDrawerOpen(false)} size="small" sx={{ color: 'white' }}>
+            <IconButton onClick={closeAgentDrawer} size="small" sx={{ color: 'white' }}>
               <Close />
             </IconButton>
           </Box>
+          <Box sx={{ p: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
+            <TextField
+              size="small"
+              placeholder="Search agents"
+              value={agentSearch}
+              onChange={(e) => { setAgentSearch(e.target.value); setAgentPage(1); }}
+              sx={{ flex: 1 }}
+            />
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel id="agent-status-filter-label">Status</InputLabel>
+              <Select
+                labelId="agent-status-filter-label"
+                value={agentStatusFilter}
+                label="Status"
+                onChange={(e) => { setAgentStatusFilter(e.target.value); setAgentPage(1); }}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="available">Available</MenuItem>
+                <MenuItem value="busy">Busy</MenuItem>
+                <MenuItem value="away">Away</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
           <List sx={{ overflow: 'auto', p: 2.5, flex: 1 }}>
-            {sortedAgentStatus.map((agent, index) => (
+            {displayedAgents.map((agent, index) => (
               <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
                 <Avatar
                   sx={{
@@ -465,6 +529,16 @@ const Dashboard = () => {
               </ListItem>
             ))}
           </List>
+
+          <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              count={totalPages}
+              page={agentPage}
+              onChange={(_, value) => setAgentPage(value)}
+              size="small"
+              color="primary"
+            />
+          </Box>
         </Box>
       </Drawer>
     </React.Fragment>
