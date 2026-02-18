@@ -10,7 +10,7 @@ import NotFound from '../pages/not-found';
 const routes = [
   {
     path: '/',
-    element: <Navigate to="/portal/dashboard" replace />
+    element: <Navigate to="/login" replace />
   },
   {
     path: '*',
