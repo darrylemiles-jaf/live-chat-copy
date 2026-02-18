@@ -25,7 +25,22 @@ const getSingleUser = expressAsync(async (req, res) => {
   }
 });
 
+const authUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await usersServices.authUser(email);
+    const { statusCode, ...responseData } = result;
+    return res.status(statusCode).json(responseData);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export {
   getUsers,
-  getSingleUser
+  getSingleUser,
+  authUser
 }
