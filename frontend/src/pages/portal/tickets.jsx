@@ -13,7 +13,8 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Autocomplete
 } from '@mui/material';
 import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -23,8 +24,18 @@ import ReusableTable from '../../components/ReusableTable';
 import TicketDetailView from '../../sections/tickets/TicketDetailView';
 import ConvertDate from '../../components/ConvertDate';
 import Editor from '../../components/Editor';
+import { customGreen } from '../../themes/palette';
 
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Tickets' }];
+
+// List of assignees for autocomplete
+const assigneeOptions = [
+  { name: 'Amira Hassan', email: 'amira.hassan@company.com', avatar: '/images/users/avatar-1.png' },
+  { name: 'Jonas Cole', email: 'jonas.cole@company.com', avatar: '/images/users/avatar-2.png' },
+  { name: 'Priya Singh', email: 'priya.singh@company.com', avatar: '/images/users/avatar-3.png' },
+  { name: 'Mason Ortiz', email: 'mason.ortiz@company.com', avatar: '/images/users/avatar-4.png' },
+  { name: 'Lina Park', email: 'lina.park@company.com', avatar: '/images/users/avatar-5.png' },
+];
 
 const Tickets = () => {
   const { ticketId } = useParams();
@@ -307,6 +318,24 @@ const Tickets = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
   
+  const handleAssigneeChange = (event, newValue) => {
+    if (newValue) {
+      setFormData((prev) => ({ 
+        ...prev, 
+        assignee: newValue.name,
+        email: newValue.email,
+        avatar: newValue.avatar
+      }));
+    } else {
+      setFormData((prev) => ({ 
+        ...prev, 
+        assignee: '',
+        email: '',
+        avatar: ''
+      }));
+    }
+  };
+  
   const handleDescriptionChange = (content) => {
     setFormData((prev) => ({ ...prev, description: content }));
   };
@@ -535,24 +564,67 @@ const Tickets = () => {
                     minHeight={150}
                   />
                 </Box>
-                <TextField
-                  label="Assignee"
-                  name="assignee"
-                  value={formData.assignee || ''}
-                  onChange={handleFormChange}
+                <Autocomplete
+                  options={assigneeOptions}
+                  getOptionLabel={(option) => option.name}
+                  value={assigneeOptions.find(opt => opt.name === formData.assignee) || null}
+                  onChange={handleAssigneeChange}
                   disabled={modalMode === 'view'}
-                  placeholder="Enter assignee name"
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          backgroundColor: customGreen[0],
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold',
+                          color: customGreen[7],
+                          fontSize: '14px'
+                        }}
+                      >
+                        {option.name.charAt(0).toUpperCase()}
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{option.name}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{option.email}</Typography>
+                      </Box>
+                    </Box>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Assignee"
+                      placeholder="Select assignee"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: customGreen[5],
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: customGreen[7],
+                          },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: customGreen[7],
+                        },
+                      }}
+                    />
+                  )}
                   fullWidth
+                  sx={{
+                    '& .MuiAutocomplete-popupIndicator': {
+                      color: customGreen[6],
+                    },
+                    '& .MuiAutocomplete-clearIndicator': {
+                      color: customGreen[6],
+                    },
+                  }}
                 />
-                <TextField
-                  label="Email"
-                  name="email"
-                  value={formData.email || ''}
-                  onChange={handleFormChange}
-                  disabled={modalMode === 'view'}
-                  placeholder="Enter email address"
-                  fullWidth
-                />
+           
                 <FormControl fullWidth>
                   <InputLabel>Priority</InputLabel>
                   <Select
