@@ -17,7 +17,7 @@ const breadcrumbLinks = [
 const fakeChatList = [
   {
     id: 1,
-    name: 'Banine',
+    name: 'Meow',
     lastMessage: 'Messages and calls are secured with end-to-end encr...',
     timestamp: '6m',
     avatar: '/src/assets/images/users/avatar-1.png',
@@ -92,9 +92,9 @@ const fakeChatList = [
 // Fake messages data for each chat
 const fakeMessagesData = {
   1: [
-    { id: 1, sender: 'Banine', message: 'Hi there! How are you?', timestamp: '10m ago', isSender: false },
+    { id: 1, sender: 'Meow', message: 'Hi there! How are you?', timestamp: '10m ago', isSender: false },
     { id: 2, sender: 'You', message: 'I\'m good, thanks! How about you?', timestamp: '8m ago', isSender: true },
-    { id: 3, sender: 'Banine', message: 'Doing great! Just wanted to check in.', timestamp: '6m ago', isSender: false }
+    { id: 3, sender: 'Meow', message: 'Doing great! Just wanted to check in.', timestamp: '6m ago', isSender: false }
   ],
   2: [
     { id: 1, sender: 'Dave Spencer Sanchez Bacay', message: 'login POST public', timestamp: '9m ago', isSender: false },
@@ -190,13 +190,13 @@ const Chats = () => {
         links={breadcrumbLinks}
         subheading="View and manage your chats here."
       />
-      
-      <Paper 
-        sx={{ 
+
+      <Paper
+        sx={{
           height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' },
-          display: 'flex', 
-          overflow: 'hidden', 
-          mt: 2 
+          display: 'flex',
+          overflow: 'hidden',
+          mt: 2
         }}
       >
         {/* Left Sidebar - Chat List */}
@@ -209,9 +209,9 @@ const Chats = () => {
         />
 
         {/* Right Side - Chat Window */}
-        <Box 
-          sx={{ 
-            flex: 1, 
+        <Box
+          sx={{
+            flex: 1,
             display: { xs: selectedChat ? 'flex' : 'none', md: 'flex' },
             flexDirection: 'column',
             width: { xs: '100%', md: 'auto' }
@@ -219,8 +219,8 @@ const Chats = () => {
         >
           {selectedChat ? (
             <>
-              <ChatHeaderSection 
-                selectedChat={selectedChat} 
+              <ChatHeaderSection
+                selectedChat={selectedChat}
                 onBack={handleBackToList}
               />
               <MessagesAreaSection messages={currentMessages} />
