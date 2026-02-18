@@ -5,7 +5,7 @@ const usersTable = `CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20),
     role ENUM('client', 'support_agent', 'admin') NOT NULL DEFAULT 'support_agent',
-    status ENUM('available', 'busy') DEFAULT 'available',
+    status ENUM('AVAILABLE', 'BUSY', 'AWAY') DEFAULT 'AVAILABLE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_username (username),
