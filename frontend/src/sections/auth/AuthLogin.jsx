@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-// material-ui
+
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -15,21 +16,22 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-// third-party
+
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
-// project imports
+
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
 
-// assets
+
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
+  const navigate = useNavigate();
   const [checked, setChecked] = React.useState(false);
 
   const [showPassword, setShowPassword] = React.useState(false);
@@ -41,6 +43,30 @@ export default function AuthLogin({ isDemo = false }) {
     event.preventDefault();
   };
 
+  const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/v1/users/login', {
+        email: values.email
+      });
+
+      if (response.data.success) {
+        
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        
+        setStatus({ success: true });
+        setSubmitting(false);
+        
+        
+        navigate('/portal/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setStatus({ success: false });
+      setErrors({ submit: error.response?.data?.message || 'Authentication failed. Please try again.' });
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <Formik
@@ -50,15 +76,12 @@ export default function AuthLogin({ isDemo = false }) {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string()
-            .required('Password is required')
-            .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
-            .max(10, 'Password must be less than 10 characters')
+          email: Yup.string().email('Must be a valid email').max(255).required('Email is required')
         })}
+        onSubmit={handleSubmit}
       >
-        {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate>
+        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+          <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
@@ -115,6 +138,11 @@ export default function AuthLogin({ isDemo = false }) {
                   </FormHelperText>
                 )}
               </Grid>
+              {errors.submit && (
+                <Grid size={12}>
+                  <FormHelperText error>{errors.submit}</FormHelperText>
+                </Grid>
+              )}
               <Grid sx={{ mt: -1 }} size={12}>
                 <Stack direction="row" sx={{ gap: 2, alignItems: 'baseline', justifyContent: 'space-between' }}>
                   <FormControlLabel
@@ -136,8 +164,15 @@ export default function AuthLogin({ isDemo = false }) {
               </Grid>
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
-                    Login
+                  <Button 
+                    fullWidth 
+                    size="large" 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Logging in...' : 'Login'}
                   </Button>
                 </AnimateButton>
               </Grid>
