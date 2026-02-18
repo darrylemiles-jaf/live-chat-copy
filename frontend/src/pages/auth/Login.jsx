@@ -1,7 +1,4 @@
-import { Link } from 'react-router-dom';
-
 // material-ui
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -14,16 +11,17 @@ import AuthLogin from 'sections/auth/AuthLogin';
 export default function Login() {
   return (
     <AuthWrapper>
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Stack direction="row" sx={{ alignItems: 'baseline', justifyContent: 'space-between', mb: { xs: -0.5, sm: 0.5 } }}>
-            <Typography variant="h3">Login</Typography>
-          </Stack>
-        </Grid>
-        <Grid size={12}>
-          <AuthLogin />
-        </Grid>
-      </Grid>
+      <Stack spacing={3}>
+        <Stack spacing={1} textAlign="center" >
+          <Typography  variant="h1" sx={{ fontWeight: 700 }}>
+            Welcome Back
+          </Typography>
+          <Typography variant="h5" color="textSecondary">
+            Enter your credentials to continue  
+          </Typography>
+        </Stack>
+        <AuthLogin />
+      </Stack>
     </AuthWrapper>
   );
 }
