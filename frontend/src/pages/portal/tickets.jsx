@@ -14,10 +14,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Autocomplete
+  Autocomplete,
+  CircularProgress,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
+import { mutate } from 'swr';
 import Chip from '@mui/material/Chip';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../components/ReusableTable';
@@ -25,17 +29,10 @@ import TicketDetailView from '../../sections/tickets/TicketDetailView';
 import ConvertDate from '../../components/ConvertDate';
 import Editor from '../../components/Editor';
 import { customGreen } from '../../themes/palette';
+import agent, { useGetTickets } from '../../api/tickets';
+import { API_URL } from '../../constants/constants';
 
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Tickets' }];
-
-// List of assignees for autocomplete
-const assigneeOptions = [
-  { name: 'Amira Hassan', email: 'amira.hassan@company.com', avatar: '/images/users/avatar-1.png' },
-  { name: 'Jonas Cole', email: 'jonas.cole@company.com', avatar: '/images/users/avatar-2.png' },
-  { name: 'Priya Singh', email: 'priya.singh@company.com', avatar: '/images/users/avatar-3.png' },
-  { name: 'Mason Ortiz', email: 'mason.ortiz@company.com', avatar: '/images/users/avatar-4.png' },
-  { name: 'Lina Park', email: 'lina.park@company.com', avatar: '/images/users/avatar-5.png' },
-];
 
 const Tickets = () => {
   const { ticketId } = useParams();
@@ -43,213 +40,25 @@ const Tickets = () => {
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState('view'); // 'view', 'edit', 'create'
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [modalError, setModalError] = useState(null);
   const [formData, setFormData] = useState({
     id: '',
-    subject: '',
+    title: '',
     description: '',
     priority: '',
-    status: '',
+    status: '',   
     assignee: '',
     email: ''
   });
   
-  const [tickets, setTickets] = useState([
-    {
-      id: 'TCK-1001',
-      subject: 'Login issue on mobile',
-      description: `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
+  const [assigneeOptions, setAssigneeOptions] = useState([]);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-<p>Users cannot log in on Android after the latest release.</p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`,
-      priority: 'High',
-      status: 'Open',
-      assignee: 'Amira Hassan',
-      email: 'amira.hassan@company.com',
-      avatar: '/images/users/avatar-1.png',
-      updatedAt: '2026-02-10'
-    },
-    {
-      id: 'TCK-1002',
-      subject: 'Billing email not received',
-      description: `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-<p>Customer reports missing invoice email and needs a resend.</p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`,
-      priority: 'Medium',
-      status: 'Pending',
-      assignee: 'Jonas Cole',
-      email: 'jonas.cole@company.com',
-      avatar: '/images/users/avatar-2.png',
-      updatedAt: '2026-02-09'
-    },
-    {
-      id: 'TCK-1003',
-      subject: 'Chat widget slow to load',
-      description: `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-<p>Chat widget takes over 5 seconds to load on first visit.</p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`,
-      priority: 'Low',
-      status: 'Resolved',
-      assignee: 'Priya Singh',
-      email: 'priya.singh@company.com',
-      avatar: '/images/users/avatar-3.png',
-      updatedAt: '2026-02-08'
-    },
-    {
-      id: 'TCK-1004',
-      subject: 'Cannot export transcripts',
-      description: `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-<p>Export transcripts feature returns error</p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`,
-      priority: 'High',
-      status: 'Open',
-      assignee: 'Mason Ortiz',
-      email: 'mason.ortiz@company.com',
-      avatar: '/images/users/avatar-4.png',
-      updatedAt: '2026-02-07'
-    },
-    {
-      id: 'TCK-1005',
-      subject: 'Notifications not syncing',
-      description: `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-<p>Notifications not appearing across devices</p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`,
-      priority: 'Medium',
-      status: 'In Progress',
-      assignee: 'Lina Park',
-      email: 'lina.park@company.com',
-      avatar: '/images/users/avatar-5.png',
-      updatedAt: '2026-02-06'
-    }
-  ]);
+  const { tickets, ticketsLoading, ticketsError } = useGetTickets({});
 
   const handleViewClick = (ticket) => {
     navigate(`/portal/tickets/${encodeURIComponent(ticket.id)}`);
@@ -257,48 +66,27 @@ const Tickets = () => {
 
   const handleEditClick = (ticket) => {
     setSelectedTicket(ticket);
-    setFormData(ticket);
+    setFormData({
+      id: ticket.id,
+      title: ticket.title,
+      description: ticket.description || '',
+      priority: ticket.priority,
+      status: ticket.status,
+      assignee: '',
+      email: ''
+    });
     setModalMode('edit');
     setOpenModal(true);
   };
 
   const handleCreateClick = () => {
-    const emptyDescription = `
-<h3>Ticket Creation Guidelines</h3>
-<p>Please review the ticket submission requirements before continuing.</p>
-
-<p></p>
-
-<h2>Support Ticket Submission Policy</h2>
-<p><strong>Effective Date:</strong> February 16, 2026</p>
-
-<h4>1. Purpose</h4>
-<p>This policy ensures new tickets include the details required for fast triage, accurate routing, and clear accountability.</p>
-
-<h4>2. Required Information</h4>
-<ul>
-  <li>A concise subject that summarizes the issue.</li>
-  <li>A clear description with steps to reproduce, if applicable.</li>
-  <li>Impact level and expected business effect.</li>
-  <li>Current environment details (app version, device, browser).</li>
-</ul>
-
-<h4>3. Priority Guidelines</h4>
-<p>Use High only for outages, data loss, or security incidents. Medium covers degraded workflows. Low is for cosmetic or minor issues.</p>
-
-<h4>4. Sensitive Data</h4>
-<p>Do not include passwords, full payment data, or private customer identifiers in ticket descriptions.</p>
-
-<h4>5. Response Expectations</h4>
-<p>The support team will confirm receipt and assign an owner. Updates are posted on the ticket timeline.</p>
-`;
     setSelectedTicket(null);
     setFormData({
       id: '',
-      subject: '',
-      description: emptyDescription,
-      priority: 'Medium',
-      status: 'Open',
+      title: '',
+      description: '',
+      priority: 'low',
+      status: 'new',
       assignee: '',
       email: ''
     });
@@ -311,6 +99,11 @@ const Tickets = () => {
     setSelectedTicket(null);
     setFormData({});
     setModalMode('view');
+    setModalError(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const handleFormChange = (e) => {
@@ -346,37 +139,63 @@ const Tickets = () => {
     return tmp.textContent || tmp.innerText || '';
   }, []);
 
-  const handleSave = () => {
-    if (modalMode === 'create') {
-      // Generate new ticket ID
-      const maxId = Math.max(...tickets.map(t => parseInt(t.id.split('-')[1])));
-      const newTicket = {
-        ...formData,
-        id: `TCK-${String(maxId + 1).padStart(4, '0')}`,
-        updatedAt: new Date().toISOString().split('T')[0],
-        avatar: '/images/users/avatar-1.png'
-      };
-      setTickets([newTicket, ...tickets]);
-      console.log('Creating ticket:', newTicket);
-    } else if (modalMode === 'edit') {
-      // Update existing ticket
-      setTickets(tickets.map(ticket => 
-        ticket.id === formData.id 
-          ? { ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : ticket
-      ));
-      console.log('Updating ticket:', formData);
+  const handleSave = async () => {
+    try {
+      setModalError(null);
+      
+      if (modalMode === 'create') {
+        const payload = {
+          title: formData.title,
+          description: formData.description,
+          status: formData.status,
+          priority: formData.priority
+        };
+        
+        const response = await agent.addTicket(payload);
+        if (response.success) {
+          const ticketsKey = `${API_URL}/api/${import.meta.env.VITE_API_VER}/tickets`;
+          mutate([ticketsKey, {}]);
+          setSnackbar({
+            open: true,
+            message: 'Ticket created successfully!',
+            severity: 'success'
+          });
+          handleCloseModal();
+        }
+      } else if (modalMode === 'edit') {
+        const payload = {
+          title: formData.title,
+          description: formData.description,
+          status: formData.status,
+          priority: formData.priority
+        };
+        
+        const response = await agent.updateTicket(formData.id, payload);
+        if (response.success) {
+          const ticketsKey = `${API_URL}/api/${import.meta.env.VITE_API_VER}/tickets`;
+          mutate([ticketsKey, {}]);
+          setSnackbar({
+            open: true,
+            message: 'Ticket updated successfully!',
+            severity: 'success'
+          });
+          handleCloseModal();
+        }
+      }
+    } catch (err) {
+      console.error('Error saving ticket:', err);
+      setModalError(err.message || 'Failed to save ticket');
     }
-    handleCloseModal();
   };
 
   const getPriorityColor = useCallback((priority) => {
-    switch (priority) {
-      case 'High':
+    const priorityLower = priority?.toLowerCase();
+    switch (priorityLower) {
+      case 'high':
         return 'error';
-      case 'Medium':
+      case 'medium':
         return 'warning';
-      case 'Low':
+      case 'low':
         return 'success';
       default:
         return 'default';
@@ -384,73 +203,28 @@ const Tickets = () => {
   }, []);
 
   const getStatusColor = useCallback((status) => {
-    switch (status) {
-      case 'Open':
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
+      case 'new':
         return 'primary';
-      case 'Pending':
-        return 'warning';
-      case 'In Progress':
+      case 'in_progress':
         return 'info';
-      case 'Resolved':
-        return 'success';
-      default:
+      case 'closed':
         return 'default';
+  
     }
   }, []);
 
   const columns = useMemo(
     () => [
       { id: 'id', label: 'Ticket ID', minWidth: 120, align: 'left' },
-      { id: 'subject', label: 'Subject', minWidth: 220, align: 'left' },
-      {
-        id: 'description',
-        label: 'Description',
-        minWidth: 250,
-        align: 'left',
-        renderCell: (row) => (
-          <Box sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="body2" noWrap>
-              {row.description ? stripHtml(row.description) : '-'}
-            </Typography>
-          </Box>
-        )
-      },
-      {
-        id: 'assignee',
-        label: 'Assignee',
-        minWidth: 200,
-        align: 'left',
-        renderCell: (row) => (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                backgroundColor: '#e3f2fd',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                color: '#1976d2',
-                fontSize: '16px'
-              }}
-            >
-              {row.assignee.charAt(0).toUpperCase()}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.assignee}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
-            </Box>
-          </Box>
-        )
-      },
+      { id: 'title', label: 'Title', minWidth: 220, align: 'left' },
       {
         id: 'priority',
         label: 'Priority',
         minWidth: 120,
         renderCell: (row) => (
-          <Chip size="small" label={row.priority} color={getPriorityColor(row.priority)} sx={{ minWidth: 92, justifyContent: 'center' }} />
+          <Chip size="small" label={row.priority?.charAt(0).toUpperCase() + row.priority?.slice(1)} color={getPriorityColor(row.priority)} sx={{ minWidth: 92, justifyContent: 'center' }} />
         )
       },
       {
@@ -458,15 +232,15 @@ const Tickets = () => {
         label: 'Status',
         minWidth: 120,
         renderCell: (row) => (
-          <Chip size="small" label={row.status} color={getStatusColor(row.status)} sx={{ minWidth: 108, justifyContent: 'center' }} />
+          <Chip size="small" label={row.status?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} color={getStatusColor(row.status)} sx={{ minWidth: 108, justifyContent: 'center' }} />
         )
       },
       {
-        id: 'updatedAt',
+        id: 'updated_at',
         label: 'Updated At',
         minWidth: 120,
         renderCell: (row) => (
-          <ConvertDate dateString={row.updatedAt} time />
+          <ConvertDate dateString={row.updated_at} time />
         )
       },
       {
@@ -490,7 +264,7 @@ const Tickets = () => {
         )
       }
     ],
-    [getPriorityColor, getStatusColor, stripHtml]
+    [getPriorityColor, getStatusColor]
   );
 
   const rows = useMemo(
@@ -499,25 +273,36 @@ const Tickets = () => {
   );
 
   const ticketInView = useMemo(
-    () => (ticketId ? rows.find((row) => row.id === ticketId) : null),
+    () => (ticketId ? rows.find((row) => row.id === parseInt(ticketId, 10)) : null),
     [rows, ticketId]
   );
+
+  const handleTicketUpdate = (updatedTicket) => {
+    const ticketsKey = `${API_URL}/api/${import.meta.env.VITE_API_VER}/tickets`;
+    mutate([ticketsKey, {}]);
+    setSnackbar({ open: true, message: 'Ticket updated successfully!', severity: 'success' });
+  };
 
   return (
     <React.Fragment>
       {ticketId && ticketInView ? (
         <>
-          <TicketDetailView ticket={ticketInView} onBack={() => navigate('/portal/tickets')} />
+          <TicketDetailView 
+            ticket={ticketInView} 
+            onBack={() => navigate('/portal/tickets')} 
+            onUpdate={handleTicketUpdate}
+          />
         </>
       ) : (
         <>
           <Breadcrumbs heading="Tickets" links={breadcrumbLinks} subheading="View and manage your tickets here." />
+          {ticketsError && <Alert severity="error" sx={{ mb: 2 }}>{ticketsError.message || 'Failed to load tickets'}</Alert>}
           <ReusableTable
             columns={columns}
             rows={rows}
-            searchableColumns={['id', 'subject', 'description', 'priority', 'status', 'assignee']}
+            searchableColumns={['id', 'title', 'priority', 'status']}
             settings={{
-              orderBy: 'updatedAt',
+              orderBy: 'updated_at',
               order: 'desc',
               otherActionButton: (
                 <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick} >
@@ -526,13 +311,12 @@ const Tickets = () => {
               )
             }}
           />
-
-      {/* Ticket Modal */}
-          <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+          <Dialog open={openModal} onClose={handleCloseModal} maxWidth="md" fullWidth>
             <DialogTitle>
               {modalMode === 'create' ? 'Create Ticket' : modalMode === 'edit' ? 'Update Ticket' : 'View Ticket'}
             </DialogTitle>
             <DialogContent sx={{ pt: 2 }}>
+              {modalError && <Alert severity="error" sx={{ mb: 2 }}>{modalError}</Alert>}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                 {modalMode !== 'create' && (
                   <TextField
@@ -544,12 +328,12 @@ const Tickets = () => {
                   />
                 )}
                 <TextField
-                  label="Subject"
-                  name="subject"
-                  value={formData.subject || ''}
+                  label="Title"
+                  name="title"
+                  value={formData.title || ''}
                   onChange={handleFormChange}
                   disabled={modalMode === 'view'}
-                  placeholder="Enter ticket subject"
+                  placeholder="Enter ticket title"
                   fullWidth
                 />
                 <Box>
@@ -634,9 +418,9 @@ const Tickets = () => {
                     disabled={modalMode === 'view'}
                     label="Priority"
                   >
-                    <MenuItem value="Low">Low</MenuItem>
-                    <MenuItem value="Medium">Medium</MenuItem>
-                    <MenuItem value="High">High</MenuItem>
+                    <MenuItem value="low">Low</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="high">High</MenuItem>
                   </Select>
                 </FormControl>
                 <FormControl fullWidth>
@@ -648,10 +432,9 @@ const Tickets = () => {
                     disabled={modalMode === 'view'}
                     label="Status"
                   >
-                    <MenuItem value="Open">Open</MenuItem>
-                    <MenuItem value="Pending">Pending</MenuItem>
-                    <MenuItem value="In Progress">In Progress</MenuItem>
-                    <MenuItem value="Resolved">Resolved</MenuItem>
+                    <MenuItem value="new">New</MenuItem>
+                    <MenuItem value="in_progress">In Progress</MenuItem>
+                    <MenuItem value="closed">Closed</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
@@ -669,6 +452,17 @@ const Tickets = () => {
           </Dialog>
         </>
       )}
+      
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 };
