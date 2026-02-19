@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWidget.css';
 
-const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http://localhost:8080' }) => {
+const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http://localhost:8000' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -48,7 +48,13 @@ const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http
 
       socketRef.current.on('new_message', (message) => {
         console.log('📨 New message received:', message);
-        setMessages(prev => [...prev, message]);
+        setMessages(prev => {
+          // Prevent duplicates by checking if message with this ID already exists
+          if (prev.some(msg => msg.id === message.id)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
         scrollToBottom();
       });
 

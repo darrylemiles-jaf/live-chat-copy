@@ -57,10 +57,15 @@ export const getIO = () => {
   return io;
 };
 
-// Emit new message to chat room
+// Emit new message to chat room and sender's user room
 export const emitNewMessage = (chatId, message) => {
   if (io) {
+    // Emit to chat room
     io.to(`chat_${chatId}`).emit('new_message', message);
+    // Also emit to sender's user room (for first message when user hasn't joined chat room yet)
+    if (message.sender_id) {
+      io.to(`user_${message.sender_id}`).emit('new_message', message);
+    }
   }
 };
 

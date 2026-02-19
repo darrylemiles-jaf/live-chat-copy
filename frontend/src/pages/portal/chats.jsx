@@ -16,6 +16,8 @@ const breadcrumbLinks = [
   { title: `Chats` }
 ];
 
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+
 // Helper functions
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -75,6 +77,14 @@ const Chats = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.warn('User not logged in, redirecting to login');
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
+
   // Fetch chats data
   const fetchChatsData = async () => {
     if (!user?.id) {
@@ -119,7 +129,7 @@ const Chats = () => {
     fetchChatsData();
 
     // Connect socket
-    const socket = socketService.connect();
+    const socket = socketService.connect(SOCKET_URL, user.id);
 
     // Listen for new messages
     socket.on('new_message', (messageData) => {
@@ -128,7 +138,13 @@ const Chats = () => {
       // If message is for current chat, add it to messages
       if (selectedChat && messageData.chat_id === selectedChat.id) {
         const transformedMessage = transformMessageData(messageData, user.id);
-        setCurrentMessages(prev => [...prev, transformedMessage]);
+        setCurrentMessages(prev => {
+          // Prevent duplicates by checking if message with this ID already exists
+          if (prev.some(msg => msg.id === transformedMessage.id)) {
+            return prev;
+          }
+          return [...prev, transformedMessage];
+        });
         setTimeout(scrollToBottom, 100);
       }
 
@@ -167,9 +183,15 @@ const Chats = () => {
   // Auto-select chat from navigation state
   useEffect(() => {
     if (location.state?.chatId && chats.length > 0) {
+      console.log('🔍 Looking for chat:', location.state.chatId, 'in', chats.length, 'chats');
       const chat = chats.find(c => c.id === location.state.chatId);
       if (chat) {
+        console.log('✅ Found chat, selecting:', chat);
         handleSelectChat(chat);
+      } else {
+        console.warn('⚠️ Chat not found in list, will retry after refresh');
+        // Refresh chats to get the newly assigned chat
+        setTimeout(() => fetchChatsData(), 500);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -18,7 +18,7 @@ export const getChats = async (userId) => {
 // Get messages for a specific chat
 export const getChatMessages = async (chatId) => {
   try {
-    const response = await axios.get(`${API_URL}/chats`, {
+    const response = await axios.get(`${API_URL}/messages`, {
       params: { chat_id: chatId }
     });
     return response.data;
@@ -44,7 +44,7 @@ export const getQueue = async (limit = 50) => {
 // Get available agents
 export const getAvailableAgents = async () => {
   try {
-    const response = await axios.get(`${API_URL}/queue/agents`);
+    const response = await axios.get(`${API_URL}/queue/available-agents`);
     return response.data;
   } catch (error) {
     console.error('Error fetching agents:', error);

@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material';
 import { CheckCircle } from 'mdi-material-ui';
 
-const QueueHeader = ({ palette }) => (
+const QueueHeader = ({ palette, availableAgents = 0 }) => (
   <Box
     sx={{
       display: 'flex',
@@ -15,9 +15,9 @@ const QueueHeader = ({ palette }) => (
   >
     <Stack direction="row" spacing={1.5} alignItems="center">
       <Typography variant="subtitle1" sx={{ color: '#000000' }}>
-        Available Agents: 3
+        Available Agents: {availableAgents}
       </Typography>
-      <CheckCircle sx={{ color: '#00A99D' }} />
+      <CheckCircle sx={{ color: availableAgents > 0 ? '#00A99D' : '#9E9E9E' }} />
     </Stack>
   </Box>
 );

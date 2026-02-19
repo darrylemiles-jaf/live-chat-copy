@@ -18,7 +18,7 @@ const getMessages = async (query = {}) => {
       params.push(sender_id);
     }
 
-    sql += ` ORDER BY created_at DESC LIMIT ?`;
+    sql += ` ORDER BY created_at ASC LIMIT ?`;
     params.push(parseInt(limit));
 
     const [messages] = await pool.query(sql, params);
@@ -60,7 +60,7 @@ const createMessage = async (payload) => {
 
           const [availableAgents] = await pool.query(
             `SELECT id FROM users 
-             WHERE role IN ('support_agent', 'admin') 
+             WHERE role IN ('support', 'admin') 
              AND status = 'available' 
              ORDER BY RAND() 
              LIMIT 1`
@@ -113,7 +113,7 @@ const createMessage = async (payload) => {
         }
       }
     } else {
-      if (sender_role === 'support_agent' || sender_role === 'admin') {
+      if (sender_role === 'support' || sender_role === 'admin') {
         const [chat] = await pool.query(`SELECT * FROM chats WHERE id = ?`, [chat_id]);
 
         if (chat.length > 0 && chat[0].agent_id === null) {

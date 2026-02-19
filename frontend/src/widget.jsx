@@ -5,7 +5,7 @@ import ChatWidget from './components/ChatWidget/ChatWidget';
 // Configuration from global scope
 const config = window.LiveChatConfig || {
   apiUrl: 'http://localhost:8000/api/v1',
-  socketUrl: 'http://localhost:8080'
+  socketUrl: 'http://localhost:8000'
 };
 
 // Create widget container

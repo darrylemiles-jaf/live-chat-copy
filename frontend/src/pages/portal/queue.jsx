@@ -85,12 +85,21 @@ const Queue = () => {
   const [historyQueue, setHistoryQueue] = useState([]);
   const [activeChats, setActiveChats] = useState(0);
   const [resolvedToday, setResolvedToday] = useState(0);
+  const [availableAgents, setAvailableAgents] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [detailsTab, setDetailsTab] = useState('info');
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.warn('User not logged in, redirecting to login');
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
 
   // Fetch queue data
   const fetchQueueData = async () => {
@@ -101,9 +110,10 @@ const Queue = () => {
 
     try {
       setLoading(true);
-      const [queueResponse, chatsResponse] = await Promise.all([
+      const [queueResponse, chatsResponse, agentsResponse] = await Promise.all([
         getQueue(),
-        getChats(user.id)
+        getChats(user.id),
+        getAvailableAgents()
       ]);
 
       // Transform the queue data
@@ -125,6 +135,9 @@ const Queue = () => {
       });
       setResolvedToday(resolvedTodayData.length);
 
+      // Set available agents count
+      setAvailableAgents(agentsResponse.data?.length || 0);
+
       if (transformedQueue.length > 0 && !selectedId) {
         setSelectedId(transformedQueue[0].id);
       }
@@ -133,6 +146,7 @@ const Queue = () => {
       setQueue([]);
       setActiveChats(0);
       setResolvedToday(0);
+      setAvailableAgents(0);
     } finally {
       setLoading(false);
     }
@@ -224,11 +238,17 @@ const Queue = () => {
   };
 
   const handleOpenChat = async () => {
-    if (!selected || !user?.id) return;
+    if (!selected || !user?.id) {
+      console.error('❌ Cannot open chat: missing selected or user', { selected, user });
+      return;
+    }
+
+    console.log('🎯 Opening chat:', selected.id, 'for user:', user.id);
 
     try {
       // Auto-assign the chat to current agent
-      await autoAssignChat(selected.id);
+      const result = await autoAssignChat(selected.id);
+      console.log('✅ Chat assigned:', result);
 
       // Remove from queue and navigate to chats
       setQueue((prev) => prev.filter((item) => item.id !== selected.id));
@@ -242,8 +262,9 @@ const Queue = () => {
         }
       });
     } catch (error) {
-      console.error('Error opening chat:', error);
-      alert('Failed to open chat. Please try again.');
+      console.error('❌ Error opening chat:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to open chat';
+      alert(`Failed to open chat: ${errorMessage}`);
     }
   };
 
@@ -280,7 +301,7 @@ const Queue = () => {
 
       <Box sx={{ mt: 2, borderRadius: 1, border: `1px solid ${palette.divider}` }}>
         <Paper elevation={0} sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1, p: { xs: 2, md: 3 }, boxShadow: 'none' }}>
-          <QueueHeader palette={palette} />
+          <QueueHeader palette={palette} availableAgents={availableAgents} />
 
           <Grid container spacing={2.5} size={12} alignItems="stretch" sx={{ width: '100%' }}>
             <Grid size={{ xs: 12, md: 3.5 }}>
