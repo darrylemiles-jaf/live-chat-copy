@@ -219,11 +219,14 @@ const authUser = async (email, password) => {
 
       const token = generateUserToken(newUser.data);
 
+      // Remove password from user data before sending
+      const { password: _, ...userWithoutPassword } = newUser.data;
+
       return {
         statusCode: 201,
         success: true,
         message: "User created successfully",
-        data: newUser.data,
+        data: userWithoutPassword,
         token
       };
     }
@@ -253,11 +256,14 @@ const authUser = async (email, password) => {
 
   const token = generateUserToken(user.data);
 
+  // Remove password from user data before sending
+  const { password: _, ...userWithoutPassword } = user.data;
+
   return {
     statusCode: 200,
     success: true,
     message: "Success login",
-    data: user.data,
+    data: userWithoutPassword,
     token
   };
 };

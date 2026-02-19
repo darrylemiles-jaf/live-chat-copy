@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWidget.css';
 
-const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http://localhost:8000' }) => {
+const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http://localhost:8080' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
