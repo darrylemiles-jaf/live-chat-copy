@@ -1,4 +1,5 @@
 import React from 'react'
+import { Box } from '@mui/material'
 import Breadcrumbs from '../../components/@extended/Breadcrumbs'
 
 const breadcrumbLinks = [
@@ -260,14 +261,14 @@ const Notifications = () => {
 
   const getIcon = (type, avatar) => {
     const avatarStyle = {
-      width: '32px',
-      height: '32px',
+      width: '28px',
+      height: '28px',
       borderRadius: '50%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       color: '#fff',
-      fontSize: '11px',
+      fontSize: '10px',
       fontWeight: 600,
       flexShrink: 0,
       textTransform: 'uppercase'
@@ -301,7 +302,7 @@ const Notifications = () => {
     <div
       onClick={() => handleNotificationClick(notification)}
       style={{
-        padding: '8px 16px',
+        padding: '10px 12px',
         display: 'flex',
         gap: '10px',
         backgroundColor: notification.unread ? '#C8E6E3' : '#fff',
@@ -316,25 +317,25 @@ const Notifications = () => {
         e.currentTarget.style.backgroundColor = notification.unread ? '#C8E6E3' : '#fff';
       }}
     >
-      <div>
+      <div style={{ flexShrink: 0 }}>
         {getIcon(notification.type, notification.avatar)}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontWeight: 600, fontSize: '14px', color: '#2C3E50' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 600, fontSize: '13px', color: '#2C3E50', wordBreak: 'break-word' }}>
                 {notification.title}
               </span>
               {notification.priority && (
                 <span
                   style={{
-                    padding: '2px 8px',
+                    padding: '2px 6px',
                     backgroundColor: '#FFF3E0',
                     color: '#FF9800',
-                    fontSize: '10px',
+                    fontSize: '9px',
                     fontWeight: 600,
-                    borderRadius: '10px'
+                    borderRadius: '8px'
                   }}
                 >
                   {notification.priority}
@@ -342,20 +343,20 @@ const Notifications = () => {
               )}
             </div>
             {notification.description && (
-              <div style={{ fontSize: '13px', color: '#7F8C9F', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '12px', color: '#7F8C9F', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {notification.description}
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            <span style={{ fontSize: '12px', color: '#A0AEC0', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <span style={{ fontSize: '11px', color: '#A0AEC0', whiteSpace: 'nowrap' }}>
               {notification.timeLeft}
             </span>
             {notification.unread && (
               <div
                 style={{
-                  width: '8px',
-                  height: '8px',
+                  width: '7px',
+                  height: '7px',
                   borderRadius: '50%',
                   backgroundColor: '#008E86'
                 }}
@@ -375,49 +376,54 @@ const Notifications = () => {
         subheading="View and manage your notifications here."
       />
 
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '8px' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 1.5, md: 2.5 }, alignItems: 'flex-start', marginBottom: '8px' }}>
         {/* Sidebar */}
-        <aside style={{ width: '260px', padding: '0', position: 'sticky', top: '96px', alignSelf: 'flex-start' }}>
+        <Box component="aside" sx={{ width: { xs: '100%', md: '260px' }, padding: '0', position: { xs: 'static', md: 'sticky' }, top: '96px', alignSelf: 'flex-start' }}>
           {/* Filters Card */}
-          <div style={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '12px', marginBottom: '12px' }}>
-            <h4 style={{ margin: 0, marginBottom: '12px', fontSize: '16px', color: '#2C3E50' }}>Filters</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '14px', color: '#718096', fontWeight: 500 }}>Date</label>
+          <Box sx={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: { xs: 1.5, sm: 1.5 }, marginBottom: 1.5 }}>
+            <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: '#2C3E50', fontWeight: 600 }}>Filters</h4>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <label style={{ fontSize: '13px', color: '#718096', fontWeight: 500 }}>Date</label>
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
                   style={{
-                    padding: '8px 12px',
+                    padding: '7px 10px',
                     backgroundColor: '#fff',
                     border: '1px solid #E2E8F0',
                     borderRadius: '4px',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     color: '#2C3E50',
                     cursor: 'pointer',
                     outline: 'none',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    width: '100%'
                   }}
                 >
                   <option value="all">All Dates</option>
                   <option value="today">Today</option>
                   <option value="yesterday">Yesterday</option>
                 </select>
-              </div>
+              </Box>
 
-              <div>
-                <label style={{ fontSize: '14px', color: '#718096', fontWeight: 500 }}>Type</label>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <Box>
+                <label style={{ fontSize: '13px', color: '#718096', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Type</label>
+                <Box sx={{ display: 'flex', gap: 0.75 }}>
                   <button
                     onClick={() => toggleTypeFilter('queue')}
                     style={{
-                      padding: '8px 10px',
+                      padding: '7px 8px',
                       backgroundColor: typeFilters.queue ? '#008E86' : 'transparent',
                       color: typeFilters.queue ? '#fff' : '#718096',
                       border: '1px solid #E2E8F0',
                       borderRadius: '4px',
                       cursor: 'pointer',
-                      fontSize: '13px'
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      flex: '1',
+                      minWidth: 0,
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     Queue
@@ -425,69 +431,73 @@ const Notifications = () => {
                   <button
                     onClick={() => toggleTypeFilter('ticket')}
                     style={{
-                      padding: '8px 10px',
+                      padding: '7px 8px',
                       backgroundColor: typeFilters.ticket ? '#008E86' : 'transparent',
                       color: typeFilters.ticket ? '#fff' : '#718096',
                       border: '1px solid #E2E8F0',
                       borderRadius: '4px',
                       cursor: 'pointer',
-                      fontSize: '13px'
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      flex: '1',
+                      minWidth: 0,
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     Ticket
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
 
           {/* View Card */}
-          <div style={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '12px' }}>
-            <h4 style={{ margin: 0, marginBottom: '12px', fontSize: '16px', color: '#2C3E50' }}>View</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+          <Box sx={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: { xs: 1.5, sm: 1.5 } }}>
+            <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: '#2C3E50', fontWeight: 600 }}>View</h4>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {['All', 'Unread'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSelectedTab(tab)}
                   style={{
-                    padding: '8px 12px',
+                    padding: '7px 12px',
                     backgroundColor: selectedTab === tab ? '#008E86' : 'transparent',
                     color: selectedTab === tab ? '#fff' : '#718096',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: selectedTab === tab ? 600 : 400,
+                    fontSize: '13px',
+                    fontWeight: selectedTab === tab ? 600 : 500,
                     textAlign: 'left'
                   }}
                 >
                   {tab}
                 </button>
               ))}
-            </div>
-          </div>
-        </aside>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Main Content Column */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
 
           {/* Main Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 1.5 } }}>
             {/* Today Section */}
             {filteredNotifications.today.length > 0 && (
               <div style={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #E6EBEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: '#2C3E50' }}>Today</h3>
+                <Box sx={{ padding: { xs: '10px 12px', sm: '14px 16px' }, borderBottom: '1px solid #E6EBEE', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 0 }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' } }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0, color: '#2C3E50' }}>Today</h3>
                   <button
                     onClick={handleMarkAllAsRead}
                     style={{
-                      padding: '8px 14px',
+                      padding: '7px 12px',
                       backgroundColor: '#fff',
                       color: '#008E86',
                       border: '1px solid #008E86',
                       borderRadius: '4px',
                       cursor: 'pointer',
-                      fontSize: '14px',
+                      fontSize: '13px',
                       fontWeight: 500,
                       transition: 'all 0.2s'
                     }}
@@ -502,7 +512,7 @@ const Notifications = () => {
                   >
                     Mark all as Read
                   </button>
-                </div>
+                </Box>
                 <div>
                   {filteredNotifications.today.map((notification) => (
                     <NotificationItem key={notification.id} notification={notification} />
@@ -514,9 +524,9 @@ const Notifications = () => {
             {/* Yesterday Section */}
             {filteredNotifications.yesterday.length > 0 && (
               <div style={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #E6EBEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: '#2C3E50' }}>Yesterday</h3>
-                </div>
+                <Box sx={{ padding: { xs: '10px 12px', sm: '14px 16px' }, borderBottom: '1px solid #E6EBEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0, color: '#2C3E50' }}>Yesterday</h3>
+                </Box>
                 <div>
                   {filteredNotifications.yesterday.map((notification) => (
                     <NotificationItem key={notification.id} notification={notification} />
@@ -527,21 +537,21 @@ const Notifications = () => {
 
             {/* Empty State */}
             {filteredNotifications.today.length === 0 && filteredNotifications.yesterday.length === 0 && (
-              <div style={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '60px 20px', textAlign: 'center' }}>
+              <Box sx={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', padding: { xs: '40px 20px', sm: '60px 20px' }, textAlign: 'center' }}>
                 <div style={{ fontSize: '48px', marginBottom: '16px', color: '#CBD5E0' }}>🔔</div>
                 <p style={{ fontSize: '16px', color: '#718096', margin: 0 }}>No unread notifications</p>
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
 
         </div>
-      </div>
+      </Box>
 
       {/* Notification Modal */}
       {isModalOpen && selectedNotification && (
-        <div
+        <Box
           onClick={handleCloseModal}
-          style={{
+          sx={{
             position: 'fixed',
             top: 0,
             left: 0,
@@ -551,26 +561,29 @@ const Notifications = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1000,
+            padding: { xs: 1, sm: 2 }
           }}
         >
-          <div
+          <Box
             onClick={(e) => e.stopPropagation()}
-            style={{
+            sx={{
               backgroundColor: '#fff',
-              borderRadius: '4px',
-              padding: '24px',
+              borderRadius: { xs: 1, sm: '4px' },
+              padding: { xs: 2, sm: 2.5 },
               maxWidth: '600px',
-              width: '90%',
-              maxHeight: '80vh',
+              width: '100%',
+              maxHeight: { xs: '90vh', sm: '80vh' },
               overflow: 'auto',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {getIcon(selectedNotification.type, selectedNotification.avatar)}
-                <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                <div style={{ flexShrink: 0 }}>
+                  {getIcon(selectedNotification.type, selectedNotification.avatar)}
+                </div>
+                <h2 style={{ fontSize: '17px', fontWeight: 600, margin: 0, wordBreak: 'break-word' }}>
                   {selectedNotification.title}
                 </h2>
               </div>
@@ -579,24 +592,26 @@ const Notifications = () => {
                 style={{
                   background: 'none',
                   border: 'none',
-                  fontSize: '24px',
+                  fontSize: '28px',
                   cursor: 'pointer',
                   color: '#666',
                   padding: '0',
-                  width: '32px',
-                  height: '32px',
+                  width: '28px',
+                  height: '28px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  lineHeight: 1
                 }}
               >
                 ×
               </button>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '14px' }}>
               {selectedNotification.description && (
-                <p style={{ fontSize: '14px', color: '#666', marginBottom: '12px' }}>
+                <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px', lineHeight: '1.5' }}>
                   {selectedNotification.description}
                 </p>
               )}
@@ -605,35 +620,35 @@ const Notifications = () => {
                 <span
                   style={{
                     display: 'inline-block',
-                    padding: '4px 12px',
+                    padding: '3px 10px',
                     backgroundColor: '#FFF3E0',
                     color: '#FF9800',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 600,
-                    borderRadius: '12px',
-                    marginBottom: '12px'
+                    borderRadius: '10px',
+                    marginBottom: '10px'
                   }}
                 >
                   {selectedNotification.priority} Priority
                 </span>
               )}
 
-              <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.6' }}>
+              <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.6' }}>
                 {selectedNotification.assignedTo && (
-                  <p style={{ margin: '8px 0' }}>
+                  <p style={{ margin: '6px 0' }}>
                     <strong>Assigned to:</strong> {selectedNotification.assignedTo}
                   </p>
                 )}
                 {selectedNotification.ticketId && (
-                  <p style={{ margin: '8px 0' }}>
+                  <p style={{ margin: '6px 0' }}>
                     <strong>Ticket ID:</strong>{' '}
                     <span
                       style={{
-                        padding: '2px 8px',
+                        padding: '2px 7px',
                         backgroundColor: '#E0F0F1',
                         color: '#008E86',
-                        borderRadius: '4px',
-                        fontSize: '12px',
+                        borderRadius: '3px',
+                        fontSize: '11px',
                         fontWeight: 500
                       }}
                     >
@@ -643,29 +658,29 @@ const Notifications = () => {
                   </p>
                 )}
                 {selectedNotification.subtitle && (
-                  <p style={{ margin: '8px 0' }}>
+                  <p style={{ margin: '6px 0' }}>
                     <strong>Type:</strong> {selectedNotification.subtitle}
                   </p>
                 )}
                 {selectedNotification.time && (
-                  <p style={{ margin: '8px 0' }}>
+                  <p style={{ margin: '6px 0' }}>
                     <strong>Time:</strong> {selectedNotification.time}
                   </p>
                 )}
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #E6EBEE' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, marginTop: 2, paddingTop: 2, borderTop: '1px solid #E6EBEE' }}>
               {selectedNotification.ticketId && (
                 <button
                   style={{
-                    padding: '10px 24px',
+                    padding: '9px 20px',
                     backgroundColor: '#008E86',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     fontWeight: 600
                   }}
                 >
@@ -675,21 +690,21 @@ const Notifications = () => {
               <button
                 onClick={handleCloseModal}
                 style={{
-                  padding: '10px 24px',
+                  padding: '9px 20px',
                   backgroundColor: '#F7FAFC',
                   color: '#2C3E50',
                   border: '1px solid #E2E8F0',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 500
                 }}
               >
                 Close
               </button>
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       )}
     </React.Fragment>
   );
