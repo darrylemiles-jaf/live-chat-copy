@@ -35,7 +35,10 @@ const getUsers = async (query = {}) => {
       username,
       email,
       name,
-      role
+      phone,
+      profile_picture,
+      role,
+      status
       FROM users ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...values, limit, offset]
     );
@@ -131,15 +134,15 @@ const validateIfUserExistsInUsersDB = async (email) => {
 
 const createUser = async (userData) => {
   try {
-    const { name, username, email, phone, role, status = 'AVAILABLE', password } = userData;
+    const { name, username, email, phone, profile_picture, role, status = 'AVAILABLE', password } = userData;
 
    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [insertResult] = await pool.query(
-      `INSERT INTO users (name, username, email, phone, role, status, password, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [name, username, email, phone || null, role || 'user', status || 'active', hashedPassword]
+      `INSERT INTO users (name, username, email, phone, profile_picture, role, status, password, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [name, username, email, phone || null, profile_picture || null, role || 'user', status || 'active', hashedPassword]
     );
 
     const [newUser] = await pool.query(
@@ -201,6 +204,7 @@ const authUser = async (email, password) => {
         username: apiUser.username || apiUser.email.split("@")[0],
         email: apiUser.email,
         phone: apiUser.phone || null,
+        profile_picture: apiUser.profile_picture || null,
         role: apiUser.role || "support",
         status: apiUser.status || "available",
         password: DEFAULT_PASSWORD,
