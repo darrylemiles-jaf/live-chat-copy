@@ -48,9 +48,10 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 0, sm: 3 },
           maxHeight: '90vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          m: { xs: 0, sm: 2 }
         }
       }}
     >
@@ -58,9 +59,9 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
         sx={{
           background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColorDark} 100%)`,
           color: 'white',
-          pt: 4,
-          pb: 4,
-          px: 4,
+          pt: { xs: 3, sm: 4 },
+          pb: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 4 },
           position: 'relative',
           textAlign: 'center'
         }}
@@ -69,8 +70,8 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
           onClick={onClose}
           sx={{
             position: 'absolute',
-            right: 16,
-            top: 16,
+            right: { xs: 8, sm: 16 },
+            top: { xs: 8, sm: 16 },
             color: 'white',
             backgroundColor: 'rgba(255,255,255,0.1)',
             '&:hover': { 
@@ -85,13 +86,13 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
 
         <Avatar
           sx={{
-            width: 100,
-            height: 100,
+            width: { xs: 80, sm: 100 },
+            height: { xs: 80, sm: 100 },
             mx: 'auto',
-            mb: 2,
+            mb: { xs: 1.5, sm: 2 },
             bgcolor: 'white',
             color: accentColor,
-            fontSize: '2.5rem',
+            fontSize: { xs: '2rem', sm: '2.5rem' },
             fontWeight: 700,
             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
             border: '4px solid rgba(255,255,255,0.3)'
@@ -100,21 +101,21 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
           {avatar && data[avatar.nameField] ? getInitials(data[avatar.nameField]) : <UserOutlined style={{ fontSize: '2.5rem' }} />}
         </Avatar>
         
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, fontSize: '1.5rem' }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           {avatar && data[avatar.nameField] || 'User'}
         </Typography>
         
         {avatar && data[avatar.emailField] && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 2, opacity: 0.95 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: { xs: 1.5, sm: 2 }, opacity: 0.95 }}>
             <Box component="span" sx={{ fontSize: '0.875rem' }}>✉</Box>
-            <Typography variant="body2" sx={{ fontSize: '0.9375rem' }}>
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' } }}>
               {data[avatar.emailField]}
             </Typography>
           </Box>
         )}
         
         {badges && badges.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.5 }, justifyContent: 'center', flexWrap: 'wrap' }}>
             {badges.map((badge, index) => (
               <Chip
                 key={index}
@@ -124,8 +125,8 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                   bgcolor: badge.color || 'rgba(255,255,255,0.25)',
                   color: 'white',
                   fontWeight: 600,
-                  fontSize: '0.8125rem',
-                  height: '28px',
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                  height: { xs: '26px', sm: '28px' },
                   px: 1,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   ...badge.sx
@@ -137,9 +138,9 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
       </Box>
 
       <DialogContent sx={{ p: 0, bgcolor: 'white' }}>
-        <Box sx={{ px: 4, py: 3 }}>
+        <Box sx={{ px: { xs: 2, sm: 4 }, py: { xs: 2, sm: 3 } }}>
           {infoSections && infoSections.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 4 } }}>
               {infoSections.map((section, sectionIndex) => (
                 <Box 
                   key={sectionIndex} 
@@ -151,10 +152,10 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                     <Typography 
                       variant="subtitle1" 
                       sx={{ 
-                        mb: 2.5, 
+                        mb: { xs: 2, sm: 2.5 }, 
                         color: accentColor, 
                         fontWeight: 700,
-                        fontSize: '0.8125rem',
+                        fontSize: { xs: '0.75rem', sm: '0.8125rem' },
                         textTransform: 'uppercase',
                         letterSpacing: '0.8px'
                       }}
@@ -163,7 +164,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                     </Typography>
                   )}
                   
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                     {section.fields.map((field, fieldIndex) => (
                       <Box 
                         key={fieldIndex}
@@ -193,7 +194,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                             sx={{ 
                               fontWeight: 500,
                               color: theme.palette.grey[800],
-                              fontSize: '1rem',
+                              fontSize: { xs: '0.9375rem', sm: '1rem' },
                               lineHeight: 1.5,
                               ...field.valueStyle 
                             }}
@@ -210,7 +211,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
           )}
 
           {tabs && tabs.length > 0 && (
-            <Box sx={{ mt: 3 }}>
+            <Box sx={{ mt: { xs: 2, sm: 3 } }}>
               <Tabs
                 value={tabValue}
                 onChange={handleTabChange}
@@ -245,7 +246,20 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
       </DialogContent>
 
       {actions && actions.length > 0 && (
-        <DialogActions sx={{ px: 3, py: 2, bgcolor: 'white', borderTop: `1px solid ${theme.palette.grey[200]}` }}>
+        <DialogActions sx={{ 
+          px: { xs: 2, sm: 3 }, 
+          py: 2, 
+          bgcolor: 'white', 
+          borderTop: `1px solid ${theme.palette.grey[200]}`,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+          '& > :not(style) + :not(style)': {
+            marginLeft: { xs: 0, sm: 1 }
+          },
+          '& > button': {
+            width: { xs: '100%', sm: 'auto' }
+          }
+        }}>
           {actions.map((action, index) => (
             <React.Fragment key={index}>
               {action}
