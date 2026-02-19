@@ -1,7 +1,9 @@
 import Tickets from './tickets'
+import Users from './users'
 
 const agent = {
-  ...Tickets
+  ...Tickets,
+  ...Users
 }
 
 export default agent;
