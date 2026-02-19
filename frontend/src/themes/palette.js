@@ -51,8 +51,7 @@ export const customGold = [
   '#996C00',  // 9 - darker
 ];
 
-// Orange palette - based on #ED7464
-const customOrange = [
+export const customOrange = [
   '#FEF0EE',  // 0 - lighter
   '#FCD5CF',  // 1
   '#FABBAF',  // 2

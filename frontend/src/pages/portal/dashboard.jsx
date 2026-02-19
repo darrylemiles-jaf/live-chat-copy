@@ -4,13 +4,14 @@ import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
 import { LineChart } from '@mui/x-charts/LineChart';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import MainCard from '../../components/MainCard';
 import ScrollTop from '../../components/ScrollTop';
 import PageHead from '../../components/PageHead';
 import { withAlpha } from '../../utils/colorUtils';
+import { useGetUsers } from '../../api/users';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +20,27 @@ const Dashboard = () => {
   const [queueModalOpen, setQueueModalOpen] = useState(false);
   const [agentDrawerOpen, setAgentDrawerOpen] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState(null);
+  const [rawAgentStatus, setRawAgentStatus] = useState([]);
+  
+  // Fetch support agents from the database
+  const { users, usersLoading, usersError } = useGetUsers({ role: 'support' });
+  
+  // Update agents when users data changes
+  useEffect(() => {
+    if (users && users.length > 0) {
+      const transformedAgents = users.map(user => {
+        const name = user.name || user.username;
+        const initials = name.split(' ').map(n => n.charAt(0).toUpperCase()).join('').slice(0, 2);
+        return {
+          name: name,
+          status: user.status ? user.status.toLowerCase() : 'available',
+          avatar: initials,
+          profile_picture: user.profile_picture
+        };
+      });
+      setRawAgentStatus(transformedAgents);
+    }
+  }, [users]);
 
   
   const recentChats = [
@@ -148,21 +170,7 @@ const Dashboard = () => {
     return palette.primary.main;
   };
 
-  const rawAgentStatus = [
-    { name: 'Ash Monk', status: 'available', avatar: 'AM' },
-    { name: 'Danica Johnson', status: 'busy', avatar: 'DJ' },
-    { name: 'Ebenezer Grey', status: 'busy', avatar: 'EG' },
-    { name: 'Frank Massey', status: 'available', avatar: 'FM' },
-    { name: 'Heather Banks', status: 'busy', avatar: 'HB' },
-    { name: 'Julia Smith', status: 'busy', avatar: 'JS' },
-    { name: 'Marlon Brown', status: 'busy', avatar: 'MB' },
-    { name: 'Olivia Houghton', status: 'busy', avatar: 'OH' },
-    { name: 'Peter Mitchell', status: 'busy', avatar: 'PM' },
-    { name: 'Reece Martin', status: 'busy', avatar: 'RM' },
-    { name: 'Robyn Mers', status: 'available', avatar: 'RM' }
-  ];
 
-  
   const sortedAgentStatus = useMemo(() => {
     const avail = rawAgentStatus.filter((a) => a.status === 'available').sort((x, y) => x.name.localeCompare(y.name));
     const busy = rawAgentStatus.filter((a) => a.status === 'busy').sort((x, y) => x.name.localeCompare(y.name));
@@ -406,7 +414,32 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {sortedAgentStatus.slice(0, 8).map((agent, index) => (
+                  {usersLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={2} align="center">
+                        <Typography variant="body2" color="text.secondary">
+                          Loading agents...
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : usersError ? (
+                    <TableRow>
+                      <TableCell colSpan={2} align="center">
+                        <Typography variant="body2" color="error">
+                          Error loading agents
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : sortedAgentStatus.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} align="center">
+                        <Typography variant="body2" color="text.secondary">
+                          No agents available
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sortedAgentStatus.slice(0, 8).map((agent, index) => (
                     <TableRow key={index} sx={{ '&:last-child td': { border: 0 } }}>
                       <TableCell component="th" scope="row">{agent.name}</TableCell>
                       <TableCell align="right">
@@ -430,7 +463,7 @@ const Dashboard = () => {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -491,7 +524,26 @@ const Dashboard = () => {
           </Box>
 
           <List sx={{ overflow: 'auto', p: 2.5, flex: 1 }}>
-            {displayedAgents.map((agent, index) => (
+            {usersLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Loading agents...
+                </Typography>
+              </Box>
+            ) : usersError ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                <Typography variant="body2" color="error">
+                  Error loading agents
+                </Typography>
+              </Box>
+            ) : displayedAgents.length === 0 ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                <Typography variant="body2" color="text.secondary">
+                  No agents found
+                </Typography>
+              </Box>
+            ) : (
+              displayedAgents.map((agent, index) => (
               <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
                 <Avatar
                   sx={{
@@ -527,7 +579,7 @@ const Dashboard = () => {
                   </Typography>
                 </Box>
               </ListItem>
-            ))}
+            )))}
           </List>
 
           <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'center' }}>

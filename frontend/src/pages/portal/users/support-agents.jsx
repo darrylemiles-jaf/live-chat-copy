@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { customGreen, customGold, customRed } from "../../../themes/palette";
-
 import {  Button,
   Box,
   Typography,
@@ -14,12 +13,15 @@ import {  Button,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  CircularProgress,
+  Alert
 } from '@mui/material';
-import { PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import { useGetUsers } from '../../../api/users';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -32,13 +34,27 @@ const SupportAgents = () => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
-  const [agents, setAgents] = useState([
-    { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
-    { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
-    { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
-    { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
-    { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
-  ]);
+  const [agents, setAgents] = useState([]);
+  
+  
+  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
+  
+  
+  useEffect(() => {
+    if (users && users.length > 0) {
+      const transformedAgents = users.map(user => ({
+        id: user.id,
+        name: user.name || user.username,
+        email: user.email,
+        phone: user.phone,
+        profile_picture: user.profile_picture,
+        role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Support',
+        status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Available',
+        successfulAssists: 0
+      }));
+      setAgents(transformedAgents);
+    }
+  }, [users]);
 
   const handleEditClick = () => {
     setFormData(selectedAgent);
@@ -51,8 +67,6 @@ const SupportAgents = () => {
     setOpenViewModal(true);
   };
 
-  const theme = useTheme();
-
   const handleCloseViewModal = () => {
     setOpenViewModal(false);
     setSelectedAgent(null);
@@ -64,7 +78,7 @@ const SupportAgents = () => {
   };
 
   const handleCreateClick = () => {
-    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Active', successfulAssists: 0 });
+    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Available', successfulAssists: 0 });
     setOpenCreateModal(true);
   };
 
@@ -79,7 +93,6 @@ const SupportAgents = () => {
   };
 
   const handleSave = () => {
-    // Update existing agent
     setAgents(agents.map((agent) => (agent.id === formData.id ? formData : agent)));
     console.log('Updating agent:', formData);
     handleCloseEditModal();
@@ -99,12 +112,12 @@ const SupportAgents = () => {
 
   const getStatusColor = useCallback((status) => {
     switch (status) {
-      case 'Active':
+      case 'Available':
         return { label: 'Available', color: '#4caf50' };
-      case 'Inactive':
+      case 'Away':
         return { label: 'Away', color: '#ffb300' };
-      case 'Suspended':
-        return { label: 'Busy', color: '#f44336' };
+      case 'Busy':
+        return { label: 'Busy', color: '#f44336' };      
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -112,7 +125,6 @@ const SupportAgents = () => {
 
   const columns = useMemo(
     () => [
-      
       {
         id: 'name',
         label: 'Name',
@@ -125,12 +137,12 @@ const SupportAgents = () => {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                backgroundColor: '#e8f5e9',
+                backgroundColor: customGreen[0],
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: '#2e7d32',
+                color: customGreen[7],
                 fontSize: '16px'
               }}
             >
@@ -168,8 +180,7 @@ const SupportAgents = () => {
             </Box>
           );
         }
-      },
-      
+      }
     ],
     [getStatusColor]
   );
@@ -214,8 +225,26 @@ const SupportAgents = () => {
   const viewConfig = {
     avatar: {
       nameField: 'name',
-      subtitleField: 'role'
+      emailField: 'email'
     },
+    badges: [
+      {
+        field: 'role',
+        color: customGreen[6]
+      },
+      {
+        render: (data) => {
+          const info = getStatusColor(data.status);
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: info.color }} />
+              {info.label}
+            </Box>
+          );
+        },
+        color: 'rgba(255,255,255,0.25)'
+      }
+    ],
     stats: [
       {
         field: 'successfulAssists',
@@ -260,6 +289,30 @@ const SupportAgents = () => {
     ]
   };
 
+  // Show loading state
+  if (usersLoading) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      </React.Fragment>
+    );
+  }
+
+  // Show error state
+  if (usersError) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading support agents: {usersError.message || 'Please try again later.'}
+        </Alert>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
@@ -273,8 +326,14 @@ const SupportAgents = () => {
           orderBy: '__originalOrder',
           order: 'asc',
           otherActionButton: (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Role</InputLabel>
                 <Select value={filterRole} label="Role" onChange={(e) => setFilterRole(e.target.value)}>
                   <MenuItem value="">All Roles</MenuItem>
@@ -283,7 +342,7 @@ const SupportAgents = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Status</InputLabel>
                 <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
                   <MenuItem value="">All Statuses</MenuItem>
@@ -292,8 +351,21 @@ const SupportAgents = () => {
                   <MenuItem value="Away">Away</MenuItem>
                 </Select>
               </FormControl>
-              <Button variant="outlined" color="inherit" onClick={() => { setFilterRole(''); setFilterStatus(''); }}>Clear</Button>
-              <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick}>
+              <Button 
+                variant="outlined" 
+                color="inherit" 
+                onClick={() => { setFilterRole(''); setFilterStatus(''); }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                Clear
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                startIcon={<PlusOutlined />} 
+                onClick={handleCreateClick}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
                 Add Agent
               </Button>
             </Box>
@@ -301,38 +373,12 @@ const SupportAgents = () => {
         }}
       />
 
-      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ color: customGreen[5], fontWeight: 700 }}>
-          Agent Details
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <UserDetailsView
-            data={selectedAgent}
-            viewConfig={viewConfig}
-            styles={{
-              accentColor: customGreen[5],
-              backgroundColor: customGreen[0]
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseViewModal} color="inherit">
-            Close
-          </Button>
-          <Button
-            onClick={handleEditClick}
-            variant="contained"
-            startIcon={<EditOutlined />}
-            sx={{
-              bgcolor: customGreen[8],
-              color: '#fff',
-              '&:hover': { bgcolor: customGreen[7] }
-            }}
-          >
-            Edit Agent
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <UserDetailsView
+        open={openViewModal}
+        onClose={handleCloseViewModal}
+        data={selectedAgent}
+        viewConfig={viewConfig}
+      />
 
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ color: customGold[7], fontWeight: 700 }}>Update Agent</DialogTitle>
@@ -366,9 +412,9 @@ const SupportAgents = () => {
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Suspended">Suspended</MenuItem>
+                <MenuItem value="Available">Available</MenuItem>
+                <MenuItem value="Busy">Busy</MenuItem>
+                <MenuItem value="Away">Away</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -426,9 +472,9 @@ const SupportAgents = () => {
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Suspended">Suspended</MenuItem>
+                <MenuItem value="Available">Available</MenuItem>
+                <MenuItem value="Busy">Busy</MenuItem>
+                <MenuItem value="Away">Away</MenuItem>
               </Select>
             </FormControl>
           </Box>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { customGreen } from '../../../themes/palette';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
@@ -73,12 +74,12 @@ const Customers = () => {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                backgroundColor: '#E6F7F6',
+                backgroundColor: customGreen[0],
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: '#008E86',
+                color: customGreen[5],
                 fontSize: '16px'
               }}
             >
@@ -116,8 +117,14 @@ const Customers = () => {
   const viewConfig = {
     avatar: {
       nameField: 'name',
-      subtitleField: 'email'
+      emailField: 'email'
     },
+    badges: [
+      {
+        field: 'id',
+        color: customGreen[5]
+      }
+    ],
     infoSections: [
       {
         title: 'Personal Information',
@@ -126,7 +133,7 @@ const Customers = () => {
           {
             label: 'Customer ID',
             field: 'id',
-            valueStyle: { color: '#008E86' }
+            valueStyle: { color: customGreen[5] }
           },
           {
             label: 'Email',
@@ -160,26 +167,12 @@ const Customers = () => {
         }}
       />
 
-      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: '#008E86', fontWeight: 700 }}>
-          Customer Details
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <UserDetailsView
-            data={selectedCustomer}
-            viewConfig={viewConfig}
-            styles={{
-              accentColor: '#008E86',
-              backgroundColor: '#E6F7F6'
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseViewModal} color="inherit">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <UserDetailsView
+        open={openViewModal}
+        onClose={handleCloseViewModal}
+        data={selectedCustomer}
+        viewConfig={viewConfig}
+      />
     </React.Fragment>
   );
 };
