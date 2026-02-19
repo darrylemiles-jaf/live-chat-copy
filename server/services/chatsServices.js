@@ -43,7 +43,11 @@ const getChatsWithMessages = async (user_id, query = {}) => {
     const chatsWithMessages = await Promise.all(
       chats.map(async (chat) => {
         const [messages] = await pool.query(
-          `SELECT * FROM messages WHERE chat_id = ? ORDER BY created_at ASC`,
+          `SELECT m.*, u.name as sender_name
+           FROM messages m
+           JOIN users u ON m.sender_id = u.id
+           WHERE m.chat_id = ?
+           ORDER BY m.created_at ASC`,
           [chat.id]
         );
 
@@ -65,6 +69,9 @@ const getChatsWithMessages = async (user_id, query = {}) => {
 
         return {
           ...chat,
+          client_name: client[0]?.name || null,
+          client_email: client[0]?.email || null,
+          last_message: messages.length > 0 ? messages[messages.length - 1].message : null,
           client: client[0] || null,
           agent: agent,
           messages: messages

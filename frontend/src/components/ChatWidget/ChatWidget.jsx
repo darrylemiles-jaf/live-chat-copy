@@ -35,9 +35,11 @@ const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http
         setIsConnected(true);
         if (userId) {
           socketRef.current.emit('join', userId);
+          console.log(`👤 Joined user room: user_${userId}`);
         }
         if (chatId) {
           socketRef.current.emit('join_chat', chatId);
+          console.log(`💬 Joined chat room: chat_${chatId}`);
         }
       });
 
@@ -48,7 +50,13 @@ const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http
 
       socketRef.current.on('new_message', (message) => {
         console.log('📨 New message received:', message);
-        setMessages(prev => [...prev, message]);
+        setMessages(prev => {
+          // Prevent duplicates by checking if message with this ID already exists
+          if (prev.some(msg => msg.id === message.id)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
         scrollToBottom();
       });
 
@@ -179,13 +187,25 @@ const ChatWidget = ({ apiUrl = 'http://localhost:8000/api/v1', socketUrl = 'http
       if (data.success) {
         // Set chatId if this is the first message
         if (!chatId && data.chat_id) {
-          setChatId(data.chat_id);
-          socketRef.current?.emit('join_chat', data.chat_id);
-          console.log('Joined chat room:', data.chat_id);
+          const newChatId = data.chat_id;
+          setChatId(newChatId);
+          socketRef.current?.emit('join_chat', newChatId);
+          console.log('Joined chat room:', newChatId);
+
+          // Add the first message manually since we just joined the room
+          if (data.data) {
+            setMessages(prev => {
+              // Check for duplicates
+              if (prev.some(msg => msg.id === data.data.id)) {
+                return prev;
+              }
+              return [...prev, data.data];
+            });
+            scrollToBottom();
+          }
         }
 
-        // Don't add message locally - let WebSocket handle it to avoid duplicates
-        // The message will come back via 'new_message' event
+        // Clear input
         setInputMessage('');
       }
     } catch (error) {

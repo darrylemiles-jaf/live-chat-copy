@@ -17,6 +17,7 @@ import { Formik } from 'formik';
 
 import { customGreen } from 'themes/palette';
 import axiosServices from 'utils/axios';
+import useAuth from 'hooks/useAuth';
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
 
@@ -27,8 +28,9 @@ import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 
 export default function AuthLogin({ isDemo = false }) {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
-  
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -48,22 +50,32 @@ export default function AuthLogin({ isDemo = false }) {
 
       if (response.data?.success) {
         const token = response.data?.token;
-        const user = response.data?.user;
-        
+        const user = response.data?.data; // Backend returns user in 'data' field
+
         if (!token) {
           console.error('No token in response:', response.data);
           throw new Error('No token received from server');
         }
 
-        localStorage.setItem('serviceToken', token);
-        
-        if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
+        if (!user) {
+          console.error('No user data in response:', response.data);
+          throw new Error('No user data received from server');
         }
-        
+
+        // Use the useAuth hook to store user and token
+        const loginSuccess = login(user, token);
+
+        if (!loginSuccess) {
+          throw new Error('Failed to store authentication data');
+        }
+
+        // Also store token in serviceToken for backward compatibility
+        localStorage.setItem('serviceToken', token);
+
         setStatus({ success: true });
         setSubmitting(false);
-        
+
+        // Redirect to dashboard
         navigate('/portal/dashboard');
       } else {
         throw new Error(response.data?.message || 'Login failed');
@@ -73,7 +85,7 @@ export default function AuthLogin({ isDemo = false }) {
       console.error('Error response:', error.response);
       setStatus({ success: false });
       setSubmitting(false);
-      
+
       const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       setErrors({ submit: errorMessage });
     }
@@ -81,9 +93,11 @@ export default function AuthLogin({ isDemo = false }) {
 
   return (
     <>
-      <Formik 
+      <Formik
         initialValues={{
-          
+          email: '',
+          password: '',
+          submit: null
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
@@ -100,9 +114,9 @@ export default function AuthLogin({ isDemo = false }) {
             <Grid container spacing={3} sx={{ paddingTop: 5 }}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1.5 }}>
-                  <InputLabel 
+                  <InputLabel
                     htmlFor="email-login"
-                    sx={{ 
+                    sx={{
                       color: customGreen[7],
                       fontWeight: 600,
                       fontSize: '0.95rem'
@@ -147,9 +161,9 @@ export default function AuthLogin({ isDemo = false }) {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1.5 }}>
-                  <InputLabel 
+                  <InputLabel
                     htmlFor="password-login"
-                    sx={{ 
+                    sx={{
                       color: customGreen[7],
                       fontWeight: 600,
                       fontSize: '0.95rem'
@@ -173,7 +187,7 @@ export default function AuthLogin({ isDemo = false }) {
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
-                          sx={{ 
+                          sx={{
                             color: customGreen[6],
                             '&:hover': {
                               color: customGreen[7],
@@ -211,18 +225,18 @@ export default function AuthLogin({ isDemo = false }) {
                   </FormHelperText>
                 )}
               </Grid>
-              
+
               {errors.submit && (
                 <Grid size={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Grid>
               )}
-              
+
               <Grid size={12} sx={{ mt: 1 }}>
                 <AnimateButton>
-                  <Button 
-                    fullWidth 
-                    size="large" 
+                  <Button
+                    fullWidth
+                    size="large"
                     type="submit"
                     variant="contained"
                     disabled={isSubmitting}

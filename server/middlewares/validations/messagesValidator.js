@@ -12,7 +12,7 @@ const createMessageValidations = [
   body('sender_role')
     .exists().withMessage('sender_role is required')
     .isString().withMessage('sender_role must be a string')
-    .isIn(['client', 'support_agent', 'admin']).withMessage('sender_role must be one of: client, support_agent, admin'),
+    .isIn(['client', 'support', 'admin']).withMessage('sender_role must be one of: client, support, admin'),
   body('message')
     .exists().withMessage('message is required')
     .isString().withMessage('message must be a string')

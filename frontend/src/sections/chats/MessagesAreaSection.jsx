@@ -5,7 +5,7 @@ import {
   Typography
 } from '@mui/material';
 
-const MessagesAreaSection = ({ messages }) => {
+const MessagesAreaSection = ({ messages, messagesEndRef }) => {
   return (
     <Box
       sx={{
@@ -54,6 +54,8 @@ const MessagesAreaSection = ({ messages }) => {
           </Box>
         </Box>
       ))}
+      {/* Invisible element to scroll to */}
+      <div ref={messagesEndRef} />
     </Box>
   );
 };

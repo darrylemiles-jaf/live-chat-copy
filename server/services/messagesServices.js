@@ -5,20 +5,20 @@ const getMessages = async (query = {}) => {
   try {
     const { chat_id, sender_id, limit = 100 } = query;
 
-    let sql = `SELECT * FROM messages WHERE 1=1`;
+    let sql = `SELECT m.*, u.name as sender_name FROM messages m JOIN users u ON m.sender_id = u.id WHERE 1=1`;
     const params = [];
 
     if (chat_id) {
-      sql += ` AND chat_id = ?`;
+      sql += ` AND m.chat_id = ?`;
       params.push(chat_id);
     }
 
     if (sender_id) {
-      sql += ` AND sender_id = ?`;
+      sql += ` AND m.sender_id = ?`;
       params.push(sender_id);
     }
 
-    sql += ` ORDER BY created_at DESC LIMIT ?`;
+    sql += ` ORDER BY m.created_at ASC LIMIT ?`;
     params.push(parseInt(limit));
 
     const [messages] = await pool.query(sql, params);
@@ -38,6 +38,7 @@ const createMessage = async (payload) => {
     } = payload || {}
 
     let usedChatId = chat_id;
+    let newlyAssignedAgentId = null;
 
     const sender = await pool.query(`SELECT role FROM users WHERE id = ?`, [sender_id])
     const sender_role = sender[0][0]?.role;
@@ -58,16 +59,21 @@ const createMessage = async (payload) => {
           );
           usedChatId = chatResult.insertId;
 
+          // Find available agent with least active chats (load balancing)
           const [availableAgents] = await pool.query(
-            `SELECT id FROM users 
-             WHERE role IN ('support_agent', 'admin') 
-             AND status = 'available' 
-             ORDER BY RAND() 
+            `SELECT u.id, COUNT(c.id) as active_chats
+             FROM users u
+             LEFT JOIN chats c ON u.id = c.agent_id AND c.status = 'active'
+             WHERE u.role IN ('support', 'admin') 
+             AND u.status = 'available'
+             GROUP BY u.id
+             ORDER BY active_chats ASC, u.id ASC
              LIMIT 1`
           );
 
           if (availableAgents.length > 0) {
             const assignedAgentId = availableAgents[0].id;
+            newlyAssignedAgentId = assignedAgentId;
 
             await pool.query(
               `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
@@ -78,19 +84,6 @@ const createMessage = async (payload) => {
               `UPDATE users SET status = 'busy' WHERE id = ?`,
               [assignedAgentId]
             );
-
-            // Emit chat assignment notification to agent
-            const [chatDetails] = await pool.query(
-              `SELECT c.*, u.name as client_name, u.email as client_email 
-               FROM chats c 
-               JOIN users u ON c.client_id = u.id 
-               WHERE c.id = ?`,
-              [usedChatId]
-            );
-            emitChatAssigned(assignedAgentId, chatDetails[0]);
-
-            // Emit queue update to all agents
-            emitQueueUpdate({ action: 'chat_assigned', chatId: usedChatId });
           }
         }
       } else {
@@ -113,7 +106,7 @@ const createMessage = async (payload) => {
         }
       }
     } else {
-      if (sender_role === 'support_agent' || sender_role === 'admin') {
+      if (sender_role === 'support' || sender_role === 'admin') {
         const [chat] = await pool.query(`SELECT * FROM chats WHERE id = ?`, [chat_id]);
 
         if (chat.length > 0 && chat[0].agent_id === null) {
@@ -134,11 +127,30 @@ const createMessage = async (payload) => {
     );
 
     const [newMessage] = await pool.query(
-      `SELECT * FROM messages WHERE id = ?`, [result.insertId]
+      `SELECT m.*, u.name as sender_name
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE m.id = ?`, [result.insertId]
     );
 
     // Emit new message event to chat room
     emitNewMessage(usedChatId, newMessage[0]);
+
+    if (newlyAssignedAgentId) {
+      const [chatDetails] = await pool.query(
+        `SELECT c.*, u.name as client_name, u.email as client_email 
+         FROM chats c 
+         JOIN users u ON c.client_id = u.id 
+         WHERE c.id = ?`,
+        [usedChatId]
+      );
+
+      emitChatAssigned(newlyAssignedAgentId, {
+        ...chatDetails[0],
+        last_message: newMessage[0].message
+      });
+      emitQueueUpdate({ action: 'chat_assigned', chatId: usedChatId, agentId: newlyAssignedAgentId });
+    }
 
     return {
       success: true,

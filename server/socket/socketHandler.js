@@ -60,6 +60,8 @@ export const getIO = () => {
 // Emit new message to chat room
 export const emitNewMessage = (chatId, message) => {
   if (io) {
+    console.log(`📤 Emitting new message to chat_${chatId}:`, message.id);
+    // Emit to chat room only - prevents duplicates
     io.to(`chat_${chatId}`).emit('new_message', message);
   }
 };
@@ -67,7 +69,10 @@ export const emitNewMessage = (chatId, message) => {
 // Emit chat assignment notification to agent
 export const emitChatAssigned = (agentId, chatData) => {
   if (io) {
+    console.log(`📤 Emitting chat assigned to agent ${agentId}`);
     io.to(`user_${agentId}`).emit('chat_assigned', chatData);
+    // Also broadcast queue update to all connected clients
+    emitQueueUpdate({ action: 'chat_assigned', chatId: chatData.id, agentId });
   }
 };
 
@@ -81,6 +86,7 @@ export const emitChatStatusUpdate = (chatId, status) => {
 // Emit queue update to all agents
 export const emitQueueUpdate = (queueData) => {
   if (io) {
+    console.log(`📤 Broadcasting queue update to all clients:`, queueData);
     io.emit('queue_update', queueData);
   }
 };

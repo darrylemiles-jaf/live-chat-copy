@@ -46,7 +46,7 @@ const getAvailableAgents = async () => {
     const [agents] = await pool.query(
       `SELECT id, name, username, email, role, status 
        FROM users 
-       WHERE role IN ('support_agent', 'admin') 
+       WHERE role IN ('support', 'admin') 
        AND status = 'available'
        ORDER BY name ASC`
     );
