@@ -48,8 +48,10 @@ const SupportAgents = () => {
         id: user.id,
         name: user.name || user.username,
         email: user.email,
+        phone: user.phone,
+        profile_picture: user.profile_picture,
         role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Support',
-        status: 'Active', // You can add a status field to your database if needed
+        status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active',
         successfulAssists: 0 // You can add this field to your database or calculate it
       }));
       setAgents(transformedAgents);

@@ -33,8 +33,9 @@ const Dashboard = () => {
         const initials = name.split(' ').map(n => n.charAt(0).toUpperCase()).join('').slice(0, 2);
         return {
           name: name,
-          status: 'available', // Default status, you can add this field to your database
-          avatar: initials
+          status: user.status || 'available',
+          avatar: initials,
+          profile_picture: user.profile_picture
         };
       });
       setRawAgentStatus(transformedAgents);

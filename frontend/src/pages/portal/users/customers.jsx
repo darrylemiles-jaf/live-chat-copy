@@ -23,7 +23,8 @@ const Customers = () => {
         id: user.id,
         name: user.name || user.username,
         email: user.email,
-        phone: user.phone || 'N/A' // Add phone field to your database if needed
+        phone: user.phone || 'N/A',
+        profile_picture: user.profile_picture
       }));
       setCustomers(transformedCustomers);
     }
