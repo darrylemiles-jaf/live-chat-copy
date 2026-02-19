@@ -1,8 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
-// material-ui
 import Button from '@mui/material/Button';
 import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
@@ -13,17 +12,14 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
-// third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
-// project imports
-import IconButton from 'components/@extended/IconButton';
-import AnimateButton from 'components/@extended/AnimateButton';
 import { customGreen } from 'themes/palette';
 import axiosServices from 'utils/axios';
+import IconButton from 'components/@extended/IconButton';
+import AnimateButton from 'components/@extended/AnimateButton';
 
-// assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 
@@ -59,10 +55,8 @@ export default function AuthLogin({ isDemo = false }) {
           throw new Error('No token received from server');
         }
 
-        // Store token in localStorage
         localStorage.setItem('serviceToken', token);
         
-        // Store user data if available
         if (user) {
           localStorage.setItem('user', JSON.stringify(user));
         }
@@ -70,7 +64,6 @@ export default function AuthLogin({ isDemo = false }) {
         setStatus({ success: true });
         setSubmitting(false);
         
-        // Redirect to dashboard
         navigate('/portal/dashboard');
       } else {
         throw new Error(response.data?.message || 'Login failed');
@@ -90,9 +83,7 @@ export default function AuthLogin({ isDemo = false }) {
     <>
       <Formik 
         initialValues={{
-          email: 'info@codedthemes.com',
-          password: '123456',
-          submit: null
+          
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),

@@ -58,27 +58,28 @@ export default function HeaderContent() {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+            borderRadius: { xs: 0, sm: 2 },
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            m: { xs: 0, sm: 2 }
           }
         }}
       >
-        <DialogTitle sx={{ pb: 1, pt: 2.5, px: 2.5 }}>
-          <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: '#064856' }}>
+        <DialogTitle sx={{ pb: 1, pt: { xs: 2, sm: 2.5 }, px: { xs: 2, sm: 2.5 } }}>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: '#064856', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Quick Links
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
             Navigate quickly to essential sections
           </Typography>
         </DialogTitle>
         <Divider />
-        <DialogContent sx={{ px: 2.5, py: 2.5 }}>
+        <DialogContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
           <Box>
             {/* Navigation */}
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5, color: '#064856', fontSize: '0.95rem' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: { xs: 1, sm: 1.5 }, color: '#064856', fontSize: { xs: '0.875rem', sm: '0.95rem' } }}>
               Navigation
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, mb: 3, }}>
+            <Box sx={{ display: 'flex', gap: { xs: 0.75, sm: 1 }, mb: { xs: 2, sm: 3 }, flexWrap: 'wrap', justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
               {[
                 { icon: <DashboardOutlined />, title: 'Dashboard', path: '/portal/dashboard' },
                 { icon: <UnorderedListOutlined />, title: 'Queue', path: '/portal/queue' },
@@ -89,9 +90,9 @@ export default function HeaderContent() {
                   key={item.title}
                   elevation={0}
                   sx={{
-                    p: 2,
-                    width: '120px',
-                    height: '100px',
+                    p: { xs: 1.5, sm: 2 },
+                    width: { xs: 'calc(50% - 6px)', sm: '120px' },
+                    height: { xs: '80px', sm: '100px' },
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -100,7 +101,7 @@ export default function HeaderContent() {
                     cursor: 'pointer',
                     border: '1px solid',
                     borderColor: '#E0E0E0',
-                    borderRadius: 1.5,
+                    borderRadius: { xs: 1, sm: 1.5 },
                     transition: 'all 0.2s ease',
                     flexShrink: 0,
                     '&:hover': {
@@ -115,10 +116,10 @@ export default function HeaderContent() {
                     handleCloseModal();
                   }}
                 >
-                  <Box sx={{ fontSize: '32px', color: '#008E86', mb: 1 }}>
+                  <Box sx={{ fontSize: { xs: '24px', sm: '32px' }, color: '#008E86', mb: { xs: 0.5, sm: 1 } }}>
                     {item.icon}
                   </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', lineHeight: 1.2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' }, lineHeight: 1.2 }}>
                     {item.title}
                   </Typography>
                 </Paper>
@@ -126,10 +127,10 @@ export default function HeaderContent() {
             </Box>
 
             {/* Management */}
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5, color: '#064856', fontSize: '0.95rem' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: { xs: 1, sm: 1.5 }, color: '#064856', fontSize: { xs: '0.875rem', sm: '0.95rem' } }}>
               Management
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-start' }}>
+            <Box sx={{ display: 'flex', gap: { xs: 0.75, sm: 1 }, flexWrap: 'wrap', justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
               {[
                 { icon: <FileTextOutlined />, title: 'Tickets', path: '/portal/tickets' },
                 { icon: <TeamOutlined />, title: 'Support Agents', path: '/portal/users/supports' },
@@ -139,9 +140,9 @@ export default function HeaderContent() {
                   key={item.title}
                   elevation={0}
                   sx={{
-                    p: 2,
-                    width: '120px',
-                    height: '100px',
+                    p: { xs: 1.5, sm: 2 },
+                    width: { xs: 'calc(50% - 6px)', sm: '120px' },
+                    height: { xs: '80px', sm: '100px' },
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -150,7 +151,7 @@ export default function HeaderContent() {
                     cursor: 'pointer',
                     border: '1px solid',
                     borderColor: '#E0E0E0',
-                    borderRadius: 1.5,
+                    borderRadius: { xs: 1, sm: 1.5 },
                     transition: 'all 0.2s ease',
                     flexShrink: 0,
                     '&:hover': {
@@ -165,10 +166,10 @@ export default function HeaderContent() {
                     handleCloseModal();
                   }}
                 >
-                  <Box sx={{ fontSize: '32px', color: '#008E86', mb: 1 }}>
+                  <Box sx={{ fontSize: { xs: '24px', sm: '32px' }, color: '#008E86', mb: { xs: 0.5, sm: 1 } }}>
                     {item.icon}
                   </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', lineHeight: 1.2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' }, lineHeight: 1.2 }}>
                     {item.title}
                   </Typography>
                 </Paper>
@@ -177,15 +178,15 @@ export default function HeaderContent() {
           </Box>
         </DialogContent>
         <Divider />
-        <DialogActions sx={{ px: 2.5, py: 1.5 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 1.5, sm: 1.5 } }}>
           <Button 
             onClick={handleCloseModal} 
             variant="outlined"
             sx={{ 
-              minWidth: 80,
+              minWidth: { xs: '100%', sm: 80 },
               textTransform: 'none',
               fontWeight: 600,
-              fontSize: '0.85rem',
+              fontSize: { xs: '0.8rem', sm: '0.85rem' },
               borderColor: '#008E86',
               color: '#008E86',
               '&:hover': {

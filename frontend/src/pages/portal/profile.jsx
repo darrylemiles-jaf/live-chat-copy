@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import UserDetailsView from '../../components/UserDetailsView';
 import { getCurrentUser } from '../../utils/auth';
-
-const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Profile' }];
+import { customGreen, customGold } from '../../themes/palette';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [modalOpen, setModalOpen] = useState(true);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
   }, []);
 
-  // User data from JWT token
+  const handleClose = () => {
+    setModalOpen(false);
+    navigate(-1);
+  };
+
   const userData = {
     id: user?.id || 'N/A',
     name: user?.name || user?.username || 'N/A',
     email: user?.email || 'N/A',
-    role: user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'N/A',
-    department: 'N/A',
+    role: user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A',
     phone: 'N/A',
     joinDate: 'N/A',
     status: 'Active'
@@ -32,46 +32,54 @@ const Profile = () => {
   const viewConfig = {
     avatar: {
       nameField: 'name',
-      subtitleField: 'role'
+      emailField: 'email'
     },
+    badges: [
+      {
+        field: 'role',
+        color: customGreen[6]
+      },
+      {
+        field: 'status',
+        color: customGold[5]
+      }
+    ],
     infoSections: [
       {
         title: 'Personal Information',
-        columns: '1fr 1fr',
         fields: [
           {
-            label: 'User ID',
-            field: 'id',
-            valueStyle: { color: '#008E86', fontWeight: 600 }
-          },
-          {
-            label: 'Email',
-            field: 'email'
-          },
-          {
-            label: 'Name',
+            label: 'Full Name',
             field: 'name'
           },
           {
-            label: 'Phone',
+            label: 'Email Address',
+            field: 'email'
+          },
+          {
+            label: 'Phone Number',
             field: 'phone'
           },
           {
             label: 'Role',
             field: 'role'
+          }
+        ]
+      },
+      {
+        title: 'Account Information',
+        fields: [
+          {
+            label: 'User ID',
+            field: 'id'
           },
           {
-            label: 'Department',
-            field: 'department'
+            label: 'Status',
+            field: 'status'
           },
           {
             label: 'Join Date',
             field: 'joinDate'
-          },
-          {
-            label: 'Status',
-            field: 'status',
-            valueStyle: { color: '#4caf50', fontWeight: 600 }
           }
         ]
       }
@@ -79,23 +87,12 @@ const Profile = () => {
   };
 
   return (
-    <React.Fragment>
-      <Box sx={{ mb: 2 }}>
-    
-        <Breadcrumbs heading="My Profile" links={breadcrumbLinks} subheading="View your profile information" />
-      </Box>
-
-      <Paper sx={{ p: 3 }}>
-        <UserDetailsView
-          data={userData}
-          viewConfig={viewConfig}
-          styles={{
-            accentColor: '#008E86',
-            backgroundColor: '#E6F7F6'
-          }}
-        />
-      </Paper>
-    </React.Fragment>
+    <UserDetailsView
+      open={modalOpen}
+      onClose={handleClose}
+      data={userData}
+      viewConfig={viewConfig}
+    />
   );
 };
 

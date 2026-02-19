@@ -136,7 +136,7 @@ const createUser = async (userData) => {
   try {
     const { name, username, email, phone, profile_picture, role, status = 'AVAILABLE', password } = userData;
 
-   
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [insertResult] = await pool.query(
@@ -212,7 +212,7 @@ const authUser = async (email, password) => {
 
       // Verify password matches the default
       const isPasswordValid = await bcrypt.compare(password, newUser.data.password);
-      
+
       if (!isPasswordValid) {
         return {
           statusCode: 401,
@@ -235,7 +235,7 @@ const authUser = async (email, password) => {
 
   // User exists, validate password
   const user = await getUserByEmail(email);
-  
+
   if (!user.success) {
     return {
       statusCode: 401,
@@ -246,7 +246,7 @@ const authUser = async (email, password) => {
 
   // Compare password
   const isPasswordValid = await bcrypt.compare(password, user.data.password);
-  
+
   if (!isPasswordValid) {
     return {
       statusCode: 401,
@@ -261,6 +261,7 @@ const authUser = async (email, password) => {
     statusCode: 200,
     success: true,
     message: "Success login",
+    data: user.data,
     token
   };
 };
