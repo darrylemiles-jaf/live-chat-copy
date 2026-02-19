@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { customGreen, customGold, customRed } from "../../../themes/palette";
 
@@ -14,12 +14,15 @@ import {  Button,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import { useGetUsers } from '../../../api/users';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -32,13 +35,26 @@ const SupportAgents = () => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
-  const [agents, setAgents] = useState([
-    { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
-    { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
-    { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
-    { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
-    { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
-  ]);
+  const [agents, setAgents] = useState([]);
+  
+  // Fetch users with role 'support' from the database
+  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
+  
+  // Update agents when users data changes
+  useEffect(() => {
+    if (users && users.length > 0) {
+      // Transform database users to match the component's data structure
+      const transformedAgents = users.map(user => ({
+        id: user.id,
+        name: user.name || user.username,
+        email: user.email,
+        role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Support',
+        status: 'Active', // You can add a status field to your database if needed
+        successfulAssists: 0 // You can add this field to your database or calculate it
+      }));
+      setAgents(transformedAgents);
+    }
+  }, [users]);
 
   const handleEditClick = () => {
     setFormData(selectedAgent);
@@ -259,6 +275,30 @@ const SupportAgents = () => {
       }
     ]
   };
+
+  // Show loading state
+  if (usersLoading) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      </React.Fragment>
+    );
+  }
+
+  // Show error state
+  if (usersError) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading support agents: {usersError.message || 'Please try again later.'}
+        </Alert>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment>
