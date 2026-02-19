@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Paper, CircularProgress } from '@mui/material';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Box, Paper, CircularProgress, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
@@ -7,7 +7,7 @@ import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
 import MessagesAreaSection from '../../sections/chats/MessagesAreaSection';
 import MessageInputSection from '../../sections/chats/MessageInputSection';
 import EmptyStateSection from '../../sections/chats/EmptyStateSection';
-import { getChats, getChatMessages, sendMessage } from '../../api/chatApi';
+import { getChats, getChatMessages, sendMessage, endChat } from '../../api/chatApi';
 import socketService from '../../services/socketService';
 import useAuth from '../../hooks/useAuth';
 
@@ -38,12 +38,13 @@ const formatTimestamp = (timestamp) => {
 const transformChatData = (chat) => {
   return {
     id: chat.id,
-    name: chat.client_name || `User ${chat.client_id}`,
-    lastMessage: chat.last_message || 'No messages yet',
+    name: chat.client?.name || chat.client_name || `User ${chat.client_id}`,
+    lastMessage: chat.last_message || chat.messages?.[chat.messages.length - 1]?.message || 'No messages yet',
     timestamp: formatTimestamp(chat.updated_at || chat.created_at),
     avatar: null, // Can be updated if you have avatars
     unread: 0, // Can be calculated if you track read status
-    online: chat.status === 'active'
+    online: chat.status === 'active',
+    status: chat.status
   };
 };
 
@@ -71,6 +72,12 @@ const Chats = () => {
   const [currentMessages, setCurrentMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
+  const socketConnectedRef = useRef(false);
+  const selectedChatRef = useRef(null);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -86,7 +93,7 @@ const Chats = () => {
   }, [isLoggedIn, navigate]);
 
   // Fetch chats data
-  const fetchChatsData = async () => {
+  const fetchChatsData = useCallback(async () => {
     if (!user?.id) {
       console.warn('No user ID available');
       return;
@@ -103,10 +110,10 @@ const Chats = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   // Fetch messages for selected chat
-  const fetchMessages = async (chatId) => {
+  const fetchMessages = useCallback(async (chatId) => {
     if (!chatId || !user?.id) return;
 
     try {
@@ -120,7 +127,7 @@ const Chats = () => {
       console.error('Error fetching messages:', error);
       setCurrentMessages([]);
     }
-  };
+  }, [user?.id]);
 
   // Initialize: fetch chats and connect socket
   useEffect(() => {
@@ -128,56 +135,75 @@ const Chats = () => {
 
     fetchChatsData();
 
+    // Prevent multiple socket connections
+    if (socketConnectedRef.current) return;
+    socketConnectedRef.current = true;
+
     // Connect socket
     const socket = socketService.connect(SOCKET_URL, user.id);
 
     // Listen for new messages
-    socket.on('new_message', (messageData) => {
-      console.log('New message received:', messageData);
+    const handleNewMessage = (messageData) => {
+      console.log('📨 New message received in chats:', messageData);
 
       // If message is for current chat, add it to messages
-      if (selectedChat && messageData.chat_id === selectedChat.id) {
-        const transformedMessage = transformMessageData(messageData, user.id);
-        setCurrentMessages(prev => {
-          // Prevent duplicates by checking if message with this ID already exists
+      setCurrentMessages(prev => {
+        // Check if this message belongs to current chat
+        if (selectedChatRef.current && messageData.chat_id === selectedChatRef.current.id) {
+          const transformedMessage = transformMessageData(messageData, user.id);
+          // Prevent duplicates
           if (prev.some(msg => msg.id === transformedMessage.id)) {
+            console.log('⚠️ Duplicate message detected, skipping:', messageData.id);
             return prev;
           }
+          setTimeout(scrollToBottom, 100);
           return [...prev, transformedMessage];
-        });
-        setTimeout(scrollToBottom, 100);
-      }
+        }
+        return prev;
+      });
 
       // Refresh chat list to update last message
       fetchChatsData();
-    });
+    };
 
     // Listen for chat assignments
-    socket.on('chat_assigned', (chatData) => {
-      console.log('Chat assigned:', chatData);
+    const handleChatAssigned = (chatData) => {
+      console.log('✅ Chat assigned in chats:', chatData);
       fetchChatsData(); // Refresh chat list
-    });
+    };
 
     // Listen for chat status updates
-    socket.on('chat_status_update', (data) => {
-      console.log('Chat status updated:', data);
+    const handleChatStatus = (data) => {
+      console.log('🔄 Chat status updated:', data);
       fetchChatsData();
-    });
+    };
+
+    socket.on('new_message', handleNewMessage);
+    socket.on('chat_assigned', handleChatAssigned);
+    socket.on('chat_status_update', handleChatStatus);
 
     return () => {
-      socket.off('new_message');
-      socket.off('chat_assigned');
-      socket.off('chat_status_update');
+      socket.off('new_message', handleNewMessage);
+      socket.off('chat_assigned', handleChatAssigned);
+      socket.off('chat_status_update', handleChatStatus);
+      socketConnectedRef.current = false;
     };
-  }, [user?.id, selectedChat]);
+  }, [user?.id, fetchChatsData]);
 
   const handleSelectChat = async (chat) => {
+    // Leave previous chat room if any
+    if (selectedChat) {
+      const socket = socketService.connect();
+      socket.emit('leave_chat', selectedChat.id);
+    }
+
     setSelectedChat(chat);
     await fetchMessages(chat.id);
 
-    // Join chat room via socket
+    // Join new chat room via socket
     const socket = socketService.connect();
-    socket.emit('join_chat', { chatId: chat.id, userId: user.id });
+    socket.emit('join_chat', chat.id);
+    console.log(`Joined chat room: ${chat.id}`);
   };
 
   // Auto-select chat from navigation state
@@ -207,11 +233,30 @@ const Chats = () => {
     try {
       await sendMessage(user.id, message.trim(), selectedChat.id);
       setMessage('');
-
-      // Message will be added via socket event, no need to add locally
     } catch (error) {
       console.error('Error sending message:', error);
       alert('Failed to send message. Please try again.');
+    }
+  };
+
+  const handleEndChat = async () => {
+    if (!selectedChat) return;
+
+    const confirmEnd = window.confirm(
+      'Are you sure you want to end this conversation? This action cannot be undone.'
+    );
+
+    if (!confirmEnd) return;
+
+    try {
+      await endChat(selectedChat.id);
+      alert('Conversation ended successfully');
+      setSelectedChat(null);
+      setCurrentMessages([]);
+      fetchChatsData(); // Refresh chat list
+    } catch (error) {
+      console.error('Error ending chat:', error);
+      alert('Failed to end conversation. Please try again.');
     }
   };
 
@@ -276,14 +321,31 @@ const Chats = () => {
               <ChatHeaderSection
                 selectedChat={selectedChat}
                 onBack={handleBackToList}
+                onEndChat={handleEndChat}
               />
               <MessagesAreaSection messages={currentMessages} messagesEndRef={messagesEndRef} />
-              <MessageInputSection
-                message={message}
-                onMessageChange={setMessage}
-                onSendMessage={handleSendMessage}
-                onKeyPress={handleKeyPress}
-              />
+              {selectedChat.status !== 'ended' ? (
+                <MessageInputSection
+                  message={message}
+                  onMessageChange={setMessage}
+                  onSendMessage={handleSendMessage}
+                  onKeyPress={handleKeyPress}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'action.disabledBackground',
+                    textAlign: 'center'
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    This conversation has ended
+                  </Typography>
+                </Box>
+              )}
             </>
           ) : (
             <EmptyStateSection />

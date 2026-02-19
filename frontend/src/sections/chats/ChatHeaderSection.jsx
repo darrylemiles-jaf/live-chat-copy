@@ -5,11 +5,13 @@ import {
   IconButton,
   Typography,
   Badge,
-  Stack
+  Stack,
+  Button,
+  Tooltip
 } from '@mui/material';
-import { MoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { MoreOutlined, ArrowLeftOutlined, CloseOutlined, StopOutlined } from '@ant-design/icons';
 
-const ChatHeaderSection = ({ selectedChat, onBack }) => {
+const ChatHeaderSection = ({ selectedChat, onBack, onEndChat }) => {
   return (
     <Box
       sx={{
@@ -57,7 +59,35 @@ const ChatHeaderSection = ({ selectedChat, onBack }) => {
           </Typography>
         </Box>
       </Box>
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {onEndChat && selectedChat.status !== 'ended' && (
+          <Tooltip title="End Conversation">
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<StopOutlined />}
+              onClick={onEndChat}
+              sx={{
+                textTransform: 'none',
+                display: { xs: 'none', sm: 'flex' }
+              }}
+            >
+              End Chat
+            </Button>
+          </Tooltip>
+        )}
+        {onEndChat && selectedChat.status !== 'ended' && (
+          <Tooltip title="End Conversation">
+            <IconButton
+              color="error"
+              onClick={onEndChat}
+              sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+            >
+              <StopOutlined />
+            </IconButton>
+          </Tooltip>
+        )}
         <IconButton>
           <MoreOutlined />
         </IconButton>

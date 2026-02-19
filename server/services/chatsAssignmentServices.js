@@ -6,12 +6,16 @@ const autoAssignChat = async (chat_id) => {
   try {
     console.log('🔍 Looking for available agents for chat:', chat_id);
 
-    // Find an available agent (not busy)
+    // Find available agents and their current active chat count (for load balancing)
     const [availableAgents] = await pool.query(
-      `SELECT id, name, email FROM users 
-       WHERE role IN ('support', 'admin') 
-       AND status = 'available' 
-       ORDER BY RAND() 
+      `SELECT u.id, u.name, u.email, 
+              COUNT(c.id) as active_chats
+       FROM users u
+       LEFT JOIN chats c ON u.id = c.agent_id AND c.status = 'active'
+       WHERE u.role IN ('support', 'admin') 
+       AND u.status = 'available'
+       GROUP BY u.id
+       ORDER BY active_chats ASC, u.id ASC
        LIMIT 1`
     );
 
@@ -22,7 +26,7 @@ const autoAssignChat = async (chat_id) => {
     }
 
     const agent_id = availableAgents[0].id;
-    console.log('✅ Assigning chat to agent:', agent_id, availableAgents[0].name);
+    console.log('✅ Assigning chat to agent:', agent_id, availableAgents[0].name, '(Active chats:', availableAgents[0].active_chats, ')');
 
     // Assign agent to chat
     await pool.query(
@@ -49,9 +53,6 @@ const autoAssignChat = async (chat_id) => {
 
     // Emit chat assignment notification to agent
     emitChatAssigned(agent_id, chatDetails[0]);
-
-    // Emit queue update to all agents
-    emitQueueUpdate({ action: 'chat_assigned', chatId: chat_id, agentId: agent_id });
 
     // Emit status update to chat room
     emitChatStatusUpdate(chat_id, 'active');

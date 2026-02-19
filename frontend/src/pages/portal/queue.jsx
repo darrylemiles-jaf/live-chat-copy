@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Box, Grid, Paper, CircularProgress } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -90,6 +90,7 @@ const Queue = () => {
   const [detailsTab, setDetailsTab] = useState('info');
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const socketConnectedRef = useRef(false);
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
 
@@ -102,7 +103,7 @@ const Queue = () => {
   }, [isLoggedIn, navigate]);
 
   // Fetch queue data
-  const fetchQueueData = async () => {
+  const fetchQueueData = useCallback(async () => {
     if (!user?.id) {
       console.warn('No user ID available');
       return;
@@ -150,7 +151,7 @@ const Queue = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, selectedId]);
 
   // Initialize: fetch data and connect socket
   useEffect(() => {
@@ -158,33 +159,39 @@ const Queue = () => {
 
     fetchQueueData();
 
+    // Prevent multiple socket connections
+    if (socketConnectedRef.current) return;
+    socketConnectedRef.current = true;
+
     // Connect to WebSocket
     const socket = socketService.connect(SOCKET_URL, user.id);
 
     // Listen for queue updates
     socket.on('queue_update', (data) => {
-      console.log('Queue update received:', data);
+      console.log('📢 Queue update received:', data);
       fetchQueueData(); // Refresh queue on update
     });
 
     // Listen for new messages
     socket.on('new_message', (message) => {
-      console.log('New message in queue:', message);
-      fetchQueueData(); // Refresh to show updated messages
+      console.log('📨 New message in queue:', message);
+      // Only refresh if message is for a queued chat
+      fetchQueueData();
     });
 
     // Listen for chat assignments
     socket.on('chat_assigned', (chatData) => {
-      console.log('Chat assigned:', chatData);
-      fetchQueueData(); // Refresh queue
+      console.log('✅ Chat assigned:', chatData);
+      fetchQueueData(); // Refresh queue to remove assigned chat
     });
 
     return () => {
       socket.off('queue_update');
       socket.off('new_message');
       socket.off('chat_assigned');
+      socketConnectedRef.current = false;
     };
-  }, [user?.id]);
+  }, [user?.id, fetchQueueData]);
 
   // Auto-select first item when queue changes
   useEffect(() => {
