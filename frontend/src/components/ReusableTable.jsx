@@ -129,9 +129,10 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
             display: 'flex',
             justifyContent: hideSearch ? 'flex-end' : 'space-between',
             gap: '1em',
-            alignItems: 'center',
+            alignItems: { xs: 'stretch', sm: 'center' },
             mt: 1,
-            mb: 3
+            mb: 3,
+            flexDirection: { xs: 'column', sm: 'row' }
           }}
         >
           {!hideSearch && (
@@ -147,7 +148,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                 )
               }}
               sx={{
-                width: '300px',
+                width: { xs: '100%', sm: '300px' },
                 backgroundColor: '#fff',
                 borderRadius: '12px',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
@@ -163,7 +164,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
             />
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' } }}>
             {otherActionButton}
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <MoreOutlined />

@@ -283,8 +283,14 @@ const SupportAgents = () => {
           orderBy: '__originalOrder',
           order: 'asc',
           otherActionButton: (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Role</InputLabel>
                 <Select value={filterRole} label="Role" onChange={(e) => setFilterRole(e.target.value)}>
                   <MenuItem value="">All Roles</MenuItem>
@@ -293,7 +299,7 @@ const SupportAgents = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Status</InputLabel>
                 <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
                   <MenuItem value="">All Statuses</MenuItem>
@@ -302,8 +308,21 @@ const SupportAgents = () => {
                   <MenuItem value="Away">Away</MenuItem>
                 </Select>
               </FormControl>
-              <Button variant="outlined" color="inherit" onClick={() => { setFilterRole(''); setFilterStatus(''); }}>Clear</Button>
-              <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick}>
+              <Button 
+                variant="outlined" 
+                color="inherit" 
+                onClick={() => { setFilterRole(''); setFilterStatus(''); }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                Clear
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                startIcon={<PlusOutlined />} 
+                onClick={handleCreateClick}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
                 Add Agent
               </Button>
             </Box>
