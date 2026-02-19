@@ -1,7 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
 import { customGreen, customGold, customRed } from "../../../themes/palette";
-
 import {  Button,
   Box,
   Typography,
@@ -14,9 +12,8 @@ import {  Button,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
 } from '@mui/material';
-import { PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
@@ -51,8 +48,6 @@ const SupportAgents = () => {
     setOpenViewModal(true);
   };
 
-  const theme = useTheme();
-
   const handleCloseViewModal = () => {
     setOpenViewModal(false);
     setSelectedAgent(null);
@@ -79,7 +74,6 @@ const SupportAgents = () => {
   };
 
   const handleSave = () => {
-    // Update existing agent
     setAgents(agents.map((agent) => (agent.id === formData.id ? formData : agent)));
     console.log('Updating agent:', formData);
     handleCloseEditModal();
@@ -100,11 +94,11 @@ const SupportAgents = () => {
   const getStatusColor = useCallback((status) => {
     switch (status) {
       case 'Active':
-        return { label: 'Available', color: '#4caf50' };
+        return { label: 'Available', color: customGreen[5] };
       case 'Inactive':
-        return { label: 'Away', color: '#ffb300' };
+        return { label: 'Away', color: customGold[5] };
       case 'Suspended':
-        return { label: 'Busy', color: '#f44336' };
+        return { label: 'Busy', color: customRed[5] };
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -112,7 +106,6 @@ const SupportAgents = () => {
 
   const columns = useMemo(
     () => [
-      
       {
         id: 'name',
         label: 'Name',
@@ -125,12 +118,12 @@ const SupportAgents = () => {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                backgroundColor: '#e8f5e9',
+                backgroundColor: customGreen[0],
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 'bold',
-                color: '#2e7d32',
+                color: customGreen[7],
                 fontSize: '16px'
               }}
             >
@@ -168,8 +161,7 @@ const SupportAgents = () => {
             </Box>
           );
         }
-      },
-      
+      }
     ],
     [getStatusColor]
   );
@@ -214,8 +206,26 @@ const SupportAgents = () => {
   const viewConfig = {
     avatar: {
       nameField: 'name',
-      subtitleField: 'role'
+      emailField: 'email'
     },
+    badges: [
+      {
+        field: 'role',
+        color: customGreen[6]
+      },
+      {
+        render: (data) => {
+          const info = getStatusColor(data.status);
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: info.color }} />
+              {info.label}
+            </Box>
+          );
+        },
+        color: 'rgba(255,255,255,0.25)'
+      }
+    ],
     stats: [
       {
         field: 'successfulAssists',
@@ -273,8 +283,14 @@ const SupportAgents = () => {
           orderBy: '__originalOrder',
           order: 'asc',
           otherActionButton: (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Role</InputLabel>
                 <Select value={filterRole} label="Role" onChange={(e) => setFilterRole(e.target.value)}>
                   <MenuItem value="">All Roles</MenuItem>
@@ -283,7 +299,7 @@ const SupportAgents = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
                 <InputLabel>Status</InputLabel>
                 <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
                   <MenuItem value="">All Statuses</MenuItem>
@@ -292,8 +308,21 @@ const SupportAgents = () => {
                   <MenuItem value="Away">Away</MenuItem>
                 </Select>
               </FormControl>
-              <Button variant="outlined" color="inherit" onClick={() => { setFilterRole(''); setFilterStatus(''); }}>Clear</Button>
-              <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleCreateClick}>
+              <Button 
+                variant="outlined" 
+                color="inherit" 
+                onClick={() => { setFilterRole(''); setFilterStatus(''); }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                Clear
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                startIcon={<PlusOutlined />} 
+                onClick={handleCreateClick}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
                 Add Agent
               </Button>
             </Box>
@@ -301,38 +330,12 @@ const SupportAgents = () => {
         }}
       />
 
-      <Dialog open={openViewModal} onClose={handleCloseViewModal} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ color: customGreen[5], fontWeight: 700 }}>
-          Agent Details
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <UserDetailsView
-            data={selectedAgent}
-            viewConfig={viewConfig}
-            styles={{
-              accentColor: customGreen[5],
-              backgroundColor: customGreen[0]
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseViewModal} color="inherit">
-            Close
-          </Button>
-          <Button
-            onClick={handleEditClick}
-            variant="contained"
-            startIcon={<EditOutlined />}
-            sx={{
-              bgcolor: customGreen[8],
-              color: '#fff',
-              '&:hover': { bgcolor: customGreen[7] }
-            }}
-          >
-            Edit Agent
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <UserDetailsView
+        open={openViewModal}
+        onClose={handleCloseViewModal}
+        data={selectedAgent}
+        viewConfig={viewConfig}
+      />
 
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ color: customGold[7], fontWeight: 700 }}>Update Agent</DialogTitle>

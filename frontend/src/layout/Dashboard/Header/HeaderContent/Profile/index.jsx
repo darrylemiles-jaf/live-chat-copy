@@ -25,15 +25,21 @@ import SettingTab from './SettingTab';
 import Avatar from 'components/@extended/Avatar';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
-import IconButton from 'components/@extended/IconButton';
 
-// assets
-import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
-import UserOutlined from '@ant-design/icons/UserOutlined';
-import avatar1 from 'assets/images/users/avatar-1.png';
 
-// tab panel wrapper
+
+// ==============================|| UTILITY FUNCTIONS ||============================== //
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+};
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div role="tabpanel" hidden={value !== index} id={`profile-tabpanel-${index}`} aria-labelledby={`profile-tab-${index}`} {...other}>
@@ -80,7 +86,7 @@ export default function Profile() {
   };
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 'auto' }}>
+    <Box sx={{ flexShrink: 0, ml: 'auto', spacing: 10 }}>
       <Tooltip title="Profile" disableInteractive>
         <ButtonBase
           sx={(theme) => ({
@@ -94,7 +100,14 @@ export default function Profile() {
           aria-haspopup="true"
           onClick={handleToggle}
         >
-          <Avatar alt="profile user" src={avatar1} size="sm" sx={{ '&:hover': { outline: '1px solid', outlineColor: 'primary.main' } }} />
+          <Avatar 
+            alt="profile user" 
+            size="sm" 
+            color="green"
+            sx={{ '&:hover': { outline: '1px solid', outlineColor: 'primary.main' } }}
+          >
+            {getInitials(user?.name || user?.username)}
+          </Avatar>
         </ButtonBase>
       </Tooltip>
 
@@ -128,7 +141,13 @@ export default function Profile() {
                     <Grid container sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                       <Grid>
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
-                          <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
+                          <Avatar 
+                            alt="profile user" 
+                            sx={{ width: 32, height: 32 }}
+                            color="green"
+                          >
+                            {getInitials(user?.name || user?.username)}
+                          </Avatar>
                           <Stack>
                             <Typography variant="h6">{user?.name || user?.username || 'User'}</Typography>
                             <Typography variant="body2" color="text.secondary">
