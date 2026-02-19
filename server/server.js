@@ -5,10 +5,12 @@ import {
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
 
 import express from 'express';
+import { createServer } from 'http';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import pool from './config/db.js';
 import tables from './tables/tables.js';
+import { initializeSocket } from './socket/socketHandler.js';
 
 /* ============================ ROUTE IMPORTS ============================ */
 import usersRoutes from './routes/usersRoutes.js';
@@ -49,7 +51,13 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    app.listen(PORT, () =>
+    const httpServer = createServer(app);
+
+    // Initialize Socket.io
+    initializeSocket(httpServer);
+    console.log(colours.fg.green, '✅ Socket.io initialized', colours.reset);
+
+    httpServer.listen(PORT, () =>
       console.log(
         colours.fg.yellow,
         `${PROJECT_NAME} API is running in ${process.env.NODE_ENV} mode on port ${PORT}`,
