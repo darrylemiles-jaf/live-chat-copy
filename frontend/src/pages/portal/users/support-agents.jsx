@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { customGreen, customGold, customRed } from "../../../themes/palette";
 
@@ -14,12 +14,15 @@ import {  Button,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import { useGetUsers } from '../../../api/users';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -32,13 +35,27 @@ const SupportAgents = () => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
-  const [agents, setAgents] = useState([
-    { id: 'AGT-1001', name: 'Amira Hassan', email: 'amira.hassan@company.com', role: 'Senior Agent', status: 'Active', successfulAssists: 124 },
-    { id: 'AGT-1002', name: 'Jina Cole', email: 'jonas.cole@company.com', role: 'Agent', status: 'Active', successfulAssists: 87 },
-    { id: 'AGT-1003', name: 'Priya Singh', email: 'priya.singh@company.com', role: 'Agent', status: 'Suspended', successfulAssists: 35 },
-    { id: 'AGT-1004', name: 'Mason Ortiz', email: 'mason.ortiz@company.com', role: 'Team Lead', status: 'Active', successfulAssists: 210 },
-    { id: 'AGT-1005', name: 'Lina Park', email: 'lina.park@company.com', role: 'Agent', status: 'Inactive', successfulAssists: 12 }
-  ]);
+  const [agents, setAgents] = useState([]);
+  
+  
+  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
+  
+  
+  useEffect(() => {
+    if (users && users.length > 0) {
+      const transformedAgents = users.map(user => ({
+        id: user.id,
+        name: user.name || user.username,
+        email: user.email,
+        phone: user.phone,
+        profile_picture: user.profile_picture,
+        role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Support',
+        status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Available',
+        successfulAssists: 0
+      }));
+      setAgents(transformedAgents);
+    }
+  }, [users]);
 
   const handleEditClick = () => {
     setFormData(selectedAgent);
@@ -64,7 +81,7 @@ const SupportAgents = () => {
   };
 
   const handleCreateClick = () => {
-    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Active', successfulAssists: 0 });
+    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Available', successfulAssists: 0 });
     setOpenCreateModal(true);
   };
 
@@ -99,12 +116,12 @@ const SupportAgents = () => {
 
   const getStatusColor = useCallback((status) => {
     switch (status) {
-      case 'Active':
+      case 'Available':
         return { label: 'Available', color: '#4caf50' };
-      case 'Inactive':
+      case 'Away':
         return { label: 'Away', color: '#ffb300' };
-      case 'Suspended':
-        return { label: 'Busy', color: '#f44336' };
+      case 'Busy':
+        return { label: 'Busy', color: '#f44336' };      
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -260,6 +277,30 @@ const SupportAgents = () => {
     ]
   };
 
+  // Show loading state
+  if (usersLoading) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      </React.Fragment>
+    );
+  }
+
+  // Show error state
+  if (usersError) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading support agents: {usersError.message || 'Please try again later.'}
+        </Alert>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
@@ -366,9 +407,9 @@ const SupportAgents = () => {
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Suspended">Suspended</MenuItem>
+                <MenuItem value="Available">Available</MenuItem>
+                <MenuItem value="Busy">Busy</MenuItem>
+                <MenuItem value="Away">Away</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -426,9 +467,9 @@ const SupportAgents = () => {
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select name="status" value={formData.status || ''} onChange={handleFormChange} label="Status">
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Suspended">Suspended</MenuItem>
+                <MenuItem value="Available">Available</MenuItem>
+                <MenuItem value="Busy">Busy</MenuItem>
+                <MenuItem value="Away">Away</MenuItem>
               </Select>
             </FormControl>
           </Box>

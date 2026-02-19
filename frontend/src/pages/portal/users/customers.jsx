@@ -1,53 +1,34 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from '@mui/material';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import { useGetUsers } from '../../../api/users';
   
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
 
 const Customers = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-
-  const [customers, setCustomers] = useState([
-    {
-      id: 'CUST-1001',
-      name: 'Sarah Williams',
-      email: 'sarah.williams@techcorp.com',
-      phone: '+63 (555) 123-4567'
-    },
-    {
-      id: 'CUST-1002',
-      name: 'Michael Chen',
-      email: 'michael.chen@innovate.io',
-      phone: '+63 (555) 234-5678'
-    },
-    {
-      id: 'CUST-1003',
-      name: 'Emma Rodriguez',
-      email: 'emma.r@globalventures.com',
-      phone: '+63 (555) 345-6789'
-    },
-    {
-      id: 'CUST-1004',
-      name: 'James Thompson',
-      email: 'j.thompson@startup.co',
-      phone: '+63 (555) 456-7890'
-    },
-    {
-      id: 'CUST-1005',
-      name: 'Olivia Martinez',
-      email: 'olivia@enterprise.com',
-      phone: '+63 (555) 567-8901'
-    },
-    {
-      id: 'CUST-1006',
-      name: 'David Kim',
-      email: 'david.kim@digital.net',
-      phone: '+63 (555) 678-9012'
+  const [customers, setCustomers] = useState([]);
+  
+  // Fetch users with role 'client' from the database
+  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'client' });
+  
+  // Update customers when users data changes
+  useEffect(() => {
+    if (users && users.length > 0) {
+      // Transform database users to match the component's data structure
+      const transformedCustomers = users.map(user => ({
+        id: user.id,
+        name: user.name || user.username,
+        email: user.email,
+        phone: user.phone || 'N/A',
+        profile_picture: user.profile_picture
+      }));
+      setCustomers(transformedCustomers);
     }
-  ]);
+  }, [users]);
 
   const handleViewClick = (customer) => {
     setSelectedCustomer(customer);
@@ -144,6 +125,30 @@ const Customers = () => {
       }
     ]
   };
+
+  // Show loading state
+  if (usersLoading) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Customers" links={breadcrumbLinks} subheading="View and manage your customers here." />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      </React.Fragment>
+    );
+  }
+
+  // Show error state
+  if (usersError) {
+    return (
+      <React.Fragment>
+        <Breadcrumbs heading="Customers" links={breadcrumbLinks} subheading="View and manage your customers here." />
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading customers: {usersError.message || 'Please try again later.'}
+        </Alert>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment>
