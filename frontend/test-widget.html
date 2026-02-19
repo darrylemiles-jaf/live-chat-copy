@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Chat Widget - Test Page</title>
+
+  <!-- Your existing site styles -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .content {
+      line-height: 1.6;
+      color: #666;
+    }
+  </style>
+
+  <!-- Live Chat Widget CSS -->
+  <link rel="stylesheet" href="./dist-widget/live-chat-widget.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Welcome to Our Website</h1>
+    <div class="content">
+      <p>This is a test page demonstrating the Live Chat Widget integration.</p>
+      <p>Look for the chat button in the bottom-right corner of your screen!</p>
+
+      <h2>How it Works:</h2>
+      <ol>
+        <li>Click the purple chat button in the bottom-right corner</li>
+        <li>Enter your name and email</li>
+        <li>Start chatting with our support team</li>
+        <li>Messages are delivered in real-time via WebSocket</li>
+        <li>Your chat is auto-assigned to an available agent</li>
+      </ol>
+
+      <h2>Features:</h2>
+      <ul>
+        <li>✅ Real-time messaging</li>
+        <li>✅ Auto-assignment to available agents</li>
+        <li>✅ Typing indicators</li>
+        <li>✅ Message history</li>
+        <li>✅ Responsive design</li>
+        <li>✅ Persistent user sessions</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Live Chat Widget Configuration & Script -->
+  <script>
+    // Configure the widget before loading
+    window.LiveChatConfig = {
+      // Update these URLs to match your backend
+      apiUrl: 'http://localhost:8000/api/v1',
+      socketUrl: 'http://localhost:8000'
+    };
+  </script>
+
+  <!-- Load the widget -->
+  <script src="./dist-widget/live-chat-widget.js"></script>
+
+  <!-- Optional: Custom event handlers -->
+  <script>
+    // You can listen for widget events if needed
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('✅ Live Chat Widget loaded');
+    });
+  </script>
+</body>
+
+</html>
