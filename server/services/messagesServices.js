@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { emitNewMessage, emitChatAssigned, emitQueueUpdate } from "../socket/socketHandler.js";
 
 const getMessages = async (query = {}) => {
   try {
@@ -77,6 +78,19 @@ const createMessage = async (payload) => {
               `UPDATE users SET status = 'busy' WHERE id = ?`,
               [assignedAgentId]
             );
+
+            // Emit chat assignment notification to agent
+            const [chatDetails] = await pool.query(
+              `SELECT c.*, u.name as client_name, u.email as client_email 
+               FROM chats c 
+               JOIN users u ON c.client_id = u.id 
+               WHERE c.id = ?`,
+              [usedChatId]
+            );
+            emitChatAssigned(assignedAgentId, chatDetails[0]);
+
+            // Emit queue update to all agents
+            emitQueueUpdate({ action: 'chat_assigned', chatId: usedChatId });
           }
         }
       } else {
@@ -122,6 +136,9 @@ const createMessage = async (payload) => {
     const [newMessage] = await pool.query(
       `SELECT * FROM messages WHERE id = ?`, [result.insertId]
     );
+
+    // Emit new message event to chat room
+    emitNewMessage(usedChatId, newMessage[0]);
 
     return {
       success: true,

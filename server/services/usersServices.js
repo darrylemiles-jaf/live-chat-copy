@@ -257,6 +257,7 @@ const authUser = async (email, password) => {
     statusCode: 200,
     success: true,
     message: "Success login",
+    data: user.data,
     token
   };
 };
