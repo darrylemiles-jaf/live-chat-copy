@@ -5,6 +5,7 @@ const usersTable = `CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20),
+    profile_picture VARCHAR(500),
     role ENUM('client', 'support', 'admin') NOT NULL DEFAULT 'support',
     status ENUM('available', 'busy', 'away') DEFAULT 'available',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
