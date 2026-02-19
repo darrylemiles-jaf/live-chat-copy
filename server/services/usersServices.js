@@ -180,7 +180,7 @@ const authUser = async (email, password) => {
     return {
       statusCode: 404,
       success: false,
-      message: "User not found in API"
+      message: "Invalid email or password"
     };
   }
 
