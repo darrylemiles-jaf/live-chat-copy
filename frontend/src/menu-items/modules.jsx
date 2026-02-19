@@ -76,23 +76,7 @@ const modules = [
       }
     ]
   },
-  {
-    id: 'group-ticketing',
-    title: 'Ticketing',
-    type: 'group',
-    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
-    children: [
-      {
-        id: 'conversations',
-        title: 'Tickets',
-        type: 'item',
-        url: '/portal/tickets',
-        icon: icons.Ticket,
-        breadcrumbs: false,
-        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
-      }
-    ]
-  },
+
   {
     id: 'group-users',
     title: 'Users',
