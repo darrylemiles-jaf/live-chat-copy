@@ -188,14 +188,21 @@ const Chats = () => {
       fetchChatsData();
     };
 
+    const handleQueueUpdate = (data) => {
+      console.log('📋 Queue update received in chats:', data);
+      fetchChatsData();
+    };
+
     socket.on('new_message', handleNewMessage);
     socket.on('chat_assigned', handleChatAssigned);
     socket.on('chat_status_update', handleChatStatus);
+    socket.on('queue_update', handleQueueUpdate);
 
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('chat_assigned', handleChatAssigned);
       socket.off('chat_status_update', handleChatStatus);
+      socket.off('queue_update', handleQueueUpdate);
     };
   }, [user?.id, fetchChatsData]);
 

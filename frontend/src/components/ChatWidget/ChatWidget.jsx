@@ -211,29 +211,29 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
           // Add the first message manually since we just joined the room
           if (data.data) {
             setMessages(prev => {
-              // Check for duplicates
-              if (prev.some(msg => msg.id === data.data.id)) {
-                return prev;
-              }
+              if (prev.some(msg => msg.id === data.data.id)) return prev;
               return [...prev, data.data];
             });
-            scrollToBottom();
           }
 
-          // Fetch messages after a short delay to pick up the auto-reply
-          // (auto-reply is emitted before the client joins the room)
-          setTimeout(async () => {
-            try {
-              const resp = await fetch(`${apiUrl}/messages?chat_id=${newChatId}`, {
-                headers: { 'ngrok-skip-browser-warning': 'true' }
-              });
-              const msgData = await resp.json();
-              if (msgData.success && msgData.data) {
-                setMessages(msgData.data);
-                scrollToBottom();
+          // Inject a frontend-only auto-reply (not stored in DB)
+          const autoReplyText = data.is_queued
+            ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible. Please hold on!\n\n— This is an automated message`
+            : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
+
+          setTimeout(() => {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `auto-reply-${Date.now()}`,
+                sender_role: 'bot',
+                message: autoReplyText,
+                created_at: new Date().toISOString(),
+                isAutoReply: true
               }
-            } catch (_) { /* silent */ }
-          }, 800);
+            ]);
+            scrollToBottom();
+          }, 600);
         }
 
         // Clear input
