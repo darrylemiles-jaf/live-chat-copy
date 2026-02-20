@@ -15,6 +15,16 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   const [isTyping, setIsTyping] = useState(false);
   const [agentName, setAgentName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChatEnded, setIsChatEnded] = useState(false);
+
+  const QUICK_REPLIES = [
+    'Hi, I need help!',
+    'I have an inquiry',
+    'I want to follow up on something',
+    'Billing question',
+    'Technical issue',
+    'Track my order',
+  ];
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -67,6 +77,12 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
       socketRef.current.on('user_stop_typing', () => {
         setIsTyping(false);
+      });
+
+      socketRef.current.on('chat_status_update', ({ status }) => {
+        if (status === 'ended') {
+          setIsChatEnded(true);
+        }
       });
 
       return () => {
@@ -253,23 +269,35 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
       const data = await response.json();
 
       if (data.success && data.data && data.data.length > 0) {
-        // Get the most recent chat
         const activeChat = data.data.find(chat =>
           chat.status === 'active' || chat.status === 'queued'
-        ) || data.data[0];
+        );
+        const latestChat = data.data[0];
 
         if (activeChat) {
           setChatId(activeChat.id);
-
-          // Load messages for this chat
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
+          }
+        } else if (latestChat) {
+          // Show previous conversation but mark as ended — no chatId so next message starts fresh
+          if (latestChat.messages && latestChat.messages.length > 0) {
+            setMessages(latestChat.messages);
+          }
+          if (latestChat.status === 'ended') {
+            setIsChatEnded(true);
           }
         }
       }
     } catch (error) {
       console.error('Load history error:', error);
     }
+  };
+
+  const handleStartNewChat = () => {
+    setChatId(null);
+    setMessages([]);
+    setIsChatEnded(false);
   };
 
   const formatTime = (timestamp) => {
@@ -407,29 +435,62 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Ended Banner */}
+              {isChatEnded && (
+                <div className="chat-ended-banner">
+                  <div className="chat-ended-icon">✓</div>
+                  <p className="chat-ended-title">Chat session ended</p>
+                  <p className="chat-ended-sub">This conversation has been closed by the support team.</p>
+                  <button className="chat-new-session-btn" onClick={handleStartNewChat}>
+                    Start New Chat
+                  </button>
+                </div>
+              )}
+
+              {/* Quick Replies */}
+              {!isChatEnded && messages.length === 0 && (
+                <div className="chat-quick-replies">
+                  <span className="chat-quick-replies-label">Quick replies</span>
+                  <div className="chat-quick-replies-list">
+                    {QUICK_REPLIES.map((text) => (
+                      <button
+                        key={text}
+                        className="chat-quick-reply-btn"
+                        onClick={() => setInputMessage(text)}
+                        type="button"
+                      >
+                        {text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Input */}
-              <form onSubmit={handleSendMessage} className="chat-widget-input">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => {
-                    setInputMessage(e.target.value);
-                    handleTyping();
-                  }}
-                  placeholder="Type a message…"
-                  className="chat-message-input"
-                />
-                <button
-                  type="submit"
-                  disabled={!inputMessage.trim()}
-                  className="chat-send-button"
-                  aria-label="Send message"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
-              </form>
+              {!isChatEnded && (
+                <form onSubmit={handleSendMessage} className="chat-widget-input">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => {
+                      setInputMessage(e.target.value);
+                      handleTyping();
+                    }}
+                    placeholder="Type a message…"
+                    className="chat-message-input"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputMessage.trim()}
+                    className="chat-send-button"
+                    aria-label="Send message"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  </button>
+                </form>
+              )}
               <div className="chat-widget-footer">
                 Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
               </div>
