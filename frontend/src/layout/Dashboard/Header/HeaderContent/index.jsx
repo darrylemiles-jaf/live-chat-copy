@@ -10,6 +10,8 @@ import {
   Button,
   Stack,
   Dialog,
+  Snackbar,
+  Alert,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -57,6 +59,9 @@ export default function HeaderContent() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', color: null });
+
+  const STATUS_COLORS = { available: '#008E86', busy: '#B53654', away: '#CC9000' };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -102,9 +107,15 @@ export default function HeaderContent() {
           localStorage.setItem('user', JSON.stringify({ ...parsed, status: newStatus }));
         }
         mutate((key) => Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/users'));
+        const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+        setSnackbar({ open: true, message: `Status updated to ${label}`, severity: 'success', color: STATUS_COLORS[newStatus] || null });
+        setOpenSettings(false);
+      } else {
+        setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
       }
     } catch (e) {
       console.error('Failed to update status:', e.message);
+      setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
     } finally {
       setStatusLoading(false);
     }
@@ -404,6 +415,29 @@ export default function HeaderContent() {
           </Select>
         </Box>
       </Drawer>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            width: '100%',
+            ...(snackbar.color && {
+              bgcolor: snackbar.color,
+              '& .MuiAlert-icon': { color: 'white' },
+              '& .MuiAlert-action .MuiIconButton-root': { color: 'white' }
+            })
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

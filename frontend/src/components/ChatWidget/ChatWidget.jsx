@@ -19,6 +19,12 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '' });
+
+  const showToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 4000);
+  };
 
   const QUICK_REPLIES = [
     'Hi, I need help!',
@@ -185,7 +191,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
       if (!userIdToStore) {
         console.error('Failed to get user ID from response:', data);
-        alert('Failed to register. Please try again.');
+        showToast('Failed to register. Please try again.');
         setIsLoading(false);
         return;
       }
@@ -203,7 +209,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
     } catch (error) {
       console.error('Registration error:', error);
-      alert('Failed to connect. Please try again.');
+      showToast('Failed to connect. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -301,7 +307,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+      showToast('File size must be less than 10MB');
       return;
     }
 
@@ -391,7 +397,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload file. Please try again.');
+      showToast('Failed to upload file. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -467,6 +473,14 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
   return (
     <div className="chat-widget-container">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="chat-widget-toast">
+          <span>{toast.message}</span>
+          <button onClick={() => setToast({ show: false, message: '' })} className="chat-toast-close">×</button>
+        </div>
+      )}
+
       {/* Chat Button */}
       <button
         className="chat-widget-button"

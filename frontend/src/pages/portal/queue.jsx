@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Box, Grid, Paper, CircularProgress } from '@mui/material';
+import { Box, Grid, Paper, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 
@@ -87,6 +87,7 @@ const Queue = () => {
   const [detailsTab, setDetailsTab] = useState('info');
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
 
@@ -273,7 +274,7 @@ const Queue = () => {
     } catch (error) {
       console.error('❌ Error opening chat:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to open chat';
-      alert(`Failed to open chat: ${errorMessage}`);
+      setSnackbar({ open: true, message: `Failed to open chat: ${errorMessage}`, severity: 'error' });
     }
   };
 
@@ -342,6 +343,22 @@ const Queue = () => {
         getAvatarBg={getAvatarBg}
         getInitials={getInitials}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 };

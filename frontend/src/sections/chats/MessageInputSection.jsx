@@ -7,7 +7,9 @@ import {
   Tooltip,
   Zoom,
   Typography,
-  CircularProgress
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { SendOutlined, PaperClipOutlined, SmileOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -22,6 +24,7 @@ const MessageInputSection = ({
   const [isFocused, setIsFocused] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (e) => {
@@ -30,7 +33,7 @@ const MessageInputSection = ({
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+      setSnackbar({ open: true, message: 'File size must be less than 10MB', severity: 'error' });
       return;
     }
 
@@ -263,6 +266,22 @@ const MessageInputSection = ({
           </IconButton>
         )}
       </Stack>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -975,3 +975,48 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── Toast Notification ── */
+.chat-widget-toast {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  background: var(--cw-red, #B53654);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 100001;
+  animation: cwToastIn 0.3s ease;
+}
+
+.chat-toast-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.chat-toast-close:hover {
+  opacity: 1;
+}
+
+@keyframes cwToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
