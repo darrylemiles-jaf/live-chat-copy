@@ -1,7 +1,5 @@
-import { Avatar, Badge, Box, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Chip, IconButton, Paper, Typography } from '@mui/material';
 import { DotsHorizontal } from 'mdi-material-ui';
-import { withAlpha } from '../../utils/colorUtils';
-import { flex } from '@mui/system';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -14,126 +12,122 @@ function getInitials(name) {
     .join('');
 }
 
-function getAvatarBg(palette, item) {
-  if (!palette) return undefined;
-
-  if (item?.priority === 'High') return palette.error.main;
-  if (item?.priority === 'Medium') return palette.warning.main;
-  if (item?.priority === 'Low') return palette.success.main;
-  return palette.primary.main;
-}
-
-const HistoryQueueSection = ({ palette, history }) => (
+const HistoryQueueSection = ({ palette, history = [] }) => (
   <Paper
     elevation={0}
     sx={{
-      height: '100%',
       borderRadius: 1,
       border: `1px solid rgba(6, 72, 86, 0.15)`,
-      backgroundColor: palette.background.paper,
-      boxShadow: 'none',
-      display: 'flex',
-      flexDirection: 'column'
+      boxShadow: 'none'
     }}
   >
+    {/* Header */}
     <Box
       sx={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         px: 2,
-        py: 1.5,
-        borderRadius: 1
+        py: 1.5
       }}
     >
-      <Stack direction="row" spacing={1}>
-        <Typography variant="subtitle1" color="#00000000017" sx={{ fontWeight: 600 }}>
-          History
-        </Typography>
-        <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-          {history.length}
-        </Typography>
-      </Stack>
-
-      <IconButton size="small" sx={{ color: '#000000' }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#000' }}>
+        History
+      </Typography>
+      <IconButton size="small" sx={{ color: '#000' }}>
         <DotsHorizontal />
       </IconButton>
     </Box>
 
-    <Typography variant="caption" sx={{ fontWeight: 600, color: palette.text.secondary , px: 4 }}>
-      Completed chats are conversations that have been successfully resolved and closed. These chats are stored for reference and reporting
-      purposes.
-    </Typography>   
+    {/* Column labels */}
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '2fr 2fr 1fr 1fr',
+        px: 2,
+        pb: 1,
+        borderBottom: `1px solid ${palette?.divider || 'rgba(0,0,0,0.08)'}`
+      }}
+    >
+      {['Customer', 'Last Message', 'Wait', 'Status'].map((label) => (
+        <Typography key={label} variant="caption" sx={{ color: palette?.text?.secondary || '#666', fontWeight: 600 }}>
+          {label}
+        </Typography>
+      ))}
+    </Box>
 
-    <Stack spacing={1} sx={{ px: 2, py: 1.5, flex: 1 }}>
-      {history.length === 0 ? (
-        <Box sx={{ px: 1.5, py: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: palette.text.primary }}>
-            No history yet
-          </Typography>
-          <Typography variant="body2" sx={{ color: palette.text.secondary, mt: 0.5 }}>
-            Completed chats will appear here.
-          </Typography>
-        </Box>
-      ) : (
-        history.map((item) => (
-          <Box
-            key={item.id}
+    {/* Rows */}
+    {history.length === 0 ? (
+      <Box sx={{ px: 2, py: 3, textAlign: 'center' }}>
+        <Typography variant="body2" sx={{ color: palette?.text?.secondary || '#888' }}>
+          No resolved chats yet
+        </Typography>
+      </Box>
+    ) : (
+      history.map((item) => (
+        <Box
+          key={item.id}
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 2fr 1fr 1fr',
+            alignItems: 'center',
+            px: 2,
+            py: 1.25,
+            borderBottom: `1px solid ${palette?.divider || 'rgba(0,0,0,0.06)'}`,
+            '&:last-child': { borderBottom: 'none' },
+            '&:hover': { backgroundColor: palette?.action?.hover || 'rgba(0,0,0,0.03)' }
+          }}
+        >
+          {/* Customer */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ width: 30, height: 30, fontSize: 12, bgcolor: palette?.primary?.main || '#064856' }}>
+              {getInitials(item.name)}
+            </Avatar>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: '#000', lineHeight: 1.2 }}>
+                {item.name}
+              </Typography>
+              <Typography variant="caption" sx={{ color: palette?.text?.secondary || '#666' }}>
+                {item.email}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Last message */}
+          <Typography
+            variant="body2"
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5,
-              px: 1.5,
-              py: 1.2,
-              borderRadius: 1,
-              backgroundColor: 'transparent',
-              border: `1px solid ${withAlpha(palette.primary.main, 0.12)}`
+              color: palette?.text?.secondary || '#666',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              pr: 1
             }}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Badge
-                overlap="circular"
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                variant="dot"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    backgroundColor: item.online ? palette.success.main : palette.grey[400],
-                    width: 10,
-                    height: 10,
-                    borderRadius: '50%',
-                    border: `2px solid ${palette.background.paper}`
-                  }
-                }}
-              >
-                <Avatar
-                  src={item.avatar}
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    fontWeight: 700,
-                    bgcolor: getAvatarBg(palette, item)
-                  }}
-                >
-                  {getInitials(item.name)}
-                </Avatar>
-              </Badge>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {item.name}
-                </Typography>
-                <Typography variant="caption" sx={{ color: palette.text.secondary }}>
-                  {item.lastMessage ?? item.email}
-                </Typography>
-              </Box>
-            </Stack>
-            <Typography variant="caption" sx={{ color: palette.text.secondary, minWidth: 64, textAlign: 'right' }}>
-              {item.wait}
-            </Typography>
-          </Box>
-        ))
-      )}
-    </Stack>
+            {item.lastMessage || '—'}
+          </Typography>
+
+          {/* Wait */}
+          <Typography variant="body2" sx={{ color: palette?.text?.secondary || '#666' }}>
+            {item.wait || '—'}
+          </Typography>
+
+          {/* Status */}
+          <Chip
+            label={item.status || 'Done'}
+            size="small"
+            sx={{
+              fontSize: 11,
+              height: 22,
+              bgcolor: palette?.success?.lighter || '#e6f4f1',
+              color: palette?.success?.main || '#008E86',
+              fontWeight: 600,
+              width: 'fit-content'
+            }}
+          />
+        </Box>
+      ))
+    )}
   </Paper>
 );
 
