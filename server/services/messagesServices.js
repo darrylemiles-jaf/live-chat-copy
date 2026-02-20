@@ -1,6 +1,34 @@
 import pool from "../config/db.js";
 import { emitNewMessage, emitChatAssigned, emitQueueUpdate } from "../socket/socketHandler.js";
 
+// Helper: insert a bot auto-reply and emit it to the chat room
+const sendAutoReply = async (chatId, text) => {
+  try {
+    const [botUser] = await pool.query(
+      `SELECT id FROM users WHERE username = 'system_bot' LIMIT 1`
+    );
+    const botId = botUser[0]?.id;
+    if (!botId) return;
+
+    const [result] = await pool.query(
+      `INSERT INTO messages (chat_id, sender_id, sender_role, message) VALUES (?, ?, 'bot', ?)`,
+      [chatId, botId, text]
+    );
+
+    const [botMsg] = await pool.query(
+      `SELECT m.*, u.name as sender_name
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE m.id = ?`,
+      [result.insertId]
+    );
+
+    emitNewMessage(chatId, botMsg[0]);
+  } catch (err) {
+    console.error('Auto-reply failed:', err.message);
+  }
+};
+
 const getMessages = async (query = {}) => {
   try {
     const { chat_id, sender_id, limit = 100 } = query;
@@ -83,6 +111,25 @@ const createMessage = async (payload) => {
             await pool.query(
               `UPDATE users SET status = 'busy' WHERE id = ?`,
               [assignedAgentId]
+            );
+
+            // Auto-reply: agent assigned immediately
+            await sendAutoReply(
+              usedChatId,
+              `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`
+            );
+          } else {
+            // Auto-reply: placed in queue — include queue position
+            const [queueRows] = await pool.query(
+              `SELECT COUNT(*) as position FROM chats
+               WHERE status = 'queued' AND agent_id IS NULL AND id <= ?`,
+              [usedChatId]
+            );
+            const position = queueRows[0]?.position || 1;
+
+            await sendAutoReply(
+              usedChatId,
+              `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${position} in the queue. Our support team will attend to you as soon as possible. Please hold on!\n\n— This is an automated message`
             );
           }
         }

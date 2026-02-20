@@ -53,7 +53,8 @@ const transformMessageData = (message, agentId) => {
     sender: message.sender_id === agentId ? 'You' : message.sender_name || `User ${message.sender_id}`,
     message: message.message,
     timestamp: formatTimestamp(message.created_at),
-    isSender: message.sender_id === agentId
+    isSender: message.sender_id === agentId,
+    isBot: message.sender_role === 'bot'
   };
 };
 

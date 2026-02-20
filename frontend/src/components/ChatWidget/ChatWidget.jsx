@@ -111,7 +111,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
       // Create/login user
       const response = await fetch(`${apiUrl}/users/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
           email: userEmail,
           password: 'SecurePass123' // Default password for clients
@@ -125,7 +125,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
         // User doesn't exist, create new client
         const createResponse = await fetch(`${apiUrl}/users`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
           body: JSON.stringify({
             name: userName,
             username: userEmail.split('@')[0],
@@ -193,7 +193,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
     try {
       const response = await fetch(`${apiUrl}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify(messagePayload)
       });
 
@@ -219,6 +219,21 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
             });
             scrollToBottom();
           }
+
+          // Fetch messages after a short delay to pick up the auto-reply
+          // (auto-reply is emitted before the client joins the room)
+          setTimeout(async () => {
+            try {
+              const resp = await fetch(`${apiUrl}/messages?chat_id=${newChatId}`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+              });
+              const msgData = await resp.json();
+              if (msgData.success && msgData.data) {
+                setMessages(msgData.data);
+                scrollToBottom();
+              }
+            } catch (_) { /* silent */ }
+          }, 800);
         }
 
         // Clear input
@@ -265,7 +280,9 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
   const loadChatHistory = async () => {
     try {
-      const response = await fetch(`${apiUrl}/chats?user_id=${userId}`);
+      const response = await fetch(`${apiUrl}/chats?user_id=${userId}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
       const data = await response.json();
 
       if (data.success && data.data && data.data.length > 0) {
@@ -409,17 +426,26 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                   </div>
                 )}
 
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`chat-message ${msg.sender_id === userId ? 'sent' : 'received'}`}
-                  >
-                    <div className="chat-message-content">
-                      <p>{msg.message}</p>
-                      <span className="chat-message-time">{formatTime(msg.created_at)}</span>
+                {messages.map((msg, index) => {
+                  const isSent = msg.sender_id === userId;
+                  const isBot = msg.sender_role === 'bot';
+                  return (
+                    <div
+                      key={index}
+                      className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}
+                    >
+                      {isBot && (
+                        <div className="chat-bot-label">
+                          <span className="chat-bot-icon">⚡</span> Automated Reply
+                        </div>
+                      )}
+                      <div className="chat-message-content">
+                        <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                        <span className="chat-message-time">{formatTime(msg.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {isTyping && (
                   <div className="chat-typing-indicator">

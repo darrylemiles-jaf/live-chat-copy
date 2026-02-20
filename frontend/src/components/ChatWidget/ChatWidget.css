@@ -621,6 +621,48 @@
   font-weight: 600;
 }
 
+/* ── Bot / Auto-reply message ── */
+.chat-message.bot {
+  align-self: flex-start;
+  max-width: 92%;
+  margin-bottom: 10px;
+}
+
+.chat-bot-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--cw-primary-bar);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.chat-bot-icon {
+  font-size: 11px;
+}
+
+.chat-message.bot .chat-message-content {
+  background: linear-gradient(135deg, #f0f9ff 0%, var(--cw-surface) 100%);
+  border: 1.5px dashed var(--cw-surface-mid);
+  border-radius: 4px 16px 16px 16px;
+  color: var(--cw-text);
+  box-shadow: 0 2px 8px rgba(0, 142, 134, .10);
+}
+
+.chat-message.bot .chat-message-content p {
+  color: var(--cw-text);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.chat-message.bot .chat-message-time {
+  color: var(--cw-primary-bar);
+}
+
 /* ── Chat Ended Banner ── */
 .chat-ended-banner {
   margin: 12px 14px 8px;
