@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Paper, CircularProgress, Typography } from '@mui/material';
+import {
+  Box, Paper, CircularProgress, Typography,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
+  Button, Snackbar, Alert
+} from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
@@ -70,6 +74,21 @@ const Chats = () => {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const selectedChatRef = useRef(null);
+
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, loading: false });
+
+  // Snackbar / feedback state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleSnackbarClose = (_, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   useEffect(() => {
     selectedChatRef.current = selectedChat;
@@ -236,29 +255,33 @@ const Chats = () => {
       // Remove optimistic message on failure
       setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setMessage(messageText);
-      alert('Failed to send message. Please try again.');
+      showSnackbar('Failed to send message. Please try again.', 'error');
     }
   };
 
-  const handleEndChat = async () => {
+  const handleEndChat = () => {
     if (!selectedChat) return;
+    setConfirmDialog({ open: true, loading: false });
+  };
 
-    const confirmEnd = window.confirm(
-      'Are you sure you want to end this conversation? This action cannot be undone.'
-    );
-
-    if (!confirmEnd) return;
-
+  const handleConfirmEnd = async () => {
+    setConfirmDialog(prev => ({ ...prev, loading: true }));
     try {
       await endChat(selectedChat.id);
-      alert('Conversation ended successfully');
+      setConfirmDialog({ open: false, loading: false });
       setSelectedChat(null);
       setCurrentMessages([]);
       fetchChatsData();
+      showSnackbar('Conversation ended successfully.', 'success');
     } catch (error) {
       console.error('Error ending chat:', error);
-      alert('Failed to end conversation. Please try again.');
+      setConfirmDialog({ open: false, loading: false });
+      showSnackbar('Failed to end conversation. Please try again.', 'error');
     }
+  };
+
+  const handleCancelEnd = () => {
+    setConfirmDialog({ open: false, loading: false });
   };
 
   const handleKeyPress = (e) => {
@@ -351,6 +374,47 @@ const Chats = () => {
           )}
         </Box>
       </Paper>
+
+      {/* End Chat Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={handleCancelEnd}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>End Conversation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to end this conversation? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={handleCancelEnd} variant="outlined" disabled={confirmDialog.loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmEnd}
+            variant="contained"
+            color="error"
+            disabled={confirmDialog.loading}
+          >
+            {confirmDialog.loading ? 'Ending…' : 'End Chat'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
     </React.Fragment>
   );
 };
