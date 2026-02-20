@@ -48,7 +48,7 @@ export default function ProfileTab() {
     name: user?.name || user?.username || 'N/A',
     email: user?.email || 'N/A',
     role: user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A',
-    phone: 'N/A',
+    phone: user?.phone || 'N/A',
     joinDate: 'N/A',
     status: 'Active'
   };

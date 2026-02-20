@@ -37,6 +37,7 @@ export const generateUserToken = (user) => {
     email: user.email,
     username: user.username,
     name: user.name || user.username,
-    role: user.role
+    role: user.role,
+    phone: user.phone
   });
 };

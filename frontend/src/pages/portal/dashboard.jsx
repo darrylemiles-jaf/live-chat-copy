@@ -1,4 +1,4 @@
-import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer, TextField, FormControl, InputLabel, Select, MenuItem, Pagination } from '@mui/material';
+import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, ListItemAvatar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer, TextField, FormControl, InputLabel, Select, MenuItem, Pagination } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
@@ -12,6 +12,8 @@ import ScrollTop from '../../components/ScrollTop';
 import PageHead from '../../components/PageHead';
 import { withAlpha } from '../../utils/colorUtils';
 import { useGetUsers } from '../../api/users';
+import { getQueue, getChats, getChatStats } from '../../api/chatApi';
+import { getCurrentUser } from '../../utils/auth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,11 +23,16 @@ const Dashboard = () => {
   const [agentDrawerOpen, setAgentDrawerOpen] = useState(false);
   const [selectedQueueId, setSelectedQueueId] = useState(null);
   const [rawAgentStatus, setRawAgentStatus] = useState([]);
+  const [queueData, setQueueData] = useState([]);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [recentChats, setRecentChats] = useState([]);
+  const [chatsLoading, setChatsLoading] = useState(false);
+  const [orgStats, setOrgStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
+  const [personalStats, setPersonalStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
+  const [statsLoading, setStatsLoading] = useState(false);
   
-  // Fetch support agents from the database
   const { users, usersLoading, usersError } = useGetUsers({ role: 'support' });
   
-  // Update agents when users data changes
   useEffect(() => {
     if (users && users.length > 0) {
       const transformedAgents = users.map(user => {
@@ -42,114 +49,159 @@ const Dashboard = () => {
     }
   }, [users]);
 
-  
-  const recentChats = [
-    { id: 1, name: 'Meow', message: 'Messages and calls are secured with end-to-end encr...', time: '6m', avatar: 'BA' },
-    { id: 2, name: 'Dave Spencer Sanchez Bacay', message: 'You: san na', time: '6m', avatar: 'DS' },
-    { id: 3, name: '"Carry On" Basketball Club', message: 'Kuya Rupert: Kapag puno dun ka naglilista gol...', time: '8m', avatar: 'CO' },
-    { id: 4, name: 'Shannon Paul Navarro Giron', message: 'Shannon Paul missed your call', time: '1h', avatar: 'SN' },
-    { id: 5, name: 'Godofredo Bitoon Perez III', message: 'Messages and calls are secured with end-to-end encry...', time: '2h', avatar: 'GP' },
-    { id: 6, name: 'Armelo Bacay', message: 'Messages and calls are secured with end-to-end e...', time: '2h', avatar: 'AB' }
-  ];
+  useEffect(() => {
+    const fetchQueueData = async () => {
+      try {
+        setQueueLoading(true);
+        const response = await getQueue(50);
+        
+        if (response.success && response.data) {
+          const transformedQueue = response.data.map((chat) => {
+            const client = chat.client || {};
+            const lastMessage = chat.messages && chat.messages.length > 0 
+              ? chat.messages[chat.messages.length - 1].message_text 
+              : 'Waiting for response...';
+            
+            const waitTimeMs = chat.waiting_time || 0;
+            const waitTimeSeconds = Math.floor(waitTimeMs / 1000);
+            const minutes = Math.floor(waitTimeSeconds / 60);
+            const seconds = waitTimeSeconds % 60;
+            const waitTimeFormatted = `${minutes}m ${seconds}s`;
+            
+            let priority = 'Low';
+            if (waitTimeSeconds > 600) priority = 'High'; 
+            else if (waitTimeSeconds > 300) priority = 'Medium'; 
+            
+            return {
+              id: chat.id,
+              name: client.name || client.username || 'Unknown',
+              email: client.email || 'N/A',
+              lastMessage: lastMessage,
+              waitTime: waitTimeFormatted,
+              wait: waitTimeFormatted,
+              topic: 'General Support', 
+              priority: priority,
+              avatar: null,
+              online: true 
+            };
+          });
+          
+          setQueueData(transformedQueue);
+        }
+      } catch (error) {
+        console.error('Error fetching queue data:', error);
+        setQueueData([]);
+      } finally {
+        setQueueLoading(false);
+      }
+    };
 
-  const queueData = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      lastMessage: 'Waiting for an agent response.',
-      waitTime: '2m 15s',
-      wait: '2m 15s',
-      topic: 'Technical Support',
-      priority: 'High',
-      avatar: '/src/assets/images/users/avatar-1.png',
-      online: true
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      email: 'michael.c@email.com',
-      lastMessage: 'Billing question about last invoice.',
-      waitTime: '4m 30s',
-      wait: '4m 30s',
-      topic: 'Billing Question',
-      priority: 'Medium',
-      avatar: '/src/assets/images/users/avatar-2.png',
-      online: true
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      email: 'emily.r@email.com',
-      lastMessage: 'Asking about product availability.',
-      waitTime: '5m 45s',
-      wait: '5m 45s',
-      topic: 'Product Inquiry',
-      priority: 'Low',
-      avatar: '/src/assets/images/users/avatar-3.png',
-      online: false
-    },
-    {
-      id: 4,
-      name: 'David Kim',
-      email: 'david.k@email.com',
-      lastMessage: 'Account access issue on login.',
-      waitTime: '7m 20s',
-      wait: '7m 20s',
-      topic: 'Account Issue',
-      priority: 'High',
-      avatar: '/src/assets/images/users/avatar-4.png',
-      online: true
-    },
-    {
-      id: 5,
-      name: 'Jessica Martinez',
-      email: 'jessica.m@email.com',
-      lastMessage: 'General support request.',
-      waitTime: '8m 10s',
-      wait: '8m 10s',
-      topic: 'General Support',
-      priority: 'Medium',
-      avatar: '/src/assets/images/users/avatar-5.png',
-      online: true
-    },
-    {
-      id: 6,
-      name: 'James Wilson',
-      email: 'james.w@email.com',
-      lastMessage: 'Technical support needed.',
-      waitTime: '9m 30s',
-      wait: '9m 30s',
-      topic: 'Technical Support',
-      priority: 'High',
-      avatar: '/src/assets/images/users/avatar-6.png',
-      online: false
-    },
-    {
-      id: 7,
-      name: 'Lisa Anderson',
-      email: 'lisa.a@email.com',
-      lastMessage: 'Refund request update.',
-      waitTime: '11m 05s',
-      wait: '11m 05s',
-      topic: 'Refund Request',
-      priority: 'Medium',
-      avatar: '/src/assets/images/users/avatar-7.png',
-      online: true
-    },
-    {
-      id: 8,
-      name: 'Robert Taylor',
-      email: 'robert.t@email.com',
-      lastMessage: 'Product inquiry details.',
-      waitTime: '12m 40s',
-      wait: '12m 40s',
-      topic: 'Product Inquiry',
-      priority: 'Low',
-      avatar: '/src/assets/images/users/avatar-8.png',
-      online: false
-    }
-  ];
+    fetchQueueData();
+    
+    const interval = setInterval(fetchQueueData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchRecentChats = async () => {
+      try {
+        setChatsLoading(true);
+        const currentUser = getCurrentUser();
+        
+        if (!currentUser || !currentUser.id) {
+          console.error('No user logged in');
+          setRecentChats([]);
+          return;
+        }
+
+        const response = await getChats(currentUser.id);
+        
+        if (response.success && response.data) {
+          const transformedChats = response.data.map((chat) => {
+            const client = chat.client || {};
+            const lastMessage = chat.last_message || chat.messages?.[chat.messages?.length - 1]?.message_text || 'No messages yet';
+            
+            const chatDate = new Date(chat.updated_at || chat.created_at);
+            const now = new Date();
+            const diffMs = now - chatDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            let timeAgo = '';
+            if (diffMins < 1) timeAgo = 'Just now';
+            else if (diffMins < 60) timeAgo = `${diffMins}m`;
+            else if (diffHours < 24) timeAgo = `${diffHours}h`;
+            else timeAgo = `${diffDays}d`;
+            
+            const clientName = client.name || client.username || 'Unknown User';
+            const initials = clientName
+              .split(' ')
+              .map(n => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2);
+            
+            return {
+              id: chat.id,
+              name: clientName,
+              message: lastMessage,
+              time: timeAgo,
+              avatar: initials,
+              clientEmail: client.email
+            };
+          });
+          
+          setRecentChats(transformedChats);
+        }
+      } catch (error) {
+        console.error('Error fetching recent chats:', error);
+        setRecentChats([]);
+      } finally {
+        setChatsLoading(false);
+      }
+    };
+
+    fetchRecentChats();
+    
+    // Refresh chats every 30 seconds
+    const interval = setInterval(fetchRecentChats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch chat statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const currentUser = getCurrentUser();
+        
+        // Fetch organization-wide stats
+        const orgResponse = await getChatStats();
+        if (orgResponse.success) {
+          setOrgStats(orgResponse.data);
+        }
+        
+        // Fetch personal stats if user is logged in
+        if (currentUser && currentUser.id) {
+          const personalResponse = await getChatStats(currentUser.id);
+          if (personalResponse.success) {
+            setPersonalStats(personalResponse.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+    
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchStats, 300000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getInitials = (name) => {
     if (!name) return '?';
@@ -195,7 +247,6 @@ const Dashboard = () => {
   const filteredSortedAgents = useMemo(() => {
     let list = [...rawAgentStatus];
 
-    // If no filters/search active -> show available first (preserve raw order)
     if (!agentSearch && (!agentStatusFilter || agentStatusFilter === 'all')) {
       const avail = list.filter((a) => a.status === 'available');
       const busy = list.filter((a) => a.status === 'busy');
@@ -226,21 +277,20 @@ const Dashboard = () => {
       <ScrollTop />
 
       <Grid container spacing={3}>
-        {/* Top Row */}
-        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <MainCard sx={{ p: 2.5, height: '100%', minHeight: 280, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              New vs Closed
+              Organization Overview
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: theme.vars?.palette?.info?.main ?? '#00bcd4' }} />
-                <Typography variant="caption">New</Typography>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#4653F2' }} />
+                <Typography variant="caption">Requests</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: theme.vars?.palette?.success?.main ?? '#4caf50' }} />
-                <Typography variant="caption">Closed</Typography>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />
+                <Typography variant="caption">Resolved</Typography>
               </Box>
             </Box>
             <Box sx={{ width: '100%', height: 200 }}>
@@ -248,12 +298,12 @@ const Dashboard = () => {
                 hideLegend
                 height={200}
                 grid={{ horizontal: true, vertical: false }}
-                xAxis={[{ scaleType: 'point', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], tickSize: 7, disableLine: true }]}
+                xAxis={[{ scaleType: 'point', data: orgStats.days, tickSize: 7, disableLine: true }]}
                 yAxis={[{ tickSize: 7, disableLine: true }]}
                 margin={{ left: 20, right: 20 }}
                 series={[
-                  { type: 'line', data: [12, 15, 10, 8, 9, 11, 15], label: 'New', id: 'new', stroke: theme.vars?.palette?.info?.main ?? '#00bcd4', strokeWidth: 2, showMark: true },
-                  { type: 'line', data: [5, 6, 7, 4, 3, 6, 8], label: 'Closed', id: 'closed', stroke: theme.vars?.palette?.success?.main ?? '#4caf50', strokeWidth: 2, showMark: true }
+                  { type: 'line', data: orgStats.newChats, label: 'Requests', id: 'requests', stroke: '#2196f3', strokeWidth: 2, showMark: true },
+                  { type: 'line', data: orgStats.closedChats, label: 'Resolved', id: 'resolved', stroke: '#ff9800', strokeWidth: 2, showMark: true }
                 ]}
                 sx={{
                   '& .MuiChartsGrid-line': { strokeDasharray: '4 4', stroke: theme.vars.palette.divider },
@@ -263,84 +313,152 @@ const Dashboard = () => {
             </Box>
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h3" fontWeight={500}>15</Typography>
-                <Typography variant="body2" color="text.secondary">New (week)</Typography>
+                <Typography variant="h3" fontWeight={500}>{orgStats.weeklyTotal.new}</Typography>
+                <Typography variant="body2" color="text.secondary">Requests (week)</Typography>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h3" fontWeight={500}>8</Typography>
-                <Typography variant="body2" color="text.secondary">Closed (week)</Typography>
+                <Typography variant="h3" fontWeight={500}>{orgStats.weeklyTotal.closed}</Typography>
+                <Typography variant="body2" color="text.secondary">Resolved (week)</Typography>
               </Box>
             </Box>
           </MainCard>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, lg: 8 }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <MainCard sx={{ p: 2.5, height: '100%', minHeight: 280, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              My Performance
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#2196f3' }} />
+                <Typography variant="caption">Requests</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />
+                <Typography variant="caption">Resolved</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ width: '100%', height: 200 }}>
+              <LineChart
+                hideLegend
+                height={200}
+                grid={{ horizontal: true, vertical: false }}
+                xAxis={[{ scaleType: 'point', data: personalStats.days, tickSize: 7, disableLine: true }]}
+                yAxis={[{ tickSize: 7, disableLine: true }]}
+                margin={{ left: 20, right: 20 }}
+                series={[
+                  { type: 'line', data: personalStats.newChats, label: 'Requests', id: 'requests', stroke: '#2196f3', strokeWidth: 2, showMark: true },
+                  { type: 'line', data: personalStats.closedChats, label: 'Resolved', id: 'resolved', stroke: '#ff9800', strokeWidth: 2, showMark: true }
+                ]}
+                sx={{
+                  '& .MuiChartsGrid-line': { strokeDasharray: '4 4', stroke: theme.vars.palette.divider },
+                  '& .MuiChartsAxis-root.MuiChartsAxis-directionX .MuiChartsAxis-tick': { stroke: 'transparent' }
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{personalStats.weeklyTotal.new}</Typography>
+                <Typography variant="body2" color="text.secondary">Requests (week)</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{personalStats.weeklyTotal.closed}</Typography>
+                <Typography variant="body2" color="text.secondary">Resolved (week)</Typography>
+              </Box>
+            </Box>
+          </MainCard>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
               <Typography variant="subtitle2" color="text.secondary">
-                Recent chats
+                Recent Chats
               </Typography>
               <Button
                 size="small"
                 onClick={() => navigate('/portal/chats')}
                 sx={{ textTransform: 'none', color: '#008E86' }}
               >
-                View all
+                See more
               </Button>
             </Box>
             <Divider sx={{ mb: 2 }} />
-            <List sx={{ overflow: 'auto', flex: 1, width: '100%' }}>
-              {recentChats.slice(0, 3).map((chat) => (
-                <ListItem
-                  key={chat.id}
-                  alignItems="flex-start"
-                  sx={{
-                    px: 0,
-                    py: 1.5,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                      borderRadius: 1
-                    }
+            <List sx={{ overflow: 'auto', flex: 1 }}>
+              {chatsLoading ? (
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    minHeight: 200
                   }}
-                  onClick={() => navigate('/portal/chats', { state: { chatId: chat.id } })}
                 >
-                  <Avatar
-                    sx={{
-                      bgcolor: '#008E86',
-                      width: 40,
-                      height: 40,
-                      mr: 2,
-                      flexShrink: 0
-                    }}
-                  >
-                    {chat.avatar}
-                  </Avatar>
-                  <ListItemText
-                    primary={chat.name}
-                    secondary={chat.message}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                    secondaryTypographyProps={{
-                      variant: 'caption',
-                      sx: {
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        display: 'block'
-                      }
-                    }}
-                  />
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1, flexShrink: 0 }}>
-                    {chat.time}
+                  <Typography variant="body2" color="text.secondary">
+                    Loading chats...
                   </Typography>
-                </ListItem>
-              ))}
+                </Box>
+              ) : recentChats.length === 0 ? (
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    minHeight: 100,
+                    textAlign: 'center',
+                    px: 3,
+                    gap: 1.5
+                  }}
+                >
+                  <MessageText size={48} style={{ opacity: 0.3 }} />
+                  <Box>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No Recent Chats
+                    </Typography>
+                    <Typography variant="body2" color="text.disabled">
+                      Your recent conversations will appear here
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                recentChats.map((chat, index) => {
+                  const client = chat.client || {};
+                  const initials = chat.avatar || '?';
+                  
+                  return (
+                    <ListItem
+                      key={index}
+                      onClick={() => navigate('/portal/chats')}
+                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: '#008E86' }}>{initials}</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={chat.name || 'Unknown Client'}
+                        secondary={
+                          <Box component="span">
+                            {chat.message || '...'}
+                            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.disabled' }}>
+                              {chat.time || ''}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })
+              )}
             </List>
           </MainCard>
         </Grid>
 
-        {}
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 5 }}>
           <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
               <Typography variant="subtitle2" color="text.secondary">
@@ -364,33 +482,78 @@ const Dashboard = () => {
               </Typography>
             </Box>
             <List sx={{ overflow: 'auto', flex: 1 }}>
-              {queueData.slice(0, 4).map((item, index) => (
-                <ListItem key={index} alignItems="center" sx={{ px: 0, py: 1.5 }}>
-                  <Avatar
-                    src={item.avatar}
-                    alt={item.name}
-                    sx={{ width: 40, height: 40, mr: 2, flexShrink: 0, bgcolor: '#9FBCBF', color: '#1A3A3C' }}
-                  >
-                    {getInitials(item.name)}
-                  </Avatar>
-                  <ListItemText
-                    primary={item.name}
-                    secondary={`${item.waitTime} • ${item.topic}`}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                  <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: 40, flexShrink: 0 }}>
-                    <Typography variant="body2" fontWeight={700} sx={{ color: theme.vars?.palette?.text?.primary ?? 'inherit' }}>
-                      {index + 1}
+              {queueLoading ? (
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    minHeight: 200
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Loading queue...
+                  </Typography>
+                </Box>
+              ) : queueData.length === 0 ? (
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    minHeight: 50,
+                    textAlign: 'center',
+                    px: 3,
+                    gap: 1.5
+                  }}
+                >
+                  <AccountClock size={200} style={{ opacity: 0.3 }} />
+                  <Box>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No Chats in Queue
+                    </Typography>
+                    <Typography variant="body2" color="text.disabled">
+                      All chats are currently being handled
                     </Typography>
                   </Box>
-                </ListItem>
-              ))}
+                </Box>
+              ) : (
+                queueData.map((chat, index) => {
+                  const client = chat.client || {};
+                  const initials = client.name
+                    ? client.name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase()
+                        .slice(0, 2)
+                    : '?';
+                  
+                  return (
+                    <ListItem key={index}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: '#008E86' }}>{initials}</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={chat.name || 'Unknown Client'}
+                        secondary={
+                          <Box component="span">
+                            Waiting for {chat.waitTime || '...'}
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })
+              )}
             </List>
           </MainCard>
         </Grid>
 
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">
@@ -440,30 +603,31 @@ const Dashboard = () => {
                     </TableRow>
                   ) : (
                     sortedAgentStatus.slice(0, 8).map((agent, index) => (
-                    <TableRow key={index} sx={{ '&:last-child td': { border: 0 } }}>
-                      <TableCell component="th" scope="row">{agent.name}</TableCell>
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
-                              flexShrink: 0
-                            }}
-                          />
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ textTransform: 'capitalize' }}
-                          >
-                            {agent.status}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  )))}
+                      <TableRow key={index} sx={{ '&:last-child td': { border: 0 } }}>
+                        <TableCell component="th" scope="row">{agent.name}</TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
+                                flexShrink: 0
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ textTransform: 'capitalize' }}
+                            >
+                              {agent.status}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -471,7 +635,6 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Queue Modal */}
       <QueueDialog
         open={queueModalOpen}
         onClose={() => setQueueModalOpen(false)}
@@ -484,7 +647,6 @@ const Dashboard = () => {
         getInitials={getInitials}
       />
 
-      {/* Agent Status Drawer */}
       <Drawer
         anchor="right"
         open={agentDrawerOpen}
