@@ -709,7 +709,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                       ref={fileInputRef}
                       onChange={handleFileSelect}
                       style={{ display: 'none' }}
-                      accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
+                      accept="image/*"
                     />
                     <button
                       type="button"

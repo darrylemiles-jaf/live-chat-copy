@@ -58,7 +58,10 @@ const transformMessageData = (message, agentId) => {
     message: message.message,
     timestamp: formatTimestamp(message.created_at),
     isSender: message.sender_id === agentId,
-    isBot: message.sender_role === 'bot'
+    isBot: message.sender_role === 'bot',
+    attachment_url: message.attachment_url,
+    attachment_type: message.attachment_type,
+    attachment_name: message.attachment_name
   };
 };
 
@@ -437,6 +440,9 @@ const Chats = () => {
       socket.emit('stop_typing', { chatId: selectedChat.id });
     }
 
+    // Create preview URL for images
+    const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+
     // Optimistically add message with file
     const optimisticMsg = {
       id: `optimistic-${Date.now()}`,
@@ -445,7 +451,9 @@ const Chats = () => {
       attachment_name: file.name,
       attachment_type: file.type.startsWith('image/') ? 'image' :
         file.type.startsWith('video/') ? 'video' :
-          file.type.startsWith('audio/') ? 'audio' : 'document',
+          file.type.startsWith('audio/') ? 'audio' :
+            (file.type.includes('zip') || file.type.includes('rar') || file.type.includes('7z')) ? 'archive' : 'document',
+      attachment_url: previewUrl, // Show preview immediately for images
       timestamp: 'Uploading...',
       isSender: true
     };
@@ -454,10 +462,18 @@ const Chats = () => {
 
     try {
       await sendMessageWithAttachment(user.id, file, messageText, selectedChat.id);
+      // Clean up preview URL after successful upload (the real URL will come from socket)
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
       setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       showSnackbar('Failed to upload file. Please try again.', 'error');
+      // Clean up preview URL on error
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
     } finally {
       setIsUploading(false);
     }

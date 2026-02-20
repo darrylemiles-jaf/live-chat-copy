@@ -193,23 +193,6 @@ const MessageInputSection = ({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Add emoji">
-          <IconButton
-            color="default"
-            size="small"
-            sx={{
-              display: { xs: 'none', sm: 'inline-flex' },
-              color: '#64748b',
-              '&:hover': {
-                color: 'primary.main',
-                bgcolor: 'primary.lighter'
-              }
-            }}
-          >
-            <SmileOutlined />
-          </IconButton>
-        </Tooltip>
-
         <TextField
           fullWidth
           multiline
