@@ -16,14 +16,20 @@ export const initializeSocket = (server) => {
 
     // Join user to their personal room
     socket.on('join', (userId) => {
-      socket.join(`user_${userId}`);
-      console.log(`👤 User ${userId} joined their room`);
+      const roomName = `user_${userId}`;
+      socket.join(roomName);
+      console.log(`👤 User ${userId} joined their personal room: ${roomName} (socket: ${socket.id})`);
+      // Log all rooms this socket is in
+      console.log(`   📋 Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
     });
 
     // Join chat room
     socket.on('join_chat', (chatId) => {
-      socket.join(`chat_${chatId}`);
-      console.log(`💬 Socket ${socket.id} joined chat_${chatId}`);
+      const roomName = `chat_${chatId}`;
+      socket.join(roomName);
+      console.log(`💬 Socket ${socket.id} joined ${roomName}`);
+      // Log all rooms this socket is in
+      console.log(`   📋 Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
     });
 
     // Leave chat room
@@ -57,12 +63,35 @@ export const getIO = () => {
   return io;
 };
 
-// Emit new message to chat room
-export const emitNewMessage = (chatId, message) => {
+// Emit new message to chat room AND the agent's personal room (fallback for when portal hasn't joined the chat room yet)
+export const emitNewMessage = (chatId, message, agentId = null) => {
   if (io) {
-    console.log(`📤 Emitting new message to chat_${chatId}:`, message.id);
-    // Emit to chat room only - prevents duplicates
-    io.to(`chat_${chatId}`).emit('new_message', message);
+    // Add chat_id to the message if not present (ensure consistency)
+    const messageWithChatId = { ...message, chat_id: message.chat_id || chatId };
+
+    // Get room sizes for debugging
+    const chatRoom = io.sockets.adapter.rooms.get(`chat_${chatId}`);
+    const agentRoom = agentId ? io.sockets.adapter.rooms.get(`user_${agentId}`) : null;
+
+    console.log(`📤 Emitting new message:`, {
+      messageId: message.id,
+      chatId,
+      toRoom: `chat_${chatId}`,
+      chatRoomSize: chatRoom ? chatRoom.size : 0,
+      toAgent: agentId ? `user_${agentId}` : 'none',
+      agentRoomSize: agentRoom ? agentRoom.size : 0,
+      senderRole: message.sender_role
+    });
+
+    // Emit to chat room (for anyone who has the chat open)
+    io.to(`chat_${chatId}`).emit('new_message', messageWithChatId);
+
+    // Also notify the assigned agent directly via their personal room
+    // This ensures they receive the message even if they haven't opened the chat yet
+    if (agentId) {
+      console.log(`📤 Also emitting to agent's personal room: user_${agentId}`);
+      io.to(`user_${agentId}`).emit('new_message', messageWithChatId);
+    }
   }
 };
 

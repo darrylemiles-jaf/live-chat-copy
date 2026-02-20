@@ -71,9 +71,16 @@ const Chats = () => {
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMessages, setCurrentMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // only true on first load
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState('');
   const messagesEndRef = useRef(null);
   const selectedChatRef = useRef(null);
+  // Stable refs so socket handlers always call the latest version without re-registering
+  const fetchChatsDataRef = useRef(null);
+  const fetchMessagesRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({ open: false, loading: false });
@@ -105,58 +112,149 @@ const Chats = () => {
     }
   }, [isLoggedIn, navigate]);
 
-  const fetchChatsData = useCallback(async () => {
+  const fetchChatsData = useCallback(async (silent = false) => {
     if (!user?.id) {
       console.warn('No user ID available');
       return;
     }
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      console.log(`📥 Fetching chats for user ${user.id}${silent ? ' (silent)' : ''}...`);
       const response = await getChats(user.id);
       const transformedChats = response.data.map(transformChatData);
+      console.log(`✅ Fetched ${transformedChats.length} chats`);
       setChats(transformedChats);
+
+      // Join all assigned chat rooms so new_message events arrive without opening a chat.
+      // Use the existing socket — never call connect() without URL as it would recreate the socket.
+      // socket.io buffers emit() calls made before connection, so no connected guard needed.
+      const socket = socketService.socket;
+      if (socket) {
+        response.data.forEach(chat => {
+          if (chat.status === 'active' || chat.status === 'queued') {
+            socket.emit('join_chat', chat.id);
+          }
+        });
+      }
+
+      // Keep selected chat status in sync after a silent refresh
+      if (silent) {
+        setSelectedChat(prev => {
+          if (!prev) return prev;
+          const updated = response.data.find(c => c.id === prev.id);
+          return updated ? { ...prev, status: updated.status } : prev;
+        });
+      }
     } catch (error) {
       console.error('Error fetching chats:', error);
-      setChats([]);
+      if (!silent) setChats([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [user?.id]);
 
-  const fetchMessages = useCallback(async (chatId) => {
+  // Keep refs in sync so socket handlers always call the latest version
+  useEffect(() => {
+    fetchChatsDataRef.current = fetchChatsData;
+  }, [fetchChatsData]);
+
+  const fetchMessages = useCallback(async (chatId, silent = false) => {
     if (!chatId || !user?.id) return;
 
     try {
+      if (!silent) {
+        setLoadingMessages(true);
+        console.log(`💬 Fetching messages for chat ${chatId}...`);
+      }
       const response = await getChatMessages(chatId);
       const transformedMessages = response.data.map(msg => transformMessageData(msg, user.id));
+      if (!silent) {
+        console.log(`✅ Loaded ${transformedMessages.length} messages for chat ${chatId}`);
+      }
       setCurrentMessages(transformedMessages);
 
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error('Error fetching messages:', error);
       setCurrentMessages([]);
+    } finally {
+      if (!silent) {
+        setLoadingMessages(false);
+      }
     }
   }, [user?.id]);
+
+  // Keep fetchMessagesRef in sync with the latest fetchMessages function
+  useEffect(() => {
+    fetchMessagesRef.current = fetchMessages;
+  }, [fetchMessages]);
 
   useEffect(() => {
     if (!user?.id) return;
 
-    fetchChatsData();
-
+    // Connect socket FIRST so the personal room join fires before fetchChatsData tries to emit join_chat
     const socket = socketService.connect(SOCKET_URL, user.id);
 
+    console.log(`🔧 Portal socket setup for user ${user.id}:`, {
+      socketId: socket.id,
+      connected: socket.connected,
+      url: SOCKET_URL
+    });
+
+    // If already connected, join personal room immediately
+    if (socket.connected) {
+      socket.emit('join', user.id);
+      console.log(`👤 Explicitly joined personal room for user ${user.id}`);
+    }
+
+    fetchChatsData();
+
+    // On (re)connect, rejoin personal room AND all chat rooms so we don't miss events after reconnection
+    const handleConnect = () => {
+      console.log('🔌 Socket (re)connected — rejoining personal room and all chat rooms');
+      socket.emit('join', user.id);
+      console.log(`👤 Rejoined personal room for user ${user.id}`);
+
+      // Refetch chat list to rejoin all active chat rooms
+      fetchChatsDataRef.current?.(true);
+
+      // If we have a selected chat, rejoin its room and refetch messages to ensure we're in sync
+      if (selectedChatRef.current) {
+        console.log(`🔄 Rejoining chat room and refetching messages for chat ${selectedChatRef.current.id}`);
+        socket.emit('join_chat', selectedChatRef.current.id);
+        fetchMessagesRef.current?.(selectedChatRef.current.id, true);
+      }
+    };
+
+    const handleDisconnect = (reason) => {
+      console.warn('❌ Socket disconnected:', reason);
+    };
+
     const handleNewMessage = (messageData) => {
-      console.log('📨 New message received in chats:', messageData);
+      const msgChatId = Number(messageData.chat_id);
+      const currentChatId = selectedChatRef.current ? Number(selectedChatRef.current.id) : null;
+
+      console.log('📨 New message received:', {
+        messageId: messageData.id,
+        msgChatId,
+        currentChatId,
+        isForCurrentChat: msgChatId === currentChatId,
+        senderRole: messageData.sender_role,
+        senderId: messageData.sender_id,
+        message: messageData.message?.substring(0, 50)
+      });
 
       setCurrentMessages(prev => {
-        if (selectedChatRef.current && messageData.chat_id === selectedChatRef.current.id) {
+        if (currentChatId && msgChatId === currentChatId) {
           const transformedMessage = transformMessageData(messageData, user.id);
+          console.log(`✅ Adding message to UI: "${messageData.message?.substring(0, 30)}..."`);
 
           // If this is our own message echoed back, replace the optimistic placeholder
           if (transformedMessage.isSender) {
             const optimisticIdx = prev.findIndex(m => m.id?.toString().startsWith('optimistic-'));
             if (optimisticIdx !== -1) {
+              console.log('🔄 Replacing optimistic message with server response');
               const updated = [...prev];
               updated[optimisticIdx] = transformedMessage;
               setTimeout(scrollToBottom, 100);
@@ -166,58 +264,110 @@ const Chats = () => {
 
           // Deduplicate by real ID
           if (prev.some(msg => msg.id === transformedMessage.id)) {
-            console.log('⚠️ Duplicate message detected, skipping:', messageData.id);
+            console.log('⚠️ Message already exists, skipping duplicate');
             return prev;
           }
           setTimeout(scrollToBottom, 100);
           return [...prev, transformedMessage];
+        } else {
+          console.log('⏭️ Message not for current chat (or no chat selected), will refresh list');
         }
         return prev;
       });
 
-      fetchChatsData();
+      // Always silently refresh the chat list to update last-message preview
+      fetchChatsDataRef.current?.(true);
     };
 
     const handleChatAssigned = (chatData) => {
-      console.log('✅ Chat assigned in chats:', chatData);
-      fetchChatsData();
+      console.log('✅ Chat assigned:', chatData);
+      console.log('🔄 Refreshing chat list after assignment...');
+
+      // If this is the currently open chat, refetch its messages to ensure we're in sync
+      if (selectedChatRef.current && chatData.id === selectedChatRef.current.id) {
+        console.log('🔄 Refetching messages for currently open chat after assignment');
+        fetchMessagesRef.current?.(chatData.id, true);
+      }
+
+      fetchChatsDataRef.current?.(true);
     };
 
     const handleChatStatus = (data) => {
       console.log('🔄 Chat status updated:', data);
-      fetchChatsData();
+      console.log('🔄 Refreshing chat list after status update...');
+      fetchChatsDataRef.current?.(true);
     };
 
     const handleQueueUpdate = (data) => {
       console.log('📋 Queue update received in chats:', data);
-      fetchChatsData();
+      console.log('🔄 Refreshing chat list after queue update...');
+      fetchChatsDataRef.current?.(true);
     };
 
+    const handleUserTyping = ({ userName }) => {
+      if (selectedChatRef.current) {
+        setTypingUser(userName || 'User');
+        setIsTyping(true);
+      }
+    };
+
+    const handleUserStopTyping = () => {
+      setIsTyping(false);
+      setTypingUser('');
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
     socket.on('new_message', handleNewMessage);
     socket.on('chat_assigned', handleChatAssigned);
     socket.on('chat_status_update', handleChatStatus);
     socket.on('queue_update', handleQueueUpdate);
+    socket.on('user_typing', handleUserTyping);
+    socket.on('user_stop_typing', handleUserStopTyping);
 
     return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
       socket.off('new_message', handleNewMessage);
       socket.off('chat_assigned', handleChatAssigned);
       socket.off('chat_status_update', handleChatStatus);
       socket.off('queue_update', handleQueueUpdate);
+      socket.off('user_typing', handleUserTyping);
+      socket.off('user_stop_typing', handleUserStopTyping);
     };
-  }, [user?.id, fetchChatsData]);
+  }, [user?.id]); // fetchChatsData intentionally excluded — accessed via ref to avoid re-registering listeners
+
+  // Polling fallback: periodically check for new messages in the selected chat
+  // This ensures messages appear even if socket events are missed
+  useEffect(() => {
+    if (!selectedChat || selectedChat.status === 'ended') return;
+
+    const pollInterval = setInterval(() => {
+      console.log('🔄 Polling for new messages...');
+      fetchMessagesRef.current?.(selectedChat.id, true);
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [selectedChat?.id, selectedChat?.status]);
 
   const handleSelectChat = async (chat) => {
-    if (selectedChat) {
-      const socket = socketService.connect();
+    console.log(`🎯 Selecting chat ${chat.id} (${chat.name})`);
+    const socket = socketService.socket;
+
+    if (selectedChat && socket) {
+      console.log(`👋 Leaving previous chat room: ${selectedChat.id}`);
       socket.emit('leave_chat', selectedChat.id);
     }
 
     setSelectedChat(chat);
-    await fetchMessages(chat.id);
 
-    const socket = socketService.connect();
-    socket.emit('join_chat', chat.id);
-    console.log(`Joined chat room: ${chat.id}`);
+    // Join the chat room BEFORE fetching messages so we don't miss any real-time updates
+    if (socket) {
+      socket.emit('join_chat', chat.id);
+      console.log(`🚪 Joined chat room: chat_${chat.id}`);
+    }
+
+    await fetchMessages(chat.id);
   };
 
   useEffect(() => {
@@ -244,6 +394,12 @@ const Chats = () => {
     const messageText = message.trim();
     setMessage('');
 
+    // Stop typing indicator when sending
+    const socket = socketService.socket;
+    if (socket && selectedChat) {
+      socket.emit('stop_typing', { chatId: selectedChat.id });
+    }
+
     // Optimistically add message to the UI immediately
     const optimisticMsg = {
       id: `optimistic-${Date.now()}`,
@@ -263,6 +419,24 @@ const Chats = () => {
       setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setMessage(messageText);
       showSnackbar('Failed to send message. Please try again.', 'error');
+    }
+  };
+
+  // Handle typing indicator emission
+  const handleTyping = () => {
+    if (!selectedChat) return;
+
+    const socket = socketService.socket;
+    if (socket) {
+      socket.emit('typing', { chatId: selectedChat.id, userName: user?.name || 'Agent' });
+
+      // Clear any existing timeout
+      clearTimeout(typingTimeoutRef.current);
+
+      // Set timeout to stop typing indicator
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit('stop_typing', { chatId: selectedChat.id });
+      }, 2000);
     }
   };
 
@@ -352,11 +526,20 @@ const Chats = () => {
                 onBack={handleBackToList}
                 onEndChat={handleEndChat}
               />
-              <MessagesAreaSection messages={currentMessages} messagesEndRef={messagesEndRef} />
+              <MessagesAreaSection
+                messages={currentMessages}
+                messagesEndRef={messagesEndRef}
+                isLoading={loadingMessages}
+                isTyping={isTyping}
+                typingUser={typingUser}
+              />
               {selectedChat.status !== 'ended' ? (
                 <MessageInputSection
                   message={message}
-                  onMessageChange={setMessage}
+                  onMessageChange={(value) => {
+                    setMessage(value);
+                    handleTyping();
+                  }}
                   onSendMessage={handleSendMessage}
                   onKeyPress={handleKeyPress}
                 />

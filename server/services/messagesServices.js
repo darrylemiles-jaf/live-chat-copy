@@ -35,7 +35,11 @@ const createMessage = async (payload) => {
     const {
       chat_id,
       sender_id,
-      message
+      message,
+      attachment_url = null,
+      attachment_type = null,
+      attachment_name = null,
+      attachment_size = null
     } = payload || {}
 
     let usedChatId = chat_id;
@@ -136,7 +140,8 @@ const createMessage = async (payload) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO messages (chat_id, sender_id, sender_role, message) VALUES (?, ?, ?, ?)`, [usedChatId, sender_id, sender_role, message]
+      `INSERT INTO messages (chat_id, sender_id, sender_role, message, attachment_url, attachment_type, attachment_name, attachment_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [usedChatId, sender_id, sender_role, message, attachment_url, attachment_type, attachment_name, attachment_size]
     );
 
     const [newMessage] = await pool.query(
@@ -146,8 +151,12 @@ const createMessage = async (payload) => {
        WHERE m.id = ?`, [result.insertId]
     );
 
-    // Emit new message event to chat room
-    emitNewMessage(usedChatId, newMessage[0]);
+    // Emit new message event to chat room + agent's personal room (for list refresh when they haven't opened the chat)
+    const [chatRow] = await pool.query(`SELECT agent_id FROM chats WHERE id = ?`, [usedChatId]);
+    const chatAgentId = chatRow[0]?.agent_id || null;
+    // Only notify the agent via personal room if the message is from a client (avoids double-delivery)
+    const notifyAgentId = sender_role === 'client' ? chatAgentId : null;
+    emitNewMessage(usedChatId, newMessage[0], notifyAgentId);
 
     if (newlyAssignedAgentId) {
       const [chatDetails] = await pool.query(
@@ -163,6 +172,9 @@ const createMessage = async (payload) => {
         last_message: newMessage[0].message
       });
       emitQueueUpdate({ action: 'chat_assigned', chatId: usedChatId, agentId: newlyAssignedAgentId });
+    } else if (isQueued) {
+      // New chat in queue with no agent — notify all portal users so their list refreshes
+      emitQueueUpdate({ action: 'new_chat_queued', chatId: usedChatId });
     }
 
     return {

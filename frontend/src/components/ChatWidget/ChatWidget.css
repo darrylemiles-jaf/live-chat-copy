@@ -491,51 +491,71 @@
 .chat-typing-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 13px;
-  background: var(--cw-white);
-  border-radius: 14px;
-  border-bottom-left-radius: 3px;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
   width: fit-content;
   font-size: 12.5px;
   color: var(--cw-text-muted);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
-  border: 1px solid rgba(0, 0, 0, .05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 142, 134, .12);
+  animation: cwFadeIn 0.3s ease-out;
+}
+
+@keyframes cwFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-typing-indicator span:first-child {
+  font-weight: 500;
+  color: var(--cw-primary-dark);
 }
 
 .typing-dots {
   display: flex;
   gap: 4px;
   align-items: center;
+  padding: 4px 0;
 }
 
 .typing-dots span {
-  width: 6px;
-  height: 6px;
-  background: var(--cw-primary-bar);
+  width: 7px;
+  height: 7px;
+  background: linear-gradient(135deg, var(--cw-primary) 0%, var(--cw-primary-bar) 100%);
   border-radius: 50%;
-  animation: cwDot 1.4s infinite;
+  animation: cwDotBounce 1.4s infinite ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 142, 134, 0.3);
 }
 
 .typing-dots span:nth-child(2) {
-  animation-delay: .2s;
+  animation-delay: 0.16s;
 }
 
 .typing-dots span:nth-child(3) {
-  animation-delay: .4s;
+  animation-delay: 0.32s;
 }
 
-@keyframes cwDot {
+@keyframes cwDotBounce {
 
   0%,
-  60%,
+  80%,
   100% {
-    transform: translateY(0);
-    opacity: .55;
+    transform: scale(0.8) translateY(0);
+    opacity: 0.5;
   }
 
-  30% {
-    transform: translateY(-5px);
+  40% {
+    transform: scale(1.1) translateY(-8px);
     opacity: 1;
   }
 }

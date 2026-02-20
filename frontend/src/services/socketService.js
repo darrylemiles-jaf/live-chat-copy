@@ -4,32 +4,55 @@ class SocketService {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.userId = null; // Store userId for reconnection
   }
 
   connect(socketUrl, userId) {
-    if (this.socket?.connected) {
-      console.log('Socket already connected');
+    // Always update stored userId
+    if (userId) {
+      this.userId = userId;
+    }
+
+    if (this.socket) {
+      // Socket already exists (connected or still connecting) — don't recreate it
+      // But re-emit join for the personal room if we have a userId and are connected
+      if (this.userId && this.socket.connected) {
+        this.socket.emit('join', this.userId);
+        console.log(`👤 Re-joined personal room: user_${this.userId}`);
+      }
       return this.socket;
     }
+
+    console.log(`🔌 Creating new socket connection to ${socketUrl} for user ${userId}`);
 
     this.socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Connected to chat server');
+      console.log('✅ Socket connected to chat server, socketId:', this.socket.id);
       this.isConnected = true;
-      if (userId) {
-        this.socket.emit('join', userId);
+      if (this.userId) {
+        this.socket.emit('join', this.userId);
+        console.log(`👤 Joined personal room on connect: user_${this.userId}`);
       }
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('❌ Disconnected from chat server');
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ Socket disconnected from chat server:', reason);
       this.isConnected = false;
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('🔴 Socket connection error:', error.message);
+    });
+
+    // Debug: Log ALL incoming socket events
+    this.socket.onAny((eventName, ...args) => {
+      console.log(`📥 Socket event received: ${eventName}`, args);
     });
 
     return this.socket;

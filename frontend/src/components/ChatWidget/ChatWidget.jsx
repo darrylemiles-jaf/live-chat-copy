@@ -29,69 +29,103 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const chatIdRef = useRef(chatId);
 
-  // Initialize socket connection
+  // Keep chatIdRef in sync
   useEffect(() => {
-    if (isRegistered) {
-      socketRef.current = io(socketUrl, {
-        transports: ['websocket', 'polling'],
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000
+    chatIdRef.current = chatId;
+  }, [chatId]);
+
+  // Initialize socket connection (only when registered)
+  useEffect(() => {
+    if (!isRegistered) return;
+
+    socketRef.current = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('✅ Widget connected to chat server');
+      setIsConnected(true);
+      if (userId) {
+        socketRef.current.emit('join', userId);
+        console.log(`👤 Widget joined user room: user_${userId}`);
+      }
+      // Join chat room if we have an active chat
+      if (chatIdRef.current) {
+        socketRef.current.emit('join_chat', chatIdRef.current);
+        console.log(`💬 Widget joined chat room: chat_${chatIdRef.current}`);
+      }
+    });
+
+    socketRef.current.on('disconnect', (reason) => {
+      console.log('❌ Widget disconnected from chat server:', reason);
+      setIsConnected(false);
+    });
+
+    socketRef.current.on('new_message', (message) => {
+      const msgChatId = Number(message.chat_id);
+      const currentChatId = chatIdRef.current ? Number(chatIdRef.current) : null;
+
+      console.log('📨 Widget received new message:', {
+        messageId: message.id,
+        msgChatId,
+        currentChatId,
+        match: msgChatId === currentChatId || !currentChatId,
+        senderRole: message.sender_role
       });
 
-      socketRef.current.on('connect', () => {
-        console.log('✅ Connected to chat server');
-        setIsConnected(true);
-        if (userId) {
-          socketRef.current.emit('join', userId);
-          console.log(`👤 Joined user room: user_${userId}`);
-        }
-        if (chatId) {
-          socketRef.current.emit('join_chat', chatId);
-          console.log(`💬 Joined chat room: chat_${chatId}`);
-        }
-      });
-
-      socketRef.current.on('disconnect', () => {
-        console.log('❌ Disconnected from chat server');
-        setIsConnected(false);
-      });
-
-      socketRef.current.on('new_message', (message) => {
-        console.log('📨 New message received:', message);
+      // Only add messages for our current chat (or any message if no chatId yet)
+      if (msgChatId === currentChatId || !currentChatId) {
         setMessages(prev => {
           // Prevent duplicates by checking if message with this ID already exists
           if (prev.some(msg => msg.id === message.id)) {
+            console.log('⚠️ Widget: Duplicate message, skipping');
             return prev;
           }
+          console.log('✅ Widget: Adding message to UI');
           return [...prev, message];
         });
         scrollToBottom();
-      });
+      } else {
+        console.log('⏭️ Widget: Message for different chat, skipping');
+      }
+    });
 
-      socketRef.current.on('user_typing', ({ userName }) => {
-        setAgentName(userName);
-        setIsTyping(true);
-      });
+    socketRef.current.on('user_typing', ({ userName }) => {
+      setAgentName(userName);
+      setIsTyping(true);
+    });
 
-      socketRef.current.on('user_stop_typing', () => {
-        setIsTyping(false);
-      });
+    socketRef.current.on('user_stop_typing', () => {
+      setIsTyping(false);
+    });
 
-      socketRef.current.on('chat_status_update', ({ status }) => {
-        if (status === 'ended') {
-          setIsChatEnded(true);
-        }
-      });
+    socketRef.current.on('chat_status_update', ({ chatId: updatedChatId, status }) => {
+      console.log('🔄 Widget received chat status update:', { chatId: updatedChatId, status });
+      if (updatedChatId === chatIdRef.current && status === 'ended') {
+        setIsChatEnded(true);
+      }
+    });
 
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.disconnect();
-        }
-      };
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [isRegistered, userId, socketUrl]); // Note: chatId removed from deps - we use ref instead
+
+  // Join chat room when chatId changes (after first message creates chat)
+  useEffect(() => {
+    if (socketRef.current?.connected && chatId) {
+      socketRef.current.emit('join_chat', chatId);
+      console.log(`💬 Widget joined new chat room: chat_${chatId}`);
     }
-  }, [isRegistered, userId, chatId, socketUrl]);
+  }, [chatId]);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
