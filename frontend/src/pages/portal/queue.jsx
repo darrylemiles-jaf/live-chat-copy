@@ -7,7 +7,6 @@ import { withAlpha } from '../../utils/colorUtils';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
-import HistoryQueueSection from '../../sections/queue/HistoryQueueSection';
 import WaitingQueueSection from '../../sections/queue/WaitingQueueSection';
 import CustomerDetailsSection from '../../sections/queue/CustomerDetailsSection';
 import CurrentStatusSection from '../../sections/queue/CurrentStatusSection';
@@ -81,7 +80,6 @@ const Queue = () => {
   const { user, isLoggedIn } = useAuth();
 
   const [queue, setQueue] = useState([]);
-  const [historyQueue, setHistoryQueue] = useState([]);
   const [activeChats, setActiveChats] = useState(0);
   const [resolvedToday, setResolvedToday] = useState(0);
   const [availableAgents, setAvailableAgents] = useState(0);
@@ -277,15 +275,6 @@ const Queue = () => {
   const handleResolve = () => {
     if (!selected) return;
 
-    // Move to history and remove from queue
-    setHistoryQueue((prev) => [
-      {
-        ...selected,
-        wait: 'Done',
-        status: 'Done'
-      },
-      ...prev
-    ]);
     setQueue((prev) => prev.filter((item) => item.id !== selected.id));
     setResolvedToday((prev) => prev + 1);
   };
@@ -332,9 +321,6 @@ const Queue = () => {
 
             <Grid size={{ xs: 12, md: 2.5 }}>
               <CurrentStatusSection palette={palette} statusCards={statusCards} />
-            </Grid>
-            <Grid size={12}>
-              <HistoryQueueSection palette={palette} history={historyQueue} />
             </Grid>
           </Grid>
         </Paper>

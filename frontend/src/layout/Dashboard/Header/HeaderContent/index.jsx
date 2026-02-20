@@ -59,9 +59,31 @@ export default function HeaderContent() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    if (currentUser?.status) setStatus(currentUser.status);
+    const loadUser = async () => {
+      const currentUser = getCurrentUser();
+      if (!currentUser?.id) return setUser(currentUser);
+
+      try {
+        const res = await Users.getSingleUser(currentUser.id);
+        if (res?.success && res.data) {
+          setUser(res.data);
+          setStatus(res.data.status || 'available');
+          try {
+            localStorage.setItem('user', JSON.stringify(res.data));
+          } catch (e) {
+            /* ignore storage errors */
+          }
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to fetch user from API:', e.message);
+      }
+
+      // fallback to token payload
+      setUser(currentUser);
+    };
+
+    loadUser();
   }, []);
 
   const handleOpenModal = () => setOpenModal(true);
