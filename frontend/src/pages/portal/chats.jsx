@@ -68,7 +68,6 @@ const Chats = () => {
   const [currentMessages, setCurrentMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
-  const socketConnectedRef = useRef(false);
   const selectedChatRef = useRef(null);
 
   useEffect(() => {
@@ -125,9 +124,6 @@ const Chats = () => {
 
     fetchChatsData();
 
-    if (socketConnectedRef.current) return;
-    socketConnectedRef.current = true;
-
     const socket = socketService.connect(SOCKET_URL, user.id);
 
     const handleNewMessage = (messageData) => {
@@ -136,6 +132,19 @@ const Chats = () => {
       setCurrentMessages(prev => {
         if (selectedChatRef.current && messageData.chat_id === selectedChatRef.current.id) {
           const transformedMessage = transformMessageData(messageData, user.id);
+
+          // If this is our own message echoed back, replace the optimistic placeholder
+          if (transformedMessage.isSender) {
+            const optimisticIdx = prev.findIndex(m => m.id?.toString().startsWith('optimistic-'));
+            if (optimisticIdx !== -1) {
+              const updated = [...prev];
+              updated[optimisticIdx] = transformedMessage;
+              setTimeout(scrollToBottom, 100);
+              return updated;
+            }
+          }
+
+          // Deduplicate by real ID
           if (prev.some(msg => msg.id === transformedMessage.id)) {
             console.log('⚠️ Duplicate message detected, skipping:', messageData.id);
             return prev;
@@ -167,7 +176,6 @@ const Chats = () => {
       socket.off('new_message', handleNewMessage);
       socket.off('chat_assigned', handleChatAssigned);
       socket.off('chat_status_update', handleChatStatus);
-      socketConnectedRef.current = false;
     };
   }, [user?.id, fetchChatsData]);
 
@@ -206,11 +214,27 @@ const Chats = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedChat || !user?.id) return;
 
+    const messageText = message.trim();
+    setMessage('');
+
+    // Optimistically add message to the UI immediately
+    const optimisticMsg = {
+      id: `optimistic-${Date.now()}`,
+      sender: 'You',
+      message: messageText,
+      timestamp: 'Just now',
+      isSender: true
+    };
+    setCurrentMessages(prev => [...prev, optimisticMsg]);
+    setTimeout(scrollToBottom, 50);
+
     try {
-      await sendMessage(user.id, message.trim(), selectedChat.id);
-      setMessage('');
+      await sendMessage(user.id, messageText, selectedChat.id);
     } catch (error) {
       console.error('Error sending message:', error);
+      // Remove optimistic message on failure
+      setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+      setMessage(messageText);
       alert('Failed to send message. Please try again.');
     }
   };
