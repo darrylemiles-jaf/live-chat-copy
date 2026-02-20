@@ -244,10 +244,10 @@
     <div style="flex:1"></div>
 
     <div class="nav-card">
-      <img src="./src/assets/images/users/timora-robot.gif" alt="Timi">
+      <img src="./src/assets/images/users/timora-robot.gif" alt="Timi" style="width:80px;display:block;margin:0 auto 8px;">
       <div class="nav-card-title">Welcome to<br>Timora Live Chat</div>
       <a href="https://timora.ph/" target="_blank" class="nav-card-btn">Go to Timora Web</a>
-    </div>
+    </img>
   </aside>
 
   <!-- MAIN -->
@@ -334,7 +334,6 @@
               <div class="li-right"><div class="li-time">5m ago</div></div>
             </div>
             <div class="empty-state">
-              <img src="./src/assets/images/users/timora-robot.gif" alt="">
               No more recent chats
             </div>
           </div>
@@ -350,7 +349,6 @@
             <div class="queue-count">0</div>
             <div class="queue-label">In queue</div>
             <div class="empty-state">
-              <img src="./src/assets/images/users/timora-robot.gif" alt="">
               No customers waiting
             </div>
           </div>
@@ -391,125 +389,6 @@
 
     <div class="footer"> 2026 Timora Live Chat  All rights reserved</div>
   </div>
-
-  <!-- Floating Timi -->
-  <img id="floating-timi" src="./src/assets/images/users/timora-robot.gif" alt="Timi"
-    style="position:fixed;width:72px;cursor:pointer;z-index:9999;filter:drop-shadow(0 4px 12px rgba(0,142,134,.35));pointer-events:auto;transform-origin:bottom center;">
-  <script>
-    (function () {
-      const timi = document.getElementById('floating-timi');
-      const W = 72, H = 72;
-      const RUN_SPEED  = 7.5;   /* normal sprint speed */
-      const FLEE_SPEED = 13;    /* scared sprint */
-
-      let x = Math.random() * (window.innerWidth - W);
-      let y = Math.random() * (window.innerHeight - H);
-      let vx = RUN_SPEED, vy = 0;
-
-      /* wander target */
-      let tx, ty, targetTimer = 0;
-      function pickNewTarget() {
-        tx = 60 + Math.random() * (window.innerWidth  - W - 120);
-        ty = 60 + Math.random() * (window.innerHeight - H - 120);
-        targetTimer = 40 + Math.random() * 60; /* short bursts before turning */
-      }
-      pickNewTarget();
-
-      /* mouse */
-      let mx = -999, my = -999;
-      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-
-      /* state */
-      let scared = false, scaredTimer = 0;
-      let stepT = 0;           /* running cycle timer */
-      let stretchY = 1, stretchX = 1;
-      let tilt = 0;
-      let facingRight = true;
-      let prevBobY = 0;        /* detect footstep landing */
-
-      /* click → panic dash */
-      timi.addEventListener('click', () => {
-        const angle = Math.random() * Math.PI * 2;
-        vx = Math.cos(angle) * FLEE_SPEED;
-        vy = Math.sin(angle) * FLEE_SPEED;
-        stretchX = 0.6; stretchY = 1.5; /* stretch on launch */
-        pickNewTarget();
-      });
-
-      function loop() {
-        const maxX = window.innerWidth  - W;
-        const maxY = window.innerHeight - H;
-
-        /* ── flee from cursor ── */
-        const dMx = mx - (x + W/2);
-        const dMy = my - (y + H/2);
-        const distMouse = Math.sqrt(dMx*dMx + dMy*dMy);
-        if (distMouse < 130 && !scared) {
-          scared = true; scaredTimer = 80;
-          const ang = Math.atan2(dMy, dMx);
-          vx = -Math.cos(ang) * FLEE_SPEED;
-          vy = -Math.sin(ang) * FLEE_SPEED;
-          stretchX = 0.55; stretchY = 1.6;
-        }
-        if (scared && --scaredTimer <= 0) scared = false;
-
-        /* ── steer toward target ── */
-        if (!scared) {
-          if (--targetTimer <= 0) pickNewTarget();
-          const dtx = tx - x, dty = ty - y;
-          const dist = Math.sqrt(dtx*dtx + dty*dty) || 1;
-          /* strong steering force → responsive turning */
-          vx += (dtx / dist) * 0.9;
-          vy += (dty / dist) * 0.9;
-          /* cap to run speed */
-          const spd = Math.sqrt(vx*vx + vy*vy);
-          if (spd > RUN_SPEED) { vx = vx/spd*RUN_SPEED; vy = vy/spd*RUN_SPEED; }
-          if (dist < 30) pickNewTarget();
-        }
-
-        /* ── running gait: step cycle tied to horizontal speed ── */
-        const runSpeed = Math.sqrt(vx*vx + vy*vy);
-        stepT += 0.22 * (runSpeed / RUN_SPEED);   /* faster movement = faster steps */
-        /* vertical bounce: alternating feet */
-        const stepBob = Math.abs(Math.sin(stepT)) * -10; /* always goes up, like a hop */
-        /* footstep landing squash (when bob hits ground) */
-        const landing = stepBob > prevBobY + 1.5;
-        if (landing) { stretchX = 1.25; stretchY = 0.72; } /* squash on landing */
-        prevBobY = stepBob;
-
-        x += vx;
-        y += vy;
-
-        /* ── boundary hard bounce ── */
-        if (x < 0)    { x = 0;    vx =  Math.abs(vx); stretchX = 0.6; stretchY = 1.5; }
-        if (x > maxX) { x = maxX; vx = -Math.abs(vx); stretchX = 0.6; stretchY = 1.5; }
-        if (y < 0)    { y = 0;    vy =  Math.abs(vy); stretchX = 1.4; stretchY = 0.65; }
-        if (y > maxY) { y = maxY; vy = -Math.abs(vy); stretchX = 1.4; stretchY = 0.65; }
-
-        /* ── spring scale back to 1 ── */
-        stretchX += (1 - stretchX) * 0.22;
-        stretchY += (1 - stretchY) * 0.22;
-
-        /* ── facing direction (flip horizontal) ── */
-        if (Math.abs(vx) > 0.3) facingRight = vx > 0;
-        const flipX = facingRight ? stretchX : -stretchX;
-
-        /* ── forward lean while running ── */
-        const targetTilt = vx * 2.8;
-        tilt += (targetTilt - tilt) * 0.15;
-
-        timi.style.left      = x + 'px';
-        timi.style.top       = (y + stepBob) + 'px';
-        timi.style.transform = `scaleX(${flipX.toFixed(3)}) scaleY(${stretchY.toFixed(3)}) rotate(${tilt.toFixed(2)}deg)`;
-        timi.style.filter    = scared
-          ? 'drop-shadow(0 0 16px #B53654) brightness(1.1)'
-          : 'drop-shadow(0 4px 10px rgba(0,142,134,.4))';
-
-        requestAnimationFrame(loop);
-      }
-      loop();
-    })();
-  </script>
 
   <!-- Live Chat Widget -->
   <script>
