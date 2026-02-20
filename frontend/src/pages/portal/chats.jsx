@@ -10,13 +10,12 @@ import EmptyStateSection from '../../sections/chats/EmptyStateSection';
 import { getChats, getChatMessages, sendMessage, endChat } from '../../api/chatApi';
 import socketService from '../../services/socketService';
 import useAuth from '../../hooks/useAuth';
+import { SOCKET_URL } from '../../constants/constants';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
   { title: `Chats` }
 ];
-
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
 
 // Helper functions
 const formatTimestamp = (timestamp) => {

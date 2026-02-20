@@ -4,8 +4,8 @@ import ChatWidget from './components/ChatWidget/ChatWidget';
 
 // Configuration from global scope
 const config = window.LiveChatConfig || {
-  apiUrl: 'http://localhost:8000/api/v1',
-  socketUrl: 'http://localhost:8000'
+  apiUrl: 'https://depauperate-destiny-superdelicate.ngrok-free.dev/api/v1/api/v1',
+  socketUrl: 'https://depauperate-destiny-superdelicate.ngrok-free.dev'
 };
 
 // Create widget container

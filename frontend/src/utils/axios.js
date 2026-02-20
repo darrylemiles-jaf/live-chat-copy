@@ -1,13 +1,11 @@
 import axios from 'axios';
+import { API_URL } from '../constants/constants';
 
-const MODE = import.meta.env.VITE_MODE;
-const PROJECT_API = MODE === 'production'
-  ? (import.meta.env.VITE_APP_API_URL_LIVE || '')
-  : (import.meta.env.VITE_APP_API_URL_DEV || import.meta.env.VITE_APP_API_URL || '');
+// Check if URL is an ngrok URL
+const isNgrokUrl = (url) => url && url.includes('ngrok');
 
 const axiosServices = axios.create({
-  baseURL: PROJECT_API,
-  headers: { 'ngrok-skip-browser-warning': 'true' }
+  baseURL: API_URL
 });
 
 // ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //
@@ -18,7 +16,13 @@ axiosServices.interceptors.request.use(
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+
+    // Add ngrok header only for ngrok URLs
+    const fullUrl = config.baseURL + (config.url || '');
+    if (isNgrokUrl(fullUrl)) {
+      config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
+
     return config;
   },
   (error) => {
