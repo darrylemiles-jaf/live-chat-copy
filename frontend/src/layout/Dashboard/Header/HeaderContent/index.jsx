@@ -30,9 +30,6 @@ export default function HeaderContent() {
 
   return (
     <>
-      {!downLG && <Box sx={{ width: '100%' }} />}
-      {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
-
       <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Button
           onClick={handleOpenModal}
@@ -50,6 +47,9 @@ export default function HeaderContent() {
           Home Website
         </Button>
       </Box>
+
+      {!downLG && <Box sx={{ width: '100%' }} />}
+      {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
 
       <Dialog 
         open={openModal} 
