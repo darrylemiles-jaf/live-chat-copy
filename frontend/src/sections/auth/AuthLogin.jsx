@@ -41,7 +41,7 @@ export default function AuthLogin({ isDemo = false }) {
 
   const handleLogin = async (values, { setErrors, setStatus, setSubmitting }) => {
     try {
-      const response = await axiosServices.post('/api/v1/users/login', {
+      const response = await axiosServices.post('/users/login', {
         email: values.email,
         password: values.password
       });
