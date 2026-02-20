@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
-// Get chats for a specific user (agent or client)
 export const getChats = async (userId) => {
   try {
     const response = await axios.get(`${API_URL}/chats`, {
@@ -15,7 +14,6 @@ export const getChats = async (userId) => {
   }
 };
 
-// Get messages for a specific chat
 export const getChatMessages = async (chatId) => {
   try {
     const response = await axios.get(`${API_URL}/messages`, {
@@ -28,7 +26,6 @@ export const getChatMessages = async (chatId) => {
   }
 };
 
-// Get queue (waiting chats)
 export const getQueue = async (limit = 50) => {
   try {
     const response = await axios.get(`${API_URL}/queue`, {
@@ -41,7 +38,17 @@ export const getQueue = async (limit = 50) => {
   }
 };
 
-// Get available agents
+export const getChatStats = async (userId = null) => {
+  try {
+    const params = userId ? { user_id: userId } : {};
+    const response = await axios.get(`${API_URL}/chats/stats`, { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching chat stats:', error);
+    throw error;
+  }
+};
+
 export const getAvailableAgents = async () => {
   try {
     const response = await axios.get(`${API_URL}/queue/available-agents`);
@@ -52,7 +59,6 @@ export const getAvailableAgents = async () => {
   }
 };
 
-// Send message
 export const sendMessage = async (senderId, message, chatId = null) => {
   try {
     const payload = {
@@ -72,7 +78,6 @@ export const sendMessage = async (senderId, message, chatId = null) => {
   }
 };
 
-// Assign chat to agent
 export const assignChat = async (chatId, agentId) => {
   try {
     const response = await axios.post(`${API_URL}/chats/assign`, {
@@ -86,7 +91,6 @@ export const assignChat = async (chatId, agentId) => {
   }
 };
 
-// Auto-assign chat
 export const autoAssignChat = async (chatId) => {
   try {
     const response = await axios.post(`${API_URL}/chats/auto-assign`, {
@@ -99,7 +103,6 @@ export const autoAssignChat = async (chatId) => {
   }
 };
 
-// End chat
 export const endChat = async (chatId) => {
   try {
     const response = await axios.post(`${API_URL}/chats/end`, {
@@ -116,6 +119,7 @@ export default {
   getChats,
   getChatMessages,
   getQueue,
+  getChatStats,
   getAvailableAgents,
   sendMessage,
   assignChat,
