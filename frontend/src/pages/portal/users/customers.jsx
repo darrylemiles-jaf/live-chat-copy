@@ -1,56 +1,51 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { customGreen } from '../../../themes/palette';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import { useGetUsers } from '../../../api/users';
   
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
 
 const Customers = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customers, setCustomers] = useState([]);
 
-  const [customers, setCustomers] = useState([
-    {
-      id: 'CUST-1001',
-      name: 'Sarah Williams',
-      email: 'sarah.williams@techcorp.com',
-      phone: '+63 (555) 123-4567'
-    },
-    {
-      id: 'CUST-1002',
-      name: 'Michael Chen',
-      email: 'michael.chen@innovate.io',
-      phone: '+63 (555) 234-5678'
-    },
-    {
-      id: 'CUST-1003',
-      name: 'Emma Rodriguez',
-      email: 'emma.r@globalventures.com',
-      phone: '+63 (555) 345-6789'
-    },
-    {
-      id: 'CUST-1004',
-      name: 'James Thompson',
-      email: 'j.thompson@startup.co',
-      phone: '+63 (555) 456-7890'
-    },
-    {
-      id: 'CUST-1005',
-      name: 'Olivia Martinez',
-      email: 'olivia@enterprise.com',
-      phone: '+63 (555) 567-8901'
-    },
-    {
-      id: 'CUST-1006',
-      name: 'David Kim',
-      email: 'david.kim@digital.net',
-      phone: '+63 (555) 678-9012'
+  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'client' });
+
+  
+  useEffect(() => {
+    console.log('Users from API:', users);
+    if (users) {
+      if (users.length > 0) {
+        users.forEach(user => {
+          console.log('User phone from DB:', user.id, user.phone, typeof user.phone);
+        });
+        const transformedCustomers = users.map(user => ({
+          id: user.id,
+          name: user.name || user.username,
+          email: user.email,
+          phone: user.phone || 'N/A',
+          profile_picture: user.profile_picture,
+          role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Client',
+          status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active'
+        }));
+        console.log('Transformed customers:', transformedCustomers);
+        transformedCustomers.forEach(cust => {
+          console.log('Customer phone after transform:', cust.id, cust.phone);
+        });
+        setCustomers(transformedCustomers);
+      } else {
+        setCustomers([]);
+      }
     }
-  ]);
+  }, [users]);
 
   const handleViewClick = (customer) => {
+    console.log('Selected customer data:', customer);
+    console.log('Customer phone value:', customer.phone, typeof customer.phone);
     setSelectedCustomer(customer);
     setOpenViewModal(true);
   };
@@ -145,7 +140,8 @@ const Customers = () => {
           },
           {
             label: 'Phone',
-            field: 'phone'
+            field: 'phone',
+            defaultValue: 'N/A'
           }
         ]
       }
@@ -161,6 +157,7 @@ const Customers = () => {
         rows={rows}
         searchableColumns={['id', 'name', 'email', 'phone']}
         onRowClick={handleViewClick}
+        isLoading={usersLoading}
         settings={{
           orderBy: 'id',
           order: 'asc'
