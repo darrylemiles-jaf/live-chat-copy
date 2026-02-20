@@ -55,7 +55,7 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat }) => {
             {selectedChat.name}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {selectedChat.online ? 'Active now' : `Active ${selectedChat.timestamp} ago`}
+            {selectedChat.online ? 'Active now' : `Active ${selectedChat.timestamp}`}
           </Typography>
         </Box>
       </Box>
@@ -88,9 +88,6 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat }) => {
             </IconButton>
           </Tooltip>
         )}
-        <IconButton>
-          <MoreOutlined />
-        </IconButton>
       </Stack>
     </Box>
   );
