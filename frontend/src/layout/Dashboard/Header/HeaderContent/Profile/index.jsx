@@ -28,6 +28,7 @@ import Transitions from 'components/@extended/Transitions';
 
 
 
+
 // ==============================|| UTILITY FUNCTIONS ||============================== //
 
 const getInitials = (name) => {
@@ -86,7 +87,7 @@ export default function Profile() {
   };
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 'auto', spacing: 10 }}>
+    <Box sx={{ flexShrink: 0, ml: 'auto', display: 'flex', alignItems: 'center', gap: 1}}>
       <Tooltip title="Profile" disableInteractive>
         <ButtonBase
           sx={(theme) => ({

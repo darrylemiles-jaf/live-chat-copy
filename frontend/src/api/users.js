@@ -66,6 +66,14 @@ const Users = {
     } catch (error) {
       throw new Error(error?.response?.data?.message);
     }
+  },
+  updateUserStatus: async (id, status) => {
+    try {
+      const response = await axiosServices.patch(`${endpoints.key}/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      throw new Error(error?.response?.data?.message);
+    }
   }
 };
 
