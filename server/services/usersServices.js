@@ -270,6 +270,36 @@ const authUser = async (email, password) => {
   };
 };
 
+const VALID_STATUSES = ['available', 'busy', 'away'];
+
+const updateUserStatus = async (id, status) => {
+  if (!status || !VALID_STATUSES.includes(status)) {
+    return {
+      success: false,
+      message: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`
+    };
+  }
+  try {
+    const [existing] = await pool.query('SELECT id FROM users WHERE id = ?', [Number(id)]);
+    if (!existing.length) {
+      return { success: false, message: 'User not found' };
+    }
+    await pool.query('UPDATE users SET status = ? WHERE id = ?', [status, Number(id)]);
+    const [rows] = await pool.query(
+      'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
+      [Number(id)]
+    );
+    return {
+      success: true,
+      message: 'User status updated successfully',
+      data: rows[0]
+    };
+  } catch (error) {
+    console.error('Update user status error:', error.message);
+    throw new Error(error.message);
+  }
+};
+
 export default {
   getUsers,
   getSingleUser,
@@ -277,5 +307,6 @@ export default {
   validateIfExists,
   validateIfUserExistsInUsersDB,
   createUser,
-  authUser
+  authUser,
+  updateUserStatus
 };
