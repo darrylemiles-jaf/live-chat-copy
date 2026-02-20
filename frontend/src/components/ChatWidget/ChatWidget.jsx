@@ -306,11 +306,17 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
         <div className="chat-widget-window">
           {/* Header */}
           <div className="chat-widget-header">
-            <div className="chat-header-info">
-              <h3>Customer Support</h3>
-              <span className={`chat-status ${isConnected ? 'online' : 'offline'}`}>
-                {isConnected ? '● Online' : '○ Offline'}
-              </span>
+            <div className="chat-header-left">
+              <div className="chat-header-avatar">💬</div>
+              <div className="chat-header-info">
+                <h3>Customer Support</h3>
+                <div className="chat-status-row">
+                  <span className={`chat-status-dot ${isConnected ? 'online' : 'offline'}`} />
+                  <span className="chat-status-text">
+                    {isConnected ? 'Online — we’re here to help' : 'Offline'}
+                  </span>
+                </div>
+              </div>
             </div>
             <button
               className="chat-close-button"
@@ -324,31 +330,40 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
           {/* Registration Form */}
           {!isRegistered && (
             <div className="chat-widget-register">
-              <h4>Start a conversation</h4>
-              <p>Please enter your details to continue</p>
-              <form onSubmit={handleRegister}>
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  required
-                  className="chat-input-field"
-                />
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  required
-                  className="chat-input-field"
-                />
+              <div className="chat-register-welcome">
+                <div className="chat-register-icon">👋</div>
+                <h4>Hi there, welcome!</h4>
+                <p>Fill in your details and a support agent will be with you shortly.</p>
+              </div>
+              <form className="chat-register-form" onSubmit={handleRegister}>
+                <div className="chat-field-group">
+                  <label className="chat-field-label">Full name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Juan dela Cruz"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    required
+                    className="chat-input-field"
+                  />
+                </div>
+                <div className="chat-field-group">
+                  <label className="chat-field-label">Email address</label>
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    required
+                    className="chat-input-field"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading}
                   className="chat-submit-button"
                 >
-                  {isLoading ? 'Connecting...' : 'Start Chat'}
+                  {isLoading ? 'Connecting…' : 'Start Chat →'}
                 </button>
               </form>
             </div>
@@ -360,7 +375,9 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
               <div className="chat-widget-messages">
                 {messages.length === 0 && (
                   <div className="chat-empty-state">
-                    <p>👋 Welcome! How can we help you today?</p>
+                    <div className="chat-empty-icon">💬</div>
+                    <h5>How can we help you?</h5>
+                    <p>Send us a message and a support agent will reply right away.</p>
                   </div>
                 )}
 
@@ -399,19 +416,23 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                     setInputMessage(e.target.value);
                     handleTyping();
                   }}
-                  placeholder="Type your message..."
+                  placeholder="Type a message…"
                   className="chat-message-input"
                 />
                 <button
                   type="submit"
                   disabled={!inputMessage.trim()}
                   className="chat-send-button"
+                  aria-label="Send message"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                   </svg>
                 </button>
               </form>
+              <div className="chat-widget-footer">
+                Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
+              </div>
             </>
           )}
         </div>
