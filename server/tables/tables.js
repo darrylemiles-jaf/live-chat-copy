@@ -1,9 +1,7 @@
 import usersTable from './usersTable.js';
 import chatsTable from './chatsTable.js';
 import messagesTable from './messagesTable.js';
-import ticketsTable from './ticketsTable.js';
 import notificationsTable from './notificationsTable.js';
-
 
 const tables = async (dbConnection) => {
   const queries = [
@@ -16,13 +14,8 @@ const tables = async (dbConnection) => {
     // messages
     messagesTable,
 
-    // tickets
-    ticketsTable,
-
     // notifications
     notificationsTable
-
-
   ];
 
   for (const query of queries) {

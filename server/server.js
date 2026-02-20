@@ -17,7 +17,6 @@ import usersRoutes from './routes/usersRoutes.js';
 import messagesRoutes from './routes/messagesRoutes.js';
 import chatsRoutes from './routes/chatsRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
-import ticketsRoutes from './routes/ticketsRoutes.js';
 
 dotenv.config();
 
@@ -44,7 +43,6 @@ app.use(`/api/${API_VERSION}/users`, usersRoutes)
 app.use(`/api/${API_VERSION}/messages`, messagesRoutes)
 app.use(`/api/${API_VERSION}/chats`, chatsRoutes)
 app.use(`/api/${API_VERSION}/queue`, queueRoutes)
-app.use(`/api/${API_VERSION}/tickets`, ticketsRoutes)
 
 app.use(notFound);
 app.use(errorHandler);
