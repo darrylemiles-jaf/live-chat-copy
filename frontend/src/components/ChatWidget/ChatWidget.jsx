@@ -624,7 +624,6 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                           </div>
                         )}
                         {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
-                        <span className="chat-message-time">{formatTime(msg.created_at)}</span>
                       </div>
                     </div>
                   );
