@@ -11,7 +11,7 @@ import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
 import MessagesAreaSection from '../../sections/chats/MessagesAreaSection';
 import MessageInputSection from '../../sections/chats/MessageInputSection';
 import EmptyStateSection from '../../sections/chats/EmptyStateSection';
-import { getChats, getChatMessages, sendMessage, endChat } from '../../api/chatApi';
+import { getChats, getChatMessages, sendMessage, sendMessageWithAttachment, endChat } from '../../api/chatApi';
 import socketService from '../../services/socketService';
 import useAuth from '../../hooks/useAuth';
 import { SOCKET_URL } from '../../constants/constants';
@@ -422,6 +422,47 @@ const Chats = () => {
     }
   };
 
+  // Handle file upload
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (file, messageText = '') => {
+    if (!selectedChat || !user?.id) return;
+
+    setIsUploading(true);
+    setMessage('');
+
+    // Stop typing indicator
+    const socket = socketService.socket;
+    if (socket && selectedChat) {
+      socket.emit('stop_typing', { chatId: selectedChat.id });
+    }
+
+    // Optimistically add message with file
+    const optimisticMsg = {
+      id: `optimistic-${Date.now()}`,
+      sender: 'You',
+      message: messageText || '',
+      attachment_name: file.name,
+      attachment_type: file.type.startsWith('image/') ? 'image' :
+        file.type.startsWith('video/') ? 'video' :
+          file.type.startsWith('audio/') ? 'audio' : 'document',
+      timestamp: 'Uploading...',
+      isSender: true
+    };
+    setCurrentMessages(prev => [...prev, optimisticMsg]);
+    setTimeout(scrollToBottom, 50);
+
+    try {
+      await sendMessageWithAttachment(user.id, file, messageText, selectedChat.id);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+      showSnackbar('Failed to upload file. Please try again.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Handle typing indicator emission
   const handleTyping = () => {
     if (!selectedChat) return;
@@ -542,6 +583,8 @@ const Chats = () => {
                   }}
                   onSendMessage={handleSendMessage}
                   onKeyPress={handleKeyPress}
+                  onFileUpload={handleFileUpload}
+                  isUploading={isUploading}
                 />
               ) : (
                 <Box

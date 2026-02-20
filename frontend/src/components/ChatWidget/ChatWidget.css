@@ -809,3 +809,169 @@
     border-radius: 14px;
   }
 }
+
+/* ── File Attachments ── */
+.chat-attachment {
+  margin-bottom: 6px;
+}
+
+.chat-attachment-image {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.chat-attachment-image:hover {
+  opacity: 0.9;
+}
+
+.chat-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+
+.chat-message.sent .chat-attachment-file {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chat-attachment-file:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.chat-message.sent .chat-attachment-file:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.chat-file-icon {
+  font-size: 20px;
+}
+
+.chat-file-name {
+  font-size: 12px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+/* ── File Preview ── */
+.chat-file-preview {
+  padding: 8px 13px;
+  background: var(--cw-bg-chat);
+  border-top: 1px solid var(--cw-border);
+}
+
+.chat-file-preview-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--cw-white);
+  border-radius: 10px;
+  border: 1px solid var(--cw-border);
+}
+
+.chat-file-preview-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.chat-file-preview-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cw-surface);
+  border-radius: 6px;
+  font-size: 22px;
+}
+
+.chat-file-preview-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-file-preview-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cw-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-file-preview-size {
+  font-size: 11px;
+  color: var(--cw-text-muted);
+}
+
+.chat-file-preview-remove {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fee2e2;
+  border: none;
+  color: #dc2626;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.chat-file-preview-remove:hover {
+  background: #fecaca;
+  transform: scale(1.08);
+}
+
+/* ── Attach Button ── */
+.chat-attach-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--cw-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.chat-attach-button:hover {
+  color: var(--cw-primary);
+  background: var(--cw-surface);
+}
+
+/* ── Upload Spinner ── */
+.chat-upload-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: cwSpin 0.8s linear infinite;
+}
+
+@keyframes cwSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,16 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   TextField,
   IconButton,
   Stack,
   Tooltip,
-  Zoom
+  Zoom,
+  Typography,
+  CircularProgress
 } from '@mui/material';
-import { SendOutlined, PaperClipOutlined, SmileOutlined } from '@ant-design/icons';
+import { SendOutlined, PaperClipOutlined, SmileOutlined, CloseOutlined } from '@ant-design/icons';
 
-const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPress }) => {
+const MessageInputSection = ({
+  message,
+  onMessageChange,
+  onSendMessage,
+  onKeyPress,
+  onFileUpload,
+  isUploading = false
+}) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSend = () => {
+    if (selectedFile && onFileUpload) {
+      onFileUpload(selectedFile, message);
+      clearFile();
+    } else {
+      onSendMessage();
+    }
+  };
+
+  const getFileIcon = (type) => {
+    if (type?.startsWith('video/')) return '🎬';
+    if (type?.startsWith('audio/')) return '🎵';
+    if (type?.includes('zip') || type?.includes('rar') || type?.includes('7z')) return '📦';
+    return '📄';
+  };
 
   return (
     <Box
@@ -22,6 +80,79 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
         boxShadow: '0 -2px 10px rgba(0,0,0,0.03)'
       }}
     >
+      {/* File Preview */}
+      {selectedFile && (
+        <Box
+          sx={{
+            mb: 1.5,
+            p: 1.5,
+            bgcolor: '#f8fafc',
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5
+          }}
+        >
+          {filePreview ? (
+            <Box
+              component="img"
+              src={filePreview}
+              alt="Preview"
+              sx={{
+                width: 56,
+                height: 56,
+                objectFit: 'cover',
+                borderRadius: 1.5
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'primary.lighter',
+                borderRadius: 1.5,
+                fontSize: 24
+              }}
+            >
+              {getFileIcon(selectedFile.type)}
+            </Box>
+          )}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="body2"
+              fontWeight={600}
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {selectedFile.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {(selectedFile.size / 1024).toFixed(1)} KB
+            </Typography>
+          </Box>
+          <IconButton
+            size="small"
+            onClick={clearFile}
+            sx={{
+              bgcolor: '#fee2e2',
+              color: '#dc2626',
+              '&:hover': { bgcolor: '#fecaca' }
+            }}
+          >
+            <CloseOutlined style={{ fontSize: 14 }} />
+          </IconButton>
+        </Box>
+      )}
+
       <Stack
         direction="row"
         spacing={1.5}
@@ -38,13 +169,20 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
           }
         }}
       >
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
+        />
         <Tooltip title="Attach file">
           <IconButton
             color="default"
             size="small"
+            onClick={() => fileInputRef.current?.click()}
             sx={{
-              display: { xs: 'none', sm: 'inline-flex' },
-              color: '#64748b',
+              color: selectedFile ? 'primary.main' : '#64748b',
               '&:hover': {
                 color: 'primary.main',
                 bgcolor: 'primary.lighter'
@@ -76,7 +214,7 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
           fullWidth
           multiline
           maxRows={4}
-          placeholder="Type your message..."
+          placeholder={selectedFile ? "Add a message (optional)..." : "Type your message..."}
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           onKeyPress={onKeyPress}
@@ -98,11 +236,11 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
           }}
         />
 
-        <Zoom in={message.trim().length > 0}>
+        <Zoom in={message.trim().length > 0 || selectedFile !== null}>
           <IconButton
             color="primary"
-            onClick={onSendMessage}
-            disabled={!message.trim()}
+            onClick={handleSend}
+            disabled={(!message.trim() && !selectedFile) || isUploading}
             sx={{
               width: 40,
               height: 40,
@@ -120,11 +258,15 @@ const MessageInputSection = ({ message, onMessageChange, onSendMessage, onKeyPre
               }
             }}
           >
-            <SendOutlined style={{ fontSize: 18 }} />
+            {isUploading ? (
+              <CircularProgress size={18} sx={{ color: 'white' }} />
+            ) : (
+              <SendOutlined style={{ fontSize: 18 }} />
+            )}
           </IconButton>
         </Zoom>
 
-        {!message.trim() && (
+        {!message.trim() && !selectedFile && (
           <IconButton
             disabled
             sx={{

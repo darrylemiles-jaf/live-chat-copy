@@ -16,6 +16,9 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   const [agentName, setAgentName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatEnded, setIsChatEnded] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const QUICK_REPLIES = [
     'Hi, I need help!',
@@ -30,6 +33,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
+  const fileInputRef = useRef(null);
 
   // Keep chatIdRef in sync
   useEffect(() => {
@@ -290,6 +294,109 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
     }
   };
 
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  // Clear selected file
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Send message with file
+  const handleSendWithFile = async () => {
+    if (!selectedFile || !userId) return;
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('attachment', selectedFile);
+      formData.append('sender_id', userId);
+      if (chatId) {
+        formData.append('chat_id', chatId);
+      }
+      if (inputMessage.trim()) {
+        formData.append('message', inputMessage.trim());
+      }
+
+      const response = await fetch(`${apiUrl}/messages/upload`, {
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+        body: formData
+      });
+
+      const data = await response.json();
+      console.log('Upload response:', data);
+
+      if (data.success) {
+        // Set chatId if this is the first message
+        if (!chatId && data.chat_id) {
+          const newChatId = data.chat_id;
+          setChatId(newChatId);
+          socketRef.current?.emit('join_chat', newChatId);
+
+          // Add the message manually
+          if (data.data) {
+            setMessages(prev => {
+              if (prev.some(msg => msg.id === data.data.id)) return prev;
+              return [...prev, data.data];
+            });
+          }
+
+          // Auto reply for new chat
+          const autoReplyText = data.is_queued
+            ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible.\n\n— This is an automated message`
+            : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
+
+          setTimeout(() => {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `auto-reply-${Date.now()}`,
+                sender_role: 'bot',
+                message: autoReplyText,
+                created_at: new Date().toISOString(),
+                isAutoReply: true
+              }
+            ]);
+          }, 600);
+        }
+
+        clearSelectedFile();
+        setInputMessage('');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload file. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Check if user info exists in localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('chat_widget_user');
@@ -463,6 +570,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                 {messages.map((msg, index) => {
                   const isSent = msg.sender_id === userId;
                   const isBot = msg.sender_role === 'bot';
+                  const hasAttachment = msg.attachment_url;
                   return (
                     <div
                       key={index}
@@ -474,7 +582,34 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
                         </div>
                       )}
                       <div className="chat-message-content">
-                        <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                        {hasAttachment && (
+                          <div className="chat-attachment">
+                            {msg.attachment_type === 'image' ? (
+                              <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
+                                <img
+                                  src={msg.attachment_url}
+                                  alt={msg.attachment_name || 'Attachment'}
+                                  className="chat-attachment-image"
+                                />
+                              </a>
+                            ) : (
+                              <a
+                                href={msg.attachment_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="chat-attachment-file"
+                              >
+                                <span className="chat-file-icon">
+                                  {msg.attachment_type === 'video' ? '🎬' :
+                                    msg.attachment_type === 'audio' ? '🎵' :
+                                      msg.attachment_type === 'archive' ? '📦' : '📄'}
+                                </span>
+                                <span className="chat-file-name">{msg.attachment_name || 'Download file'}</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
                         <span className="chat-message-time">{formatTime(msg.created_at)}</span>
                       </div>
                     </div>
@@ -528,28 +663,90 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
               {/* Input */}
               {!isChatEnded && (
-                <form onSubmit={handleSendMessage} className="chat-widget-input">
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => {
-                      setInputMessage(e.target.value);
-                      handleTyping();
+                <>
+                  {/* File Preview */}
+                  {selectedFile && (
+                    <div className="chat-file-preview">
+                      <div className="chat-file-preview-content">
+                        {filePreview ? (
+                          <img src={filePreview} alt="Preview" className="chat-file-preview-image" />
+                        ) : (
+                          <div className="chat-file-preview-icon">
+                            {selectedFile.type.startsWith('video/') ? '🎬' :
+                              selectedFile.type.startsWith('audio/') ? '🎵' : '📄'}
+                          </div>
+                        )}
+                        <div className="chat-file-preview-info">
+                          <span className="chat-file-preview-name">{selectedFile.name}</span>
+                          <span className="chat-file-preview-size">
+                            {(selectedFile.size / 1024).toFixed(1)} KB
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="chat-file-preview-remove"
+                          onClick={clearSelectedFile}
+                          aria-label="Remove file"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (selectedFile) {
+                        handleSendWithFile();
+                      } else {
+                        handleSendMessage(e);
+                      }
                     }}
-                    placeholder="Type a message…"
-                    className="chat-message-input"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!inputMessage.trim()}
-                    className="chat-send-button"
-                    aria-label="Send message"
+                    className="chat-widget-input"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                  </button>
-                </form>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      style={{ display: 'none' }}
+                      accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
+                    />
+                    <button
+                      type="button"
+                      className="chat-attach-button"
+                      onClick={() => fileInputRef.current?.click()}
+                      aria-label="Attach file"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                      </svg>
+                    </button>
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => {
+                        setInputMessage(e.target.value);
+                        handleTyping();
+                      }}
+                      placeholder={selectedFile ? 'Add a message (optional)...' : 'Type a message…'}
+                      className="chat-message-input"
+                    />
+                    <button
+                      type="submit"
+                      disabled={(!inputMessage.trim() && !selectedFile) || isUploading}
+                      className="chat-send-button"
+                      aria-label="Send message"
+                    >
+                      {isUploading ? (
+                        <div className="chat-upload-spinner" />
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                        </svg>
+                      )}
+                    </button>
+                  </form>
+                </>
               )}
               <div className="chat-widget-footer">
                 Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>

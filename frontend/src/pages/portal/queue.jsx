@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Box, Grid, Paper, CircularProgress } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -87,7 +87,6 @@ const Queue = () => {
   const [detailsTab, setDetailsTab] = useState('info');
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const socketConnectedRef = useRef(false);
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
 
@@ -156,37 +155,43 @@ const Queue = () => {
 
     fetchQueueData();
 
-    // Prevent multiple socket connections
-    if (socketConnectedRef.current) return;
-    socketConnectedRef.current = true;
-
-    // Connect to WebSocket
+    // Connect to WebSocket (socketService handles multiple connections gracefully)
     const socket = socketService.connect(SOCKET_URL, user.id);
 
-    // Listen for queue updates
-    socket.on('queue_update', (data) => {
+    // Define handlers
+    const handleQueueUpdate = (data) => {
       console.log('📢 Queue update received:', data);
       fetchQueueData(); // Refresh queue on update
-    });
+    };
 
-    // Listen for new messages
-    socket.on('new_message', (message) => {
+    const handleNewMessage = (message) => {
       console.log('📨 New message in queue:', message);
       // Only refresh if message is for a queued chat
       fetchQueueData();
-    });
+    };
 
-    // Listen for chat assignments
-    socket.on('chat_assigned', (chatData) => {
+    const handleChatAssigned = (chatData) => {
       console.log('✅ Chat assigned:', chatData);
       fetchQueueData(); // Refresh queue to remove assigned chat
-    });
+    };
+
+    // Remove any existing handlers before adding new ones
+    socket.off('queue_update', handleQueueUpdate);
+    socket.off('new_message', handleNewMessage);
+    socket.off('chat_assigned', handleChatAssigned);
+
+    // Listen for queue updates
+    socket.on('queue_update', handleQueueUpdate);
+    socket.on('new_message', handleNewMessage);
+    socket.on('chat_assigned', handleChatAssigned);
+
+    // If socket is already connected, handlers are ready. If not, they'll be active when it connects.
+    console.log('🔌 Queue page: Socket handlers registered, connected:', socket.connected);
 
     return () => {
-      socket.off('queue_update');
-      socket.off('new_message');
-      socket.off('chat_assigned');
-      socketConnectedRef.current = false;
+      socket.off('queue_update', handleQueueUpdate);
+      socket.off('new_message', handleNewMessage);
+      socket.off('chat_assigned', handleChatAssigned);
     };
   }, [user?.id, fetchQueueData]);
 

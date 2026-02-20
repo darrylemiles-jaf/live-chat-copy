@@ -76,6 +76,32 @@ export const sendMessage = async (senderId, message, chatId = null) => {
   }
 };
 
+export const sendMessageWithAttachment = async (senderId, file, message = '', chatId = null) => {
+  try {
+    const formData = new FormData();
+    formData.append('attachment', file);
+    formData.append('sender_id', senderId);
+
+    if (chatId) {
+      formData.append('chat_id', chatId);
+    }
+
+    if (message.trim()) {
+      formData.append('message', message.trim());
+    }
+
+    const response = await axiosServices.post('/messages/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading message:', error);
+    throw error;
+  }
+};
+
 export const assignChat = async (chatId, agentId) => {
   try {
     const response = await axiosServices.post('/chats/assign', {
@@ -120,6 +146,7 @@ export default {
   getChatStats,
   getAvailableAgents,
   sendMessage,
+  sendMessageWithAttachment,
   assignChat,
   autoAssignChat,
   endChat

@@ -290,15 +290,80 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                     }
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      lineHeight: 1.5,
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    {msg.message}
-                  </Typography>
+                  {/* Attachment display */}
+                  {msg.attachment_url && (
+                    <Box sx={{ mb: msg.message ? 1 : 0 }}>
+                      {msg.attachment_type === 'image' ? (
+                        <Box
+                          component="a"
+                          href={msg.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ display: 'block' }}
+                        >
+                          <Box
+                            component="img"
+                            src={msg.attachment_url}
+                            alt={msg.attachment_name || 'Image'}
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: 200,
+                              borderRadius: 1.5,
+                              cursor: 'pointer',
+                              '&:hover': { opacity: 0.9 }
+                            }}
+                          />
+                        </Box>
+                      ) : (
+                        <Box
+                          component="a"
+                          href={msg.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            p: 1,
+                            bgcolor: msg.isSender ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)',
+                            borderRadius: 1,
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            '&:hover': {
+                              bgcolor: msg.isSender ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)'
+                            }
+                          }}
+                        >
+                          <Typography component="span" sx={{ fontSize: 20 }}>
+                            {msg.attachment_type === 'video' ? '🎬' :
+                              msg.attachment_type === 'audio' ? '🎵' :
+                                msg.attachment_type === 'archive' ? '📦' : '📄'}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 500,
+                              wordBreak: 'break-all',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            {msg.attachment_name || 'Download file'}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                  {msg.message && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        lineHeight: 1.5,
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      {msg.message}
+                    </Typography>
+                  )}
                 </Paper>
 
                 {/* Timestamp */}
