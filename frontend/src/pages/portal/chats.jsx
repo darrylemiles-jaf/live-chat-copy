@@ -57,9 +57,6 @@ const transformMessageData = (message, agentId) => {
   };
 };
 
-
-// ============ MAIN COMPONENT ============
-// ============ MAIN COMPONENT ============
 const Chats = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -78,12 +75,10 @@ const Chats = () => {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
 
-  // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!isLoggedIn) {
       console.warn('User not logged in, redirecting to login');
@@ -91,7 +86,6 @@ const Chats = () => {
     }
   }, [isLoggedIn, navigate]);
 
-  // Fetch chats data
   const fetchChatsData = useCallback(async () => {
     if (!user?.id) {
       console.warn('No user ID available');
@@ -111,7 +105,6 @@ const Chats = () => {
     }
   }, [user?.id]);
 
-  // Fetch messages for selected chat
   const fetchMessages = useCallback(async (chatId) => {
     if (!chatId || !user?.id) return;
 
@@ -120,7 +113,6 @@ const Chats = () => {
       const transformedMessages = response.data.map(msg => transformMessageData(msg, user.id));
       setCurrentMessages(transformedMessages);
 
-      // Scroll to bottom after messages load
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -128,29 +120,22 @@ const Chats = () => {
     }
   }, [user?.id]);
 
-  // Initialize: fetch chats and connect socket
   useEffect(() => {
     if (!user?.id) return;
 
     fetchChatsData();
 
-    // Prevent multiple socket connections
     if (socketConnectedRef.current) return;
     socketConnectedRef.current = true;
 
-    // Connect socket
     const socket = socketService.connect(SOCKET_URL, user.id);
 
-    // Listen for new messages
     const handleNewMessage = (messageData) => {
       console.log('📨 New message received in chats:', messageData);
 
-      // If message is for current chat, add it to messages
       setCurrentMessages(prev => {
-        // Check if this message belongs to current chat
         if (selectedChatRef.current && messageData.chat_id === selectedChatRef.current.id) {
           const transformedMessage = transformMessageData(messageData, user.id);
-          // Prevent duplicates
           if (prev.some(msg => msg.id === transformedMessage.id)) {
             console.log('⚠️ Duplicate message detected, skipping:', messageData.id);
             return prev;
@@ -161,17 +146,14 @@ const Chats = () => {
         return prev;
       });
 
-      // Refresh chat list to update last message
       fetchChatsData();
     };
 
-    // Listen for chat assignments
     const handleChatAssigned = (chatData) => {
       console.log('✅ Chat assigned in chats:', chatData);
-      fetchChatsData(); // Refresh chat list
+      fetchChatsData();
     };
 
-    // Listen for chat status updates
     const handleChatStatus = (data) => {
       console.log('🔄 Chat status updated:', data);
       fetchChatsData();
@@ -190,7 +172,6 @@ const Chats = () => {
   }, [user?.id, fetchChatsData]);
 
   const handleSelectChat = async (chat) => {
-    // Leave previous chat room if any
     if (selectedChat) {
       const socket = socketService.connect();
       socket.emit('leave_chat', selectedChat.id);
@@ -199,13 +180,11 @@ const Chats = () => {
     setSelectedChat(chat);
     await fetchMessages(chat.id);
 
-    // Join new chat room via socket
     const socket = socketService.connect();
     socket.emit('join_chat', chat.id);
     console.log(`Joined chat room: ${chat.id}`);
   };
 
-  // Auto-select chat from navigation state
   useEffect(() => {
     if (location.state?.chatId && chats.length > 0) {
       console.log('🔍 Looking for chat:', location.state.chatId, 'in', chats.length, 'chats');
@@ -215,11 +194,9 @@ const Chats = () => {
         handleSelectChat(chat);
       } else {
         console.warn('⚠️ Chat not found in list, will retry after refresh');
-        // Refresh chats to get the newly assigned chat
         setTimeout(() => fetchChatsData(), 500);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, chats]);
 
   const handleBackToList = () => {
@@ -252,7 +229,7 @@ const Chats = () => {
       alert('Conversation ended successfully');
       setSelectedChat(null);
       setCurrentMessages([]);
-      fetchChatsData(); // Refresh chat list
+      fetchChatsData();
     } catch (error) {
       console.error('Error ending chat:', error);
       alert('Failed to end conversation. Please try again.');
@@ -297,7 +274,6 @@ const Chats = () => {
           mt: 2
         }}
       >
-        {/* Left Sidebar - Chat List */}
         <ChatListSection
           chats={chats}
           selectedChat={selectedChat}
@@ -306,7 +282,6 @@ const Chats = () => {
           onSearchChange={setSearchQuery}
         />
 
-        {/* Right Side - Chat Window */}
         <Box
           sx={{
             flex: 1,
