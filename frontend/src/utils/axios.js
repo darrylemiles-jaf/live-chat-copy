@@ -5,7 +5,7 @@ import { API_URL } from '../constants/constants';
 const isNgrokUrl = (url) => url && url.includes('ngrok');
 
 const axiosServices = axios.create({
-  baseURL: API_URL
+  baseURL: `${API_URL}/api/${import.meta.env.VITE_API_VER}`,
 });
 
 // ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //
