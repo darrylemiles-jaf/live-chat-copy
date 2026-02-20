@@ -1,7 +1,7 @@
 import usersTable from './usersTable.js';
 import chatsTable from './chatsTable.js';
 import messagesTable, { messagesTableMigration } from './messagesTable.js';
-import notificationsTable from './notificationsTable.js';
+import notificationsTable, { notificationsTableMigration } from './notificationsTable.js';
 
 const tables = async (dbConnection) => {
   const queries = [
@@ -28,14 +28,14 @@ const tables = async (dbConnection) => {
 
   // Run migrations for existing tables (add new columns)
   const migrations = [
-    messagesTableMigration
+    messagesTableMigration,
+    notificationsTableMigration
   ];
 
   for (const migration of migrations) {
     try {
       await dbConnection.query(migration);
     } catch (error) {
-      // Ignore errors for migrations (columns may already exist)
       if (!error.message.includes('Duplicate column')) {
         console.log('Migration note:', error.message);
       }

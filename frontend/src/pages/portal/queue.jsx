@@ -150,43 +150,45 @@ const Queue = () => {
     }
   }, [user?.id, selectedId]);
 
-  // Initialize: fetch data and connect socket
+  // Initial data fetch
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchQueueData();
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Socket listeners — separate effect so handlers don't re-register when fetchQueueData changes
   useEffect(() => {
     if (!user?.id) return;
 
-    fetchQueueData();
-
-    // Connect to WebSocket (socketService handles multiple connections gracefully)
+    // Ensure socket is connected (DashboardLayout also connects, but just in case)
     const socket = socketService.connect(SOCKET_URL, user.id);
 
-    // Define handlers
+    // Use a ref-like approach: handlers call the latest fetchQueueData via closure
     const handleQueueUpdate = (data) => {
       console.log('📢 Queue update received:', data);
-      fetchQueueData(); // Refresh queue on update
+      // Re-fetch queue data
+      fetchQueueData();
     };
 
     const handleNewMessage = (message) => {
       console.log('📨 New message in queue:', message);
-      // Only refresh if message is for a queued chat
       fetchQueueData();
     };
 
     const handleChatAssigned = (chatData) => {
       console.log('✅ Chat assigned:', chatData);
-      fetchQueueData(); // Refresh queue to remove assigned chat
+      fetchQueueData();
     };
 
-    // Remove any existing handlers before adding new ones
-    socket.off('queue_update', handleQueueUpdate);
-    socket.off('new_message', handleNewMessage);
-    socket.off('chat_assigned', handleChatAssigned);
+    // Clean slate — remove old handlers, then attach fresh ones
+    socket.off('queue_update');
+    socket.off('new_message');
+    socket.off('chat_assigned');
 
-    // Listen for queue updates
     socket.on('queue_update', handleQueueUpdate);
     socket.on('new_message', handleNewMessage);
     socket.on('chat_assigned', handleChatAssigned);
 
-    // If socket is already connected, handlers are ready. If not, they'll be active when it connects.
     console.log('🔌 Queue page: Socket handlers registered, connected:', socket.connected);
 
     return () => {
@@ -194,7 +196,7 @@ const Queue = () => {
       socket.off('new_message', handleNewMessage);
       socket.off('chat_assigned', handleChatAssigned);
     };
-  }, [user?.id, fetchQueueData]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select first item when queue changes
   useEffect(() => {

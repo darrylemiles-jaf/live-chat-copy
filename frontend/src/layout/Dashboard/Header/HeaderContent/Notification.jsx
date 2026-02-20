@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -15,18 +15,24 @@ import Popper from '@mui/material/Popper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // project imports
 import MainCard from 'components/MainCard';
 import IconButton from 'components/@extended/IconButton';
 import Transitions from 'components/@extended/Transitions';
+import { getCurrentUser } from 'utils/auth';
+import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from 'api/chatApi';
+import socketService from 'services/socketService';
 
 // assets
 import BellOutlined from '@ant-design/icons/BellOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
+import UserAddOutlined from '@ant-design/icons/UserAddOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+
+import { useNavigate } from 'react-router-dom';
 
 // sx styles
 const avatarSX = {
@@ -41,18 +47,115 @@ const actionSX = {
   top: 'auto',
   right: 'auto',
   alignSelf: 'flex-start',
-
   transform: 'none'
+};
+
+// Format relative time
+const formatTimeAgo = (dateStr) => {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+};
+
+// Get icon and color by notification type
+const getNotificationStyle = (type) => {
+  switch (type) {
+    case 'new_message':
+      return { icon: <MessageOutlined />, color: 'primary.main', bgcolor: 'primary.lighter' };
+    case 'chat_assigned':
+      return { icon: <UserAddOutlined />, color: 'success.main', bgcolor: 'success.lighter' };
+    default:
+      return { icon: <InfoCircleOutlined />, color: 'warning.main', bgcolor: 'warning.lighter' };
+  }
 };
 
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
 export default function Notification() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const anchorRef = useRef(null);
-  const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const user = getCurrentUser();
+
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async (pageNum = 1, append = false) => {
+    if (!user?.id) return;
+    try {
+      setLoading(true);
+      const result = await getNotifications(user.id, pageNum, 20);
+      if (result?.success) {
+        if (append) {
+          setNotifications((prev) => [...prev, ...result.data]);
+        } else {
+          setNotifications(result.data);
+        }
+        setUnreadCount(result.unread_count || 0);
+        setHasMore(pageNum < result.pagination.totalPages);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchNotifications(1);
+  }, [fetchNotifications]);
+
+  // Listen for real-time notifications via socket
+  // Socket is connected globally in DashboardLayout, but may take a moment
+  useEffect(() => {
+    const handleNewNotification = (notification) => {
+      console.log('🔔 New notification received:', notification);
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    // Attach listener — socket should be available from DashboardLayout
+    const socket = socketService.socket;
+    if (socket) {
+      socket.off('new_notification', handleNewNotification);
+      socket.on('new_notification', handleNewNotification);
+      console.log('🔔 Notification listener attached');
+    }
+
+    // Also poll in case socket wasn't ready yet on first render
+    const interval = setInterval(() => {
+      const s = socketService.socket;
+      if (s) {
+        s.off('new_notification', handleNewNotification);
+        s.on('new_notification', handleNewNotification);
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      const s = socketService.socket;
+      if (s) {
+        s.off('new_notification', handleNewNotification);
+      }
+    };
+  }, []);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -64,6 +167,44 @@ export default function Notification() {
     setOpen(false);
   };
 
+  const handleMarkAllRead = async () => {
+    if (!user?.id) return;
+    try {
+      await markAllNotificationsAsRead(user.id);
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    // Mark as read if unread
+    if (!notification.is_read && user?.id) {
+      try {
+        await markNotificationAsRead(notification.id, user.id);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, is_read: 1 } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error('Failed to mark as read:', error);
+      }
+    }
+
+    // Navigate to the chat if chat_id is present
+    if (notification.chat_id) {
+      navigate('/portal/chats');
+      setOpen(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchNotifications(nextPage, true);
+  };
+
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
       <IconButton
@@ -73,13 +214,13 @@ export default function Notification() {
           color: 'text.primary',
           bgcolor: open ? 'grey.100' : 'transparent',
         })}
-        aria-label="open profile"
+        aria-label="open notifications"
         ref={anchorRef}
-        aria-controls={open ? 'profile-grow' : undefined}
+        aria-controls={open ? 'notification-grow' : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={read} color="primary">
+        <Badge badgeContent={unreadCount} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
@@ -97,15 +238,15 @@ export default function Notification() {
             <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: '100%', minWidth: 285, maxWidth: { xs: 285, md: 420 } })}>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard
-                  title="Notification"
+                  title="Notifications"
                   elevation={0}
                   border={false}
                   content={false}
                   secondary={
                     <>
-                      {read > 0 && (
-                        <Tooltip title="Mark as all read">
-                          <IconButton color="success" size="small" onClick={() => setRead(0)}>
+                      {unreadCount > 0 && (
+                        <Tooltip title="Mark all as read">
+                          <IconButton color="success" size="small" onClick={handleMarkAllRead}>
                             <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
                           </IconButton>
                         </Tooltip>
@@ -117,6 +258,8 @@ export default function Notification() {
                     component="nav"
                     sx={{
                       p: 0,
+                      maxHeight: 400,
+                      overflowY: 'auto',
                       '& .MuiListItemButton-root': {
                         py: 0.5,
                         px: 2,
@@ -126,123 +269,79 @@ export default function Notification() {
                       }
                     }}
                   >
-                    <ListItem
-                      component={ListItemButton}
-                      divider
-                      selected={read > 0}
-                      secondaryAction={
-                        <Typography variant="caption" noWrap>
-                          3:00 AM
+                    {notifications.length === 0 && !loading && (
+                      <Box sx={{ py: 4, textAlign: 'center' }}>
+                        <BellOutlined style={{ fontSize: 32, color: '#ccc' }} />
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          No notifications yet
                         </Typography>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                          <GiftOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            It&apos;s{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Cristina danny&apos;s
-                            </Typography>{' '}
-                            birthday today.
-                          </Typography>
-                        }
-                        secondary="2 min ago"
-                      />
-                    </ListItem>
-                    <ListItem
-                      component={ListItemButton}
-                      divider
-                      secondaryAction={
-                        <Typography variant="caption" noWrap>
-                          6:00 AM
-                        </Typography>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                          <MessageOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Aida Burg
-                            </Typography>{' '}
-                            commented your post.
-                          </Typography>
-                        }
-                        secondary="5 August"
-                      />
-                    </ListItem>
-                    <ListItem
-                      component={ListItemButton}
-                      divider
-                      selected={read > 0}
-                      secondaryAction={
-                        <Typography variant="caption" noWrap>
-                          2:45 PM
-                        </Typography>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                          <SettingOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            Your Profile is Complete &nbsp;
-                            <Typography component="span" variant="subtitle1">
-                              60%
-                            </Typography>{' '}
-                          </Typography>
-                        }
-                        secondary="7 hours ago"
-                      />
-                    </ListItem>
-                    <ListItem
-                      component={ListItemButton}
-                      divider
-                      secondaryAction={
-                        <Typography variant="caption" noWrap>
-                          9:10 PM
-                        </Typography>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>C</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Cristina Danny
-                            </Typography>{' '}
-                            invited to join{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Meeting.
+                      </Box>
+                    )}
+
+                    {notifications.map((notification) => {
+                      const style = getNotificationStyle(notification.type);
+                      return (
+                        <ListItem
+                          key={notification.id}
+                          component={ListItemButton}
+                          divider
+                          selected={!notification.is_read}
+                          onClick={() => handleNotificationClick(notification)}
+                          secondaryAction={
+                            <Typography variant="caption" noWrap>
+                              {formatTimeAgo(notification.created_at)}
                             </Typography>
-                          </Typography>
-                        }
-                        secondary="Daily scrum meeting time"
-                      />
-                    </ListItem>
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            View All
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
+                          }
+                        >
+                          <ListItemAvatar>
+                            <Avatar sx={{ color: style.color, bgcolor: style.bgcolor }}>
+                              {style.icon}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Typography variant="h6" sx={{ fontWeight: notification.is_read ? 400 : 600 }}>
+                                {notification.type === 'new_message' ? 'New Message' :
+                                  notification.type === 'chat_assigned' ? 'Chat Assigned' : 'Notification'}
+                              </Typography>
+                            }
+                            secondary={
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  display: 'block',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  maxWidth: 200
+                                }}
+                              >
+                                {notification.message}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      );
+                    })}
+
+                    {loading && (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    )}
+
+                    {hasMore && notifications.length > 0 && !loading && (
+                      <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }} onClick={handleLoadMore}>
+                        <ListItemText
+                          primary={
+                            <Typography variant="h6" color="primary">
+                              Load More
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+                    )}
                   </List>
                 </MainCard>
               </ClickAwayListener>

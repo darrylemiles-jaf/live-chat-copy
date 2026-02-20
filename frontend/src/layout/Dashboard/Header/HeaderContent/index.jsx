@@ -5,6 +5,7 @@ import { mutate } from 'swr';
 
 // project import
 import Profile from './Profile';
+import Notification from './Notification';
 import MobileSection from './MobileSection';
 import {
   Button,
@@ -301,9 +302,11 @@ export default function HeaderContent() {
         </DialogActions>
       </Dialog>
 
-      <Tooltip  title="Settings"  disableInteractive>
-        <IconButton  onClick={() => setOpenSettings(true)} sx={{ color: 'text.primary', ml: 0.5, marginInline:1 }} size="small">
-          <SettingOutlined   style={{ fontSize: 18 }} />
+      <Notification />
+
+      <Tooltip title="Settings" disableInteractive>
+        <IconButton onClick={() => setOpenSettings(true)} sx={{ color: 'text.primary', ml: 0.5, marginInline: 1 }} size="small">
+          <SettingOutlined style={{ fontSize: 18 }} />
         </IconButton>
       </Tooltip>
 

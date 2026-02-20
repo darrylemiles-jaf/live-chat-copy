@@ -13,6 +13,9 @@ import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { getCurrentUser } from 'utils/auth';
+import socketService from 'services/socketService';
+import { SOCKET_URL } from 'constants/constants';
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
@@ -24,6 +27,16 @@ export default function DashboardLayout() {
   useEffect(() => {
     handlerDrawerOpen(!downXL);
   }, [downXL]);
+
+  // Connect socket globally so it's available for notifications, queue, and chats
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user?.id && SOCKET_URL) {
+      socketService.connect(SOCKET_URL, user.id);
+      console.log('🔌 Global socket connected from DashboardLayout for user:', user.id);
+    }
+    // No disconnect on unmount — socket persists across page navigations
+  }, []);
 
   if (menuMasterLoading) return <Loader />;
 

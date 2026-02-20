@@ -4,7 +4,15 @@ const notificationsTable = `CREATE TABLE IF NOT EXISTS notifications (
     type VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
+    chat_id INT DEFAULT NULL,
+    reference_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`;
 
+// Migration to add chat_id and reference_id columns to existing table
+const notificationsTableMigration = `ALTER TABLE notifications 
+  ADD COLUMN chat_id INT DEFAULT NULL,
+  ADD COLUMN reference_id INT DEFAULT NULL;`;
+
 export default notificationsTable;
+export { notificationsTableMigration };

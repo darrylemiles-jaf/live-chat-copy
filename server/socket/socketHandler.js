@@ -120,11 +120,20 @@ export const emitQueueUpdate = (queueData) => {
   }
 };
 
+// Emit notification to a specific user
+export const emitNotification = (userId, notification) => {
+  if (io) {
+    console.log(`🔔 Emitting notification to user_${userId}:`, notification.type, notification.message);
+    io.to(`user_${userId}`).emit('new_notification', notification);
+  }
+};
+
 export default {
   initializeSocket,
   getIO,
   emitNewMessage,
   emitChatAssigned,
   emitChatStatusUpdate,
-  emitQueueUpdate
+  emitQueueUpdate,
+  emitNotification
 };

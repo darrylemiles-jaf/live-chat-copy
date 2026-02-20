@@ -1,5 +1,6 @@
 import pool from "../config/db.js";
 import { emitNewMessage, emitChatAssigned, emitQueueUpdate } from "../socket/socketHandler.js";
+import notificationServices from "./notificationServices.js";
 
 
 const getMessages = async (query = {}) => {
@@ -158,6 +159,23 @@ const createMessage = async (payload) => {
     const notifyAgentId = sender_role === 'client' ? chatAgentId : null;
     emitNewMessage(usedChatId, newMessage[0], notifyAgentId);
 
+    // Create notification for the agent when a client sends a message
+    if (sender_role === 'client' && chatAgentId) {
+      const senderName = newMessage[0].sender_name || 'A client';
+      const msgPreview = message ? (message.length > 50 ? message.substring(0, 50) + '...' : message) : 'sent an attachment';
+      try {
+        await notificationServices.createNotification({
+          user_id: chatAgentId,
+          type: 'new_message',
+          message: `${senderName}: ${msgPreview}`,
+          chat_id: usedChatId,
+          reference_id: newMessage[0].id
+        });
+      } catch (e) {
+        console.error('Failed to create message notification:', e.message);
+      }
+    }
+
     if (newlyAssignedAgentId) {
       const [chatDetails] = await pool.query(
         `SELECT c.*, u.name as client_name, u.email as client_email 
@@ -172,6 +190,19 @@ const createMessage = async (payload) => {
         last_message: newMessage[0].message
       });
       emitQueueUpdate({ action: 'chat_assigned', chatId: usedChatId, agentId: newlyAssignedAgentId });
+
+      // Create notification for chat assignment
+      try {
+        await notificationServices.createNotification({
+          user_id: newlyAssignedAgentId,
+          type: 'chat_assigned',
+          message: `New chat assigned from ${chatDetails[0]?.client_name || 'a client'}`,
+          chat_id: usedChatId,
+          reference_id: usedChatId
+        });
+      } catch (e) {
+        console.error('Failed to create assignment notification:', e.message);
+      }
     } else if (isQueued) {
       // New chat in queue with no agent — notify all portal users so their list refreshes
       emitQueueUpdate({ action: 'new_chat_queued', chatId: usedChatId });

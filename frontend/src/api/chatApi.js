@@ -139,6 +139,54 @@ export const endChat = async (chatId) => {
   }
 };
 
+// ==============================|| NOTIFICATIONS ||============================== //
+
+export const getNotifications = async (userId, page = 1, limit = 20) => {
+  try {
+    const response = await axiosServices.get('/notifications', {
+      params: { user_id: userId, page, limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+};
+
+export const getUnreadNotificationCount = async (userId) => {
+  try {
+    const response = await axiosServices.get('/notifications/unread-count', {
+      params: { user_id: userId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
+    throw error;
+  }
+};
+
+export const markAllNotificationsAsRead = async (userId) => {
+  try {
+    const response = await axiosServices.put(`/notifications/read-all/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error marking all as read:', error);
+    throw error;
+  }
+};
+
+export const markNotificationAsRead = async (notificationId, userId) => {
+  try {
+    const response = await axiosServices.put(`/notifications/read/${notificationId}`, {
+      user_id: userId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw error;
+  }
+};
+
 export default {
   getChats,
   getChatMessages,
@@ -149,5 +197,9 @@ export default {
   sendMessageWithAttachment,
   assignChat,
   autoAssignChat,
-  endChat
+  endChat,
+  getNotifications,
+  getUnreadNotificationCount,
+  markAllNotificationsAsRead,
+  markNotificationAsRead
 };

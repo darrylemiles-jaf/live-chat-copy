@@ -1,5 +1,6 @@
 import pool from "../config/db.js";
 import { emitChatAssigned, emitQueueUpdate, emitChatStatusUpdate } from "../socket/socketHandler.js";
+import notificationServices from "./notificationServices.js";
 
 // Auto-assign chat to an available agent
 const autoAssignChat = async (chat_id) => {
@@ -57,6 +58,19 @@ const autoAssignChat = async (chat_id) => {
     // Emit status update to chat room
     emitChatStatusUpdate(chat_id, 'active');
 
+    // Create notification for chat assignment
+    try {
+      await notificationServices.createNotification({
+        user_id: agent_id,
+        type: 'chat_assigned',
+        message: `New chat assigned from ${chatDetails[0]?.client_name || 'a client'}`,
+        chat_id: chat_id,
+        reference_id: chat_id
+      });
+    } catch (e) {
+      console.error('Failed to create auto-assign notification:', e.message);
+    }
+
     return {
       success: true,
       message: 'Chat assigned to available agent',
@@ -111,6 +125,19 @@ const manualAssignChat = async (chat_id, agent_id) => {
 
     // Emit status update to chat room
     emitChatStatusUpdate(chat_id, 'active');
+
+    // Create notification for manual assignment
+    try {
+      await notificationServices.createNotification({
+        user_id: agent_id,
+        type: 'chat_assigned',
+        message: `Chat assigned from ${chatDetails[0]?.client_name || 'a client'}`,
+        chat_id: chat_id,
+        reference_id: chat_id
+      });
+    } catch (e) {
+      console.error('Failed to create manual-assign notification:', e.message);
+    }
 
     return {
       success: true,
