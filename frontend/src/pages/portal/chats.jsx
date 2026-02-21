@@ -307,7 +307,9 @@ const Chats = () => {
       fetchChatsDataRef.current?.(true);
     };
 
-    const handleUserTyping = ({ userName }) => {
+    const handleUserTyping = ({ userName, role }) => {
+      // Only show typing indicator when the customer is typing (not the agent themselves)
+      if (role === 'agent') return;
       if (selectedChatRef.current) {
         setTypingUser(userName || 'User');
         setIsTyping(true);
@@ -485,7 +487,7 @@ const Chats = () => {
 
     const socket = socketService.socket;
     if (socket) {
-      socket.emit('typing', { chatId: selectedChat.id, userName: user?.name || 'Agent' });
+      socket.emit('typing', { chatId: selectedChat.id, userName: user?.name || 'Agent', role: 'agent' });
 
       // Clear any existing timeout
       clearTimeout(typingTimeoutRef.current);
@@ -493,7 +495,7 @@ const Chats = () => {
       // Set timeout to stop typing indicator
       typingTimeoutRef.current = setTimeout(() => {
         socket.emit('stop_typing', { chatId: selectedChat.id });
-      }, 2000);
+      }, 3000);
     }
   };
 
@@ -589,7 +591,6 @@ const Chats = () => {
                 isLoading={loadingMessages}
                 isTyping={isTyping}
                 typingUser={typingUser}
-                isAgentTyping={message.trim().length > 0}
               />
               {selectedChat.status !== 'ended' ? (
                 <MessageInputSection

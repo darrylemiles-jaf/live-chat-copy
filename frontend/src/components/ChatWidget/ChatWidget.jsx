@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWidget.css';
 
-const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-free.dev/api/v1', socketUrl = 'https://depauperate-destiny-superdelicate.ngrok-free.dev' }) => {
+const ChatWidget = ({ apiUrl = 'https://pseudopolitic-jenell-involucelate.ngrok-free.dev/api/v1', socketUrl = 'https://pseudopolitic-jenell-involucelate.ngrok-free.dev' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -105,12 +105,20 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
       }
     });
 
-    socketRef.current.on('user_typing', ({ userName }) => {
+    socketRef.current.on('user_typing', ({ userName, role }) => {
+      // Only show typing indicator when the agent/support is typing (not the customer themselves)
+      console.log('📝 Widget received user_typing event:', { userName, role, chatId: chatIdRef.current });
+      if (role === 'client') {
+        console.log('⏭️ Ignoring client typing (self)');
+        return;
+      }
+      console.log('✅ Showing agent typing indicator:', userName);
       setAgentName(userName);
       setIsTyping(true);
     });
 
     socketRef.current.on('user_stop_typing', () => {
+      console.log('⏹️ Widget received user_stop_typing');
       setIsTyping(false);
     });
 
@@ -291,7 +299,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
   // Handle typing indicator
   const handleTyping = () => {
     if (chatId && socketRef.current) {
-      socketRef.current.emit('typing', { chatId, userName });
+      socketRef.current.emit('typing', { chatId, userName, role: 'client' });
 
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
@@ -631,7 +639,7 @@ const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-
 
                 {isTyping && (
                   <div className="chat-typing-indicator">
-                    <span>{agentName || 'Agent'} is typing</span>
+                    <span>typing</span>
                     <div className="typing-dots">
                       <span></span>
                       <span></span>
