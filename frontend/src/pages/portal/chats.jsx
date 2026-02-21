@@ -589,6 +589,7 @@ const Chats = () => {
                 isLoading={loadingMessages}
                 isTyping={isTyping}
                 typingUser={typingUser}
+                isAgentTyping={message.trim().length > 0}
               />
               {selectedChat.status !== 'ended' ? (
                 <MessageInputSection

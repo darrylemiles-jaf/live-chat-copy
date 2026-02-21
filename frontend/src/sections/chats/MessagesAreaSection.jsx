@@ -110,7 +110,54 @@ const TypingIndicator = ({ userName }) => (
   </Fade>
 );
 
-const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTyping = false, typingUser = '' }) => {
+const AgentTypingIndicator = () => (
+  <Fade in timeout={200}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        gap: 1,
+        mb: 1,
+        pr: 0.5
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          py: 1,
+          px: 2,
+          background: 'linear-gradient(135deg, #008E86 0%, #006e68 100%)',
+          borderRadius: '20px 20px 4px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 0.6, alignItems: 'center', py: 0.25 }}>
+          {[0, 1, 2].map((i) => (
+            <Box
+              key={i}
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.85)',
+                animation: 'typingBounce 1.4s infinite ease-in-out',
+                animationDelay: `${i * 0.16}s`
+              }}
+            />
+          ))}
+        </Box>
+      </Paper>
+      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '10px', mb: 0.5 }}>
+        you
+      </Typography>
+    </Box>
+  </Fade>
+);
+
+const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTyping = false, typingUser = '', isAgentTyping = false }) => {
   if (isLoading) {
     return (
       <Box
@@ -388,8 +435,10 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
         );
       })}
 
-      {/* Typing indicator */}
+      {/* Typing indicator — client is typing */}
       {isTyping && <TypingIndicator userName={typingUser} />}
+      {/* Agent typing indicator — shown while composing */}
+      {isAgentTyping && !isTyping && <AgentTypingIndicator />}
 
       {/* Invisible element to scroll to */}
       <div ref={messagesEndRef} />
