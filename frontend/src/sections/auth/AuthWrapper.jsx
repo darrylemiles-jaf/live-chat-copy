@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 // project imports
 import LogoMain from 'components/logo/LogoMain';
+import timiRobot from 'assets/images/users/timora-robot.gif';
 
 // ==============================|| AUTHENTICATION - WRAPPER ||============================== //
 
@@ -27,7 +28,23 @@ export default function AuthWrapper({ children }) {
           overflow: 'hidden'
         }}
       >
-        <Stack spacing={4} sx={{ p: 6, zIndex: 1, maxWidth: '500px' }}>
+        <Stack spacing={3} sx={{ p: 6, zIndex: 1, maxWidth: '500px', alignItems: 'center' }}>
+          <Box
+            component="img"
+            src={timiRobot}
+            alt="Timi"
+            sx={{
+              width: 220,
+              height: 220,
+              objectFit: 'contain',
+              animation: 'timiFloat 3s ease-in-out infinite',
+              '@keyframes timiFloat': {
+                '0%':   { transform: 'translateY(0px)' },
+                '50%':  { transform: 'translateY(-18px)' },
+                '100%': { transform: 'translateY(0px)' },
+              }
+            }}
+          />
           <Stack spacing={2} sx={{ textAlign: 'center', color: 'white' }}>
             <Typography variant="h4" sx={{ fontWeight: 600, color: 'white' }}>
               Welcome to Timora Live Chat

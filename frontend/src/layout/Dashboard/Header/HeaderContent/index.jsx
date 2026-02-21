@@ -35,7 +35,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getCurrentUser } from 'utils/auth';
+import { getCurrentUser, logout } from 'utils/auth';
 import Users from 'api/users';
 import {
   DashboardOutlined,
@@ -81,12 +81,14 @@ export default function HeaderContent() {
           }
           return;
         }
+        // User ID from token no longer exists in DB — force re-login
+        logout();
+        return;
       } catch (e) {
-        console.error('Failed to fetch user from API:', e.message);
+        // 404 / 'User not found' means stale JWT — force re-login
+        logout();
+        return;
       }
-
-      // fallback to token payload
-      setUser(currentUser);
     };
 
     loadUser();

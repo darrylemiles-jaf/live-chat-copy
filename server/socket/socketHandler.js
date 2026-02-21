@@ -38,13 +38,18 @@ export const initializeSocket = (server) => {
       console.log(`👋 Socket ${socket.id} left chat_${chatId}`);
     });
 
-    // Agent typing indicator
-    socket.on('typing', ({ chatId, userName }) => {
-      socket.to(`chat_${chatId}`).emit('user_typing', { userName });
+    // Typing indicator (agent or client)
+    socket.on('typing', ({ chatId, userName, role }) => {
+        console.log(`⌨️ Typing event: chatId=${chatId}, userName=${userName}, role=${role}`);
+      const room = `chat_${chatId}`;
+      const roomSockets = io.sockets.adapter.rooms.get(room);
+      console.log(`   📋 Room ${room} has ${roomSockets ? roomSockets.size : 0} sockets`);
+      socket.to(room).emit('user_typing', { userName, role });
     });
 
-    // Agent stopped typing
+    // Stopped typing
     socket.on('stop_typing', ({ chatId }) => {
+      console.log(`⌨️ Stop typing: chatId=${chatId}`);
       socket.to(`chat_${chatId}`).emit('user_stop_typing');
     });
 
