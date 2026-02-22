@@ -39,7 +39,7 @@ export const getQueue = async (limit = 50) => {
 export const getChatStats = async (userId = null) => {
   try {
     const params = userId ? { user_id: userId } : {};
-    const response = await axios.get(`${API_URL}/chats/stats`, { params });
+    const response = await axiosServices.get('/chats/stats', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching chat stats:', error);
