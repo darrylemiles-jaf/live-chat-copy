@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWidget.css';
 
-const ChatWidget = ({ apiUrl = 'https://depauperate-destiny-superdelicate.ngrok-free.dev/api/v1', socketUrl = 'https://depauperate-destiny-superdelicate.ngrok-free.dev' }) => {
+const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
