@@ -16,12 +16,16 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import { getCurrentUser } from 'utils/auth';
 import socketService from 'services/socketService';
 import { SOCKET_URL } from 'constants/constants';
+import useStatusSync from 'hooks/useStatusSync';
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+
+  // Automatically sync user status and handle logout
+  useStatusSync();
 
   // set media wise responsive drawer
   useEffect(() => {

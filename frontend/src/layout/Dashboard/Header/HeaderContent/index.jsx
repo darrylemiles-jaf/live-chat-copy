@@ -37,6 +37,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getCurrentUser, logout } from 'utils/auth';
 import Users from 'api/users';
+import socketService from 'services/socketService';
 import {
   DashboardOutlined,
   UnorderedListOutlined,
@@ -93,6 +94,29 @@ export default function HeaderContent() {
 
     loadUser();
   }, []);
+
+  // Listen for real-time status updates from socket
+  useEffect(() => {
+    const handleUserStatusChange = (data) => {
+      // Update status if it's the current user's status that changed
+      if (user && data.userId === user.id) {
+        console.log('📡 Current user status changed to:', data.status);
+        setStatus(data.status);
+      }
+    };
+
+    const socket = socketService.socket;
+    if (socket) {
+      socket.on('user_status_changed', handleUserStatusChange);
+    }
+
+    return () => {
+      const s = socketService.socket;
+      if (s) {
+        s.off('user_status_changed', handleUserStatusChange);
+      }
+    };
+  }, [user]);
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);

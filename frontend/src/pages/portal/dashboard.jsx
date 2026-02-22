@@ -14,6 +14,7 @@ import { withAlpha } from '../../utils/colorUtils';
 import { useGetUsers } from '../../api/users';
 import { getQueue, getChats, getChatStats } from '../../api/chatApi';
 import { getCurrentUser } from '../../utils/auth';
+import socketService from '../../services/socketService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,15 +31,16 @@ const Dashboard = () => {
   const [orgStats, setOrgStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
   const [personalStats, setPersonalStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
   const [statsLoading, setStatsLoading] = useState(false);
-  
+
   const { users, usersLoading, usersError } = useGetUsers({ role: 'support' });
-  
+
   useEffect(() => {
     if (users && users.length > 0) {
       const transformedAgents = users.map(user => {
         const name = user.name || user.username;
         const initials = name.split(' ').map(n => n.charAt(0).toUpperCase()).join('').slice(0, 2);
         return {
+          id: user.id,
           name: name,
           status: user.status ? user.status.toLowerCase() : 'available',
           avatar: initials,
@@ -49,29 +51,57 @@ const Dashboard = () => {
     }
   }, [users]);
 
+  // Listen for real-time user status updates via socket
+  useEffect(() => {
+    const handleUserStatusChange = (data) => {
+      console.log('📡 User status changed:', data);
+      // Update the agent status in the list
+      setRawAgentStatus(prevAgents =>
+        prevAgents.map(agent =>
+          agent.id === data.userId
+            ? { ...agent, status: data.status }
+            : agent
+        )
+      );
+    };
+
+    const socket = socketService.socket;
+    if (socket) {
+      socket.on('user_status_changed', handleUserStatusChange);
+      console.log('👂 Dashboard: Listening for user status changes');
+    }
+
+    return () => {
+      const s = socketService.socket;
+      if (s) {
+        s.off('user_status_changed', handleUserStatusChange);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const fetchQueueData = async () => {
       try {
         setQueueLoading(true);
         const response = await getQueue(50);
-        
+
         if (response.success && response.data) {
           const transformedQueue = response.data.map((chat) => {
             const client = chat.client || {};
-            const lastMessage = chat.messages && chat.messages.length > 0 
-              ? chat.messages[chat.messages.length - 1].message_text 
+            const lastMessage = chat.messages && chat.messages.length > 0
+              ? chat.messages[chat.messages.length - 1].message_text
               : 'Waiting for response...';
-            
+
             const waitTimeMs = chat.waiting_time || 0;
             const waitTimeSeconds = Math.floor(waitTimeMs / 1000);
             const minutes = Math.floor(waitTimeSeconds / 60);
             const seconds = waitTimeSeconds % 60;
             const waitTimeFormatted = `${minutes}m ${seconds}s`;
-            
+
             let priority = 'Low';
-            if (waitTimeSeconds > 600) priority = 'High'; 
-            else if (waitTimeSeconds > 300) priority = 'Medium'; 
-            
+            if (waitTimeSeconds > 600) priority = 'High';
+            else if (waitTimeSeconds > 300) priority = 'Medium';
+
             return {
               id: chat.id,
               name: client.name || client.username || 'Unknown',
@@ -79,13 +109,13 @@ const Dashboard = () => {
               lastMessage: lastMessage,
               waitTime: waitTimeFormatted,
               wait: waitTimeFormatted,
-              topic: 'General Support', 
+              topic: 'General Support',
               priority: priority,
               avatar: null,
-              online: true 
+              online: true
             };
           });
-          
+
           setQueueData(transformedQueue);
         }
       } catch (error) {
@@ -97,7 +127,7 @@ const Dashboard = () => {
     };
 
     fetchQueueData();
-    
+
     const interval = setInterval(fetchQueueData, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -107,7 +137,7 @@ const Dashboard = () => {
       try {
         setChatsLoading(true);
         const currentUser = getCurrentUser();
-        
+
         if (!currentUser || !currentUser.id) {
           console.error('No user logged in');
           setRecentChats([]);
@@ -115,25 +145,25 @@ const Dashboard = () => {
         }
 
         const response = await getChats(currentUser.id);
-        
+
         if (response.success && response.data) {
           const transformedChats = response.data.map((chat) => {
             const client = chat.client || {};
             const lastMessage = chat.last_message || chat.messages?.[chat.messages?.length - 1]?.message_text || 'No messages yet';
-            
+
             const chatDate = new Date(chat.updated_at || chat.created_at);
             const now = new Date();
             const diffMs = now - chatDate;
             const diffMins = Math.floor(diffMs / 60000);
             const diffHours = Math.floor(diffMs / 3600000);
             const diffDays = Math.floor(diffMs / 86400000);
-            
+
             let timeAgo = '';
             if (diffMins < 1) timeAgo = 'Just now';
             else if (diffMins < 60) timeAgo = `${diffMins}m`;
             else if (diffHours < 24) timeAgo = `${diffHours}h`;
             else timeAgo = `${diffDays}d`;
-            
+
             const clientName = client.name || client.username || 'Unknown User';
             const initials = clientName
               .split(' ')
@@ -141,7 +171,7 @@ const Dashboard = () => {
               .join('')
               .toUpperCase()
               .slice(0, 2);
-            
+
             return {
               id: chat.id,
               name: clientName,
@@ -151,7 +181,7 @@ const Dashboard = () => {
               clientEmail: client.email
             };
           });
-          
+
           setRecentChats(transformedChats);
         }
       } catch (error) {
@@ -163,7 +193,7 @@ const Dashboard = () => {
     };
 
     fetchRecentChats();
-    
+
     // Refresh chats every 30 seconds
     const interval = setInterval(fetchRecentChats, 30000);
     return () => clearInterval(interval);
@@ -175,13 +205,13 @@ const Dashboard = () => {
       try {
         setStatsLoading(true);
         const currentUser = getCurrentUser();
-        
+
         // Fetch organization-wide stats
         const orgResponse = await getChatStats();
         if (orgResponse.success) {
           setOrgStats(orgResponse.data);
         }
-        
+
         // Fetch personal stats if user is logged in
         if (currentUser && currentUser.id) {
           const personalResponse = await getChatStats(currentUser.id);
@@ -197,7 +227,7 @@ const Dashboard = () => {
     };
 
     fetchStats();
-    
+
     // Refresh stats every 5 minutes
     const interval = setInterval(fetchStats, 300000);
     return () => clearInterval(interval);
@@ -232,7 +262,7 @@ const Dashboard = () => {
     return [...avail, ...busyLimited, ...away, ...others];
   }, [rawAgentStatus]);
 
-  
+
   const [agentSearch, setAgentSearch] = useState('');
   const [agentStatusFilter, setAgentStatusFilter] = useState('all');
   const [agentPage, setAgentPage] = useState(1);
@@ -388,11 +418,11 @@ const Dashboard = () => {
             <Divider sx={{ mb: 2 }} />
             <List sx={{ overflow: 'auto', flex: 1 }}>
               {chatsLoading ? (
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     height: '100%',
                     minHeight: 200
                   }}
@@ -402,12 +432,12 @@ const Dashboard = () => {
                   </Typography>
                 </Box>
               ) : recentChats.length === 0 ? (
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
+                <Box
+                  sx={{
+                    display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     height: '100%',
                     minHeight: 100,
                     textAlign: 'center',
@@ -429,7 +459,7 @@ const Dashboard = () => {
                 recentChats.map((chat, index) => {
                   const client = chat.client || {};
                   const initials = chat.avatar || '?';
-                  
+
                   return (
                     <ListItem
                       key={index}
@@ -483,11 +513,11 @@ const Dashboard = () => {
             </Box>
             <List sx={{ overflow: 'auto', flex: 1 }}>
               {queueLoading ? (
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     height: '100%',
                     minHeight: 200
                   }}
@@ -497,12 +527,12 @@ const Dashboard = () => {
                   </Typography>
                 </Box>
               ) : queueData.length === 0 ? (
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
+                <Box
+                  sx={{
+                    display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     height: '100%',
                     minHeight: 50,
                     textAlign: 'center',
@@ -525,13 +555,13 @@ const Dashboard = () => {
                   const client = chat.client || {};
                   const initials = client.name
                     ? client.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2)
+                      .split(' ')
+                      .map(n => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)
                     : '?';
-                  
+
                   return (
                     <ListItem key={index}>
                       <ListItemAvatar>
@@ -706,42 +736,42 @@ const Dashboard = () => {
               </Box>
             ) : (
               displayedAgents.map((agent, index) => (
-              <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
-                <Avatar
-                  sx={{
-                    bgcolor: '#008E86',
-                    width: 40,
-                    height: 40,
-                    mr: 2,
-                    flexShrink: 0
-                  }}
-                >
-                  {agent.avatar}
-                </Avatar>
-                <ListItemText
-                  primary={agent.name}
-                  primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                />
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box
+                <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
+                  <Avatar
                     sx={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
+                      bgcolor: '#008E86',
+                      width: 40,
+                      height: 40,
+                      mr: 2,
                       flexShrink: 0
                     }}
-                  />
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ textTransform: 'capitalize' }}
                   >
-                    {agent.status}
-                  </Typography>
-                </Box>
-              </ListItem>
-            )))}
+                    {agent.avatar}
+                  </Avatar>
+                  <ListItemText
+                    primary={agent.name}
+                    primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        bgcolor: agent.status === 'available' ? '#4caf50' : agent.status === 'busy' ? '#f44336' : agent.status === 'away' ? '#ffb300' : '#f44336',
+                        flexShrink: 0
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textTransform: 'capitalize' }}
+                    >
+                      {agent.status}
+                    </Typography>
+                  </Box>
+                </ListItem>
+              )))}
           </List>
 
           <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'center' }}>

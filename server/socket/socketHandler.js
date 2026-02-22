@@ -40,7 +40,7 @@ export const initializeSocket = (server) => {
 
     // Typing indicator (agent or client)
     socket.on('typing', ({ chatId, userName, role }) => {
-        console.log(`⌨️ Typing event: chatId=${chatId}, userName=${userName}, role=${role}`);
+      console.log(`⌨️ Typing event: chatId=${chatId}, userName=${userName}, role=${role}`);
       const room = `chat_${chatId}`;
       const roomSockets = io.sockets.adapter.rooms.get(room);
       console.log(`   📋 Room ${room} has ${roomSockets ? roomSockets.size : 0} sockets`);
@@ -133,6 +133,19 @@ export const emitNotification = (userId, notification) => {
   }
 };
 
+// Emit user status change to all connected clients
+export const emitUserStatusChange = (userData) => {
+  if (io) {
+    console.log(`👤 Broadcasting user status change: user ${userData.id} is now ${userData.status}`);
+    io.emit('user_status_changed', {
+      userId: userData.id,
+      status: userData.status,
+      name: userData.name,
+      role: userData.role
+    });
+  }
+};
+
 export default {
   initializeSocket,
   getIO,
@@ -140,5 +153,6 @@ export default {
   emitChatAssigned,
   emitChatStatusUpdate,
   emitQueueUpdate,
-  emitNotification
+  emitNotification,
+  emitUserStatusChange
 };

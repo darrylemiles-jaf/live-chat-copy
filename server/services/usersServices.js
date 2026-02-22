@@ -289,6 +289,11 @@ const updateUserStatus = async (id, status) => {
       'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
       [Number(id)]
     );
+
+    // Emit real-time status update to all connected clients
+    const { emitUserStatusChange } = await import('../socket/socketHandler.js');
+    emitUserStatusChange(rows[0]);
+
     return {
       success: true,
       message: 'User status updated successfully',
