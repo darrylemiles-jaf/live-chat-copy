@@ -32,8 +32,28 @@ export default function DashboardLayout() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user?.id && SOCKET_URL) {
-      socketService.connect(SOCKET_URL, user.id);
-      console.log('🔌 Global socket connected from DashboardLayout for user:', user.id);
+      console.log('🔌 Initializing socket connection from DashboardLayout for user:', user.id);
+      const socket = socketService.connect(SOCKET_URL, user.id);
+
+      if (socket) {
+        // Add connection status listeners for debugging
+        socket.on('connect', () => {
+          console.log('✅ DashboardLayout: Socket connected successfully');
+        });
+
+        socket.on('connect_error', (error) => {
+          console.error('❌ DashboardLayout: Socket connection error:', error.message);
+        });
+
+        socket.on('disconnect', (reason) => {
+          console.log('⚠️ DashboardLayout: Socket disconnected:', reason);
+        });
+      }
+    } else {
+      console.warn('⚠️ Cannot initialize socket: missing user ID or SOCKET_URL', {
+        userId: user?.id,
+        socketUrl: SOCKET_URL
+      });
     }
     // No disconnect on unmount — socket persists across page navigations
   }, []);

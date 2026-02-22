@@ -122,7 +122,6 @@ export default function Notification() {
   }, [fetchNotifications]);
 
   // Listen for real-time notifications via socket
-  // Socket is connected globally in DashboardLayout, but may take a moment
   useEffect(() => {
     const handleNewNotification = (notification) => {
       console.log('🔔 New notification received:', notification);
@@ -130,28 +129,34 @@ export default function Notification() {
       setUnreadCount((prev) => prev + 1);
     };
 
-    // Attach listener — socket should be available from DashboardLayout
+    const handleSocketConnect = () => {
+      console.log('🔔 Socket connected, attaching notification listener');
+      const socket = socketService.socket;
+      if (socket) {
+        socket.off('new_notification', handleNewNotification);
+        socket.on('new_notification', handleNewNotification);
+      }
+    };
+
+    // Attach listener if socket is already available and connected
     const socket = socketService.socket;
     if (socket) {
-      socket.off('new_notification', handleNewNotification);
-      socket.on('new_notification', handleNewNotification);
-      console.log('🔔 Notification listener attached');
+      if (socket.connected) {
+        console.log('🔔 Socket already connected, attaching notification listener');
+        socket.off('new_notification', handleNewNotification);
+        socket.on('new_notification', handleNewNotification);
+      }
+      // Also listen for reconnection events
+      socket.off('connect', handleSocketConnect);
+      socket.on('connect', handleSocketConnect);
     }
 
-    // Also poll in case socket wasn't ready yet on first render
-    const interval = setInterval(() => {
-      const s = socketService.socket;
-      if (s) {
-        s.off('new_notification', handleNewNotification);
-        s.on('new_notification', handleNewNotification);
-      }
-    }, 3000);
-
+    // Cleanup
     return () => {
-      clearInterval(interval);
       const s = socketService.socket;
       if (s) {
         s.off('new_notification', handleNewNotification);
+        s.off('connect', handleSocketConnect);
       }
     };
   }, []);
