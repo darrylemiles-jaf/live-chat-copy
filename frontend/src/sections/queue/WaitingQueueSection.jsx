@@ -109,7 +109,6 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                   }}
                 >
                   <Avatar
-                    src={item.avatar}
                     sx={{
                       width: 40,
                       height: 40,

@@ -71,7 +71,6 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
             }}
           >
             <Avatar
-              src={selected?.avatar}
               sx={{
                 width: 48,
                 height: 48,

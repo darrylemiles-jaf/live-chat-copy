@@ -637,6 +637,7 @@ const Chats = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to end this conversation? This action cannot be undone.
+            Your status will also be set to "Available".
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
