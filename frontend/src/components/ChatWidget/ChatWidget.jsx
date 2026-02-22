@@ -545,17 +545,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               </div>
               <form className="chat-register-form" onSubmit={handleRegister}>
                 <div className="chat-field-group">
-                  <label className="chat-field-label">Full name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Juan dela Cruz"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    required
-                    className="chat-input-field"
-                  />
-                </div>
-                <div className="chat-field-group">
                   <label className="chat-field-label">Email address</label>
                   <input
                     type="email"
