@@ -23,6 +23,7 @@ import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
 import { useGetUsers } from '../../../api/users';
+import socketService from '../../../services/socketService';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -57,7 +58,46 @@ const SupportAgents = () => {
     }
   }, [users]);
 
-  const handleEditClick = () => {
+  // Real-time status updates via socket
+  useEffect(() => {
+    let attached = false;
+
+    const handler = (data) => {
+      // data: { userId, status, name, role }
+      const normalized = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+
+      setAgents((prev) =>
+        prev.map((agent) =>
+          agent.id === data.userId ? { ...agent, status: normalized } : agent
+        )
+      );
+
+      // Also update detail modal if it's open for this agent
+      setSelectedAgent((prev) =>
+        prev && prev.id === data.userId ? { ...prev, status: normalized } : prev
+      );
+    };
+
+    const tryAttach = () => {
+      const s = socketService.socket;
+      if (s && !attached) {
+        s.on('user_status_changed', handler);
+        attached = true;
+      }
+    };
+
+    tryAttach();
+    const retry = setInterval(() => {
+      if (attached) { clearInterval(retry); return; }
+      tryAttach();
+    }, 500);
+
+    return () => {
+      clearInterval(retry);
+      const s = socketService.socket;
+      if (s && attached) s.off('user_status_changed', handler);
+    };
+  }, []);
     setFormData(selectedAgent);
     setOpenViewModal(false);
     setOpenEditModal(true);

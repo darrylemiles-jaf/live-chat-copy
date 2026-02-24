@@ -1,6 +1,22 @@
 import pool from "../config/db.js";
-import { emitChatAssigned, emitQueueUpdate, emitChatStatusUpdate } from "../socket/socketHandler.js";
+import { emitChatAssigned, emitQueueUpdate, emitChatStatusUpdate, emitQueuePositionUpdate } from "../socket/socketHandler.js";
 import notificationServices from "./notificationServices.js";
+
+// Notify all remaining queued clients of their new queue position
+const notifyQueuePositionUpdates = async () => {
+  try {
+    const [remainingQueue] = await pool.query(
+      `SELECT id, client_id FROM chats
+       WHERE agent_id IS NULL AND status = 'queued'
+       ORDER BY created_at ASC`
+    );
+    remainingQueue.forEach((chat, index) => {
+      emitQueuePositionUpdate(chat.client_id, index + 1);
+    });
+  } catch (error) {
+    console.error('⚠️ Failed to notify queue position updates:', error.message);
+  }
+};
 
 // Auto-assign chat to an available agent
 const autoAssignChat = async (chat_id) => {
@@ -57,6 +73,9 @@ const autoAssignChat = async (chat_id) => {
 
     // Emit status update to chat room
     emitChatStatusUpdate(chat_id, 'active');
+
+    // Notify remaining queued clients of their updated position
+    await notifyQueuePositionUpdates();
 
     // Create notification for chat assignment
     try {
@@ -125,6 +144,9 @@ const manualAssignChat = async (chat_id, agent_id) => {
 
     // Emit status update to chat room
     emitChatStatusUpdate(chat_id, 'active');
+
+    // Notify remaining queued clients of their updated position
+    await notifyQueuePositionUpdates();
 
     // Create notification for manual assignment
     try {

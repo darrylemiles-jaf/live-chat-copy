@@ -39,8 +39,8 @@ export default function ProfileTab() {
     setModalOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
   };
 
   const userData = {

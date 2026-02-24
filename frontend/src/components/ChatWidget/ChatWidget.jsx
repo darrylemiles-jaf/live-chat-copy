@@ -20,6 +20,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [filePreview, setFilePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
+  const [queuePosition, setQueuePosition] = useState(null);
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -124,9 +125,35 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     socketRef.current.on('chat_status_update', ({ chatId: updatedChatId, status }) => {
       console.log('🔄 Widget received chat status update:', { chatId: updatedChatId, status });
-      if (updatedChatId === chatIdRef.current && status === 'ended') {
-        setIsChatEnded(true);
+      if (updatedChatId === chatIdRef.current) {
+        if (status === 'ended') {
+          setIsChatEnded(true);
+        } else if (status === 'active') {
+          // Chat was assigned to an agent — clear queue position
+          setQueuePosition(null);
+        }
       }
+    });
+
+    socketRef.current.on('queue_position_update', ({ position }) => {
+      console.log('🔢 Widget received queue position update:', position);
+      setQueuePosition(prev => {
+        // Only show update message when position actually changed (not on initial set)
+        if (prev !== null && prev !== position) {
+          const posLabel = position === 1 ? '1st' : position === 2 ? '2nd' : position === 3 ? '3rd' : `${position}th`;
+          setMessages(msgs => [
+            ...msgs,
+            {
+              id: `queue-update-${Date.now()}`,
+              sender_role: 'bot',
+              message: `Queue update: You are now #${position} in line (${posLabel} in queue). We appreciate your patience! 🙏`,
+              created_at: new Date().toISOString(),
+              isAutoReply: true
+            }
+          ]);
+        }
+        return position;
+      });
     });
 
     return () => {
@@ -273,6 +300,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible. Please hold on!\n\n— This is an automated message`
             : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
 
+          if (data.is_queued && data.queue_position) {
+            setQueuePosition(data.queue_position);
+          }
+
           setTimeout(() => {
             setMessages(prev => [
               ...prev,
@@ -386,6 +417,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible.\n\n— This is an automated message`
             : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
 
+          if (data.is_queued && data.queue_position) {
+            setQueuePosition(data.queue_position);
+          }
+
           setTimeout(() => {
             setMessages(prev => [
               ...prev,
@@ -475,6 +510,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setChatId(null);
     setMessages([]);
     setIsChatEnded(false);
+    setQueuePosition(null);
   };
 
   const formatTime = (timestamp) => {
