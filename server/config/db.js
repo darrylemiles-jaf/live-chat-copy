@@ -4,20 +4,41 @@ import { colours } from '../constants/constants.js';
 
 dotenv.config();
 
-const pool = mysql.createPool({
-  host: process.env.NODE_ENV === 'development' ? process.env.DB_HOST_LOCAL : process.env.DB_HOST,
-  user: process.env.NODE_ENV === 'development' ? process.env.DB_USER_LOCAL : process.env.DB_USER,
-  password: process.env.NODE_ENV === 'development' ? process.env.DB_PASSWORD_LOCAL : process.env.DB_PASSWORD,
-  database: process.env.NODE_ENV === 'development' ? process.env.DB_NAME_LOCAL : process.env.DB_NAME,
+const isDev = process.env.NODE_ENV === 'development';
+
+const dbConfig = {
+  host: isDev ? process.env.DB_HOST_LOCAL : process.env.DB_HOST,
+  user: isDev ? process.env.DB_USER_LOCAL : process.env.DB_USER,
+  password: isDev ? process.env.DB_PASSWORD_LOCAL : process.env.DB_PASSWORD,
+  database: isDev ? process.env.DB_NAME_LOCAL : process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-}).promise();
+};
+
+// Ensure the database exists before creating the pool
+const ensureDatabase = async () => {
+  const { database, ...configWithoutDb } = dbConfig;
+
+  // Connect without a database selected
+  const tempConn = mysql.createConnection(configWithoutDb).promise();
+  try {
+    await tempConn.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
+    console.log(colours.fg.blue, `✅ Database "${database}" is ready (created if not existed)`, colours.reset);
+  } finally {
+    await tempConn.end();
+  }
+};
+
+// Run once at startup — top-level await works because server.js is an ES module
+await ensureDatabase();
+
+const pool = mysql.createPool(dbConfig).promise();
 
 (async () => {
   try {
     await pool.getConnection();
-    console.log(colours.fg.blue, `Successfully connected to the MySQL database: ${process.env.NODE_ENV === 'development' ? process.env.DB_NAME_LOCAL : process.env.DB_NAME}`);
+    console.log(colours.fg.blue, `Successfully connected to the MySQL database: ${dbConfig.database}`);
   } catch (error) {
     if (error.code === 'ER_ACCESS_DENIED_ERROR') {
       console.error(colours.fg.red, 'Invalid MySQL credentials. Please check your username and password.');
