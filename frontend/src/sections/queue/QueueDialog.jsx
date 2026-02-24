@@ -1,6 +1,8 @@
 import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Stack, Box, Badge, Avatar } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette, withAlpha, getAvatarBg, getInitials }) => {
+  const navigate = useNavigate();
   return (
     <Dialog
       open={open}
@@ -43,6 +45,7 @@ const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette,
                   onClick={() => {
                     onSelect?.(item.id);
                     onClose?.();
+                    navigate('/portal/queue', { state: { queueId: item.id } });
                   }}
                   sx={{
                     display: 'flex',
