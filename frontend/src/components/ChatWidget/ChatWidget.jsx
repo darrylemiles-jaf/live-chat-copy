@@ -411,18 +411,23 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Check if user info exists in localStorage
+  // Auto-load user info from localStorage (from main app login)
   useEffect(() => {
     const savedUser = localStorage.getItem('chat_widget_user');
     if (savedUser) {
-      const user = JSON.parse(savedUser);
-      console.log('Loaded user from localStorage:', user);
-      setUserId(user.id);
-      setUserName(user.name);
-      setUserEmail(user.email);
-      setIsRegistered(true);
+      try {
+        const user = JSON.parse(savedUser);
+        console.log('Auto-loading user from localStorage:', user);
+        setUserId(user.id);
+        setUserName(user.name || user.email.split('@')[0]);
+        setUserEmail(user.email);
+        setIsRegistered(true);
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('chat_widget_user');
+      }
     } else {
-      console.log('No saved user found in localStorage');
+      console.log('No saved user found - user needs to login first');
     }
   }, []);
 
