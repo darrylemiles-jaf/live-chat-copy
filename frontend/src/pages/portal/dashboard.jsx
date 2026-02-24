@@ -489,7 +489,7 @@ const Dashboard = () => {
                   return (
                     <ListItem
                       key={index}
-                      onClick={() => navigate('/portal/chats')}
+                      onClick={() => navigate('/portal/chats', { state: { chatId: chat.id } })}
                       sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                     >
                       <ListItemAvatar>
