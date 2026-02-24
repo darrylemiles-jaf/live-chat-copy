@@ -344,7 +344,7 @@
         const data = await response.json();
 
         // Check both HTTP status AND API success flag
-        if (response.ok && response.status === 200 && data.success) {
+        if (response.ok && data.success) {
           // Store user credentials in localStorage for the chat widget
           localStorage.setItem('chat_widget_user', JSON.stringify({
             id: data.data.id,
