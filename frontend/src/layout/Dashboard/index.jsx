@@ -17,6 +17,8 @@ import { getCurrentUser } from 'utils/auth';
 import socketService from 'services/socketService';
 import { SOCKET_URL } from 'constants/constants';
 import useStatusSync from 'hooks/useStatusSync';
+import useAutoLogout from 'hooks/useAutoLogout';
+import AutoLogoutModal from 'components/AutoLogoutModal';
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
@@ -26,6 +28,9 @@ export default function DashboardLayout() {
 
   // Automatically sync user status and handle logout
   useStatusSync();
+
+  // Auto-logout after 1 minute of inactivity
+  const { modalOpen: autoLogoutOpen, countdown, handleStayLoggedIn } = useAutoLogout();
 
   // set media wise responsive drawer
   useEffect(() => {
@@ -83,6 +88,11 @@ export default function DashboardLayout() {
           <Breadcrumbs />
           <Outlet />
           <Footer />
+          <AutoLogoutModal
+            open={autoLogoutOpen}
+            countdown={countdown}
+            onStayLoggedIn={handleStayLoggedIn}
+          />
         </Box>
       </Box>
     </Box>
