@@ -167,9 +167,13 @@ const Notifications = () => {
     }
   };
 
-  const handleGoToChat = (chatId) => {
-    if (chatId) {
-      navigate('/portal/chats');
+  const handleGoToChat = (notification) => {
+    if (notification?.chat_id) {
+      if (notification.type === 'queue_new') {
+        navigate('/portal/queue', { state: { queueId: notification.chat_id } });
+      } else {
+        navigate('/portal/chats', { state: { chatId: notification.chat_id } });
+      }
     }
     handleCloseModal();
   };
@@ -678,7 +682,7 @@ const Notifications = () => {
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, marginTop: 2, paddingTop: 2, borderTop: '1px solid #E6EBEE' }}>
               {selectedNotification.chat_id && (
                 <button
-                  onClick={() => handleGoToChat(selectedNotification.chat_id)}
+                  onClick={() => handleGoToChat(selectedNotification)}
                   style={{
                     padding: '9px 20px',
                     backgroundColor: '#008E86',
@@ -690,7 +694,7 @@ const Notifications = () => {
                     fontWeight: 600
                   }}
                 >
-                  Go to Chat
+                  {selectedNotification.type === 'queue_new' ? 'Go to Queue' : 'Go to Chat'}
                 </button>
               )}
               <button

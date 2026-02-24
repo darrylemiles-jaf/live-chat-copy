@@ -46,6 +46,7 @@ const createMessage = async (payload) => {
     let usedChatId = chat_id;
     let newlyAssignedAgentId = null;
     let isQueued = false;
+    let isNewChat = false;
     let queuePosition = null;
 
     const sender = await pool.query(`SELECT role FROM users WHERE id = ?`, [sender_id])
@@ -66,6 +67,7 @@ const createMessage = async (payload) => {
             [sender_id]
           );
           usedChatId = chatResult.insertId;
+          isNewChat = true;
 
           // Find available agent with least active chats (load balancing)
           const [availableAgents] = await pool.query(
@@ -159,7 +161,7 @@ const createMessage = async (payload) => {
     const notifyAgentId = sender_role === 'client' ? chatAgentId : null;
     emitNewMessage(usedChatId, newMessage[0], notifyAgentId);
 
-    // Create notification for the agent when a client sends a message
+    // Notify assigned agent of new message from client
     if (sender_role === 'client' && chatAgentId) {
       const senderName = newMessage[0].sender_name || 'A client';
       const msgPreview = message ? (message.length > 50 ? message.substring(0, 50) + '...' : message) : 'sent an attachment';
@@ -206,6 +208,32 @@ const createMessage = async (payload) => {
     } else if (isQueued) {
       // New chat in queue with no agent — notify all portal users so their list refreshes
       emitQueueUpdate({ action: 'new_chat_queued', chatId: usedChatId });
+    }
+
+    // Notify ALL support/admin users whenever a brand-new chat is created
+    if (isNewChat) {
+      try {
+        const [clientRows] = await pool.query(
+          `SELECT u.name FROM chats c JOIN users u ON c.client_id = u.id WHERE c.id = ?`,
+          [usedChatId]
+        );
+        const clientName = clientRows[0]?.name || 'A customer';
+        const [allAgents] = await pool.query(
+          `SELECT id FROM users WHERE role IN ('support', 'admin')`
+        );
+        for (const agent of allAgents) {
+          await notificationServices.createNotification({
+            user_id: agent.id,
+            type: 'queue_new',
+            message: `${clientName} has joined the queue`,
+            chat_id: usedChatId,
+            reference_id: usedChatId
+          });
+        }
+        console.log(`🔔 Notified ${allAgents.length} agents: ${clientName} joined queue (chat #${usedChatId})`);
+      } catch (e) {
+        console.error('Failed to create new-chat notifications:', e.message);
+      }
     }
 
     return {

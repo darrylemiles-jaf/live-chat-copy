@@ -31,6 +31,7 @@ import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import UserAddOutlined from '@ant-design/icons/UserAddOutlined';
 import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -70,11 +71,13 @@ const formatTimeAgo = (dateStr) => {
 const getNotificationStyle = (type) => {
   switch (type) {
     case 'new_message':
-      return { icon: <MessageOutlined />, color: 'primary.main', bgcolor: 'primary.lighter' };
+      return { icon: <MessageOutlined />, color: 'primary.main', bgcolor: 'primary.lighter', label: 'New Message' };
     case 'chat_assigned':
-      return { icon: <UserAddOutlined />, color: 'success.main', bgcolor: 'success.lighter' };
+      return { icon: <UserAddOutlined />, color: 'success.main', bgcolor: 'success.lighter', label: 'Chat Assigned' };
+    case 'queue_new':
+      return { icon: <ClockCircleOutlined />, color: 'warning.main', bgcolor: 'warning.lighter', label: 'New in Queue' };
     default:
-      return { icon: <InfoCircleOutlined />, color: 'warning.main', bgcolor: 'warning.lighter' };
+      return { icon: <InfoCircleOutlined />, color: 'warning.main', bgcolor: 'warning.lighter', label: 'Notification' };
   }
 };
 
@@ -129,35 +132,25 @@ export default function Notification() {
       setUnreadCount((prev) => prev + 1);
     };
 
-    const handleSocketConnect = () => {
-      console.log('🔔 Socket connected, attaching notification listener');
-      const socket = socketService.socket;
-      if (socket) {
-        socket.off('new_notification', handleNewNotification);
-        socket.on('new_notification', handleNewNotification);
+    let attached = false;
+    const tryAttach = () => {
+      const s = socketService.socket;
+      if (s && !attached) {
+        s.on('new_notification', handleNewNotification);
+        attached = true;
+        console.log('🔔 Notification socket listener attached');
       }
     };
+    tryAttach();
+    const retry = setInterval(() => {
+      if (attached) { clearInterval(retry); return; }
+      tryAttach();
+    }, 500);
 
-    // Attach listener if socket is already available and connected
-    const socket = socketService.socket;
-    if (socket) {
-      if (socket.connected) {
-        console.log('🔔 Socket already connected, attaching notification listener');
-        socket.off('new_notification', handleNewNotification);
-        socket.on('new_notification', handleNewNotification);
-      }
-      // Also listen for reconnection events
-      socket.off('connect', handleSocketConnect);
-      socket.on('connect', handleSocketConnect);
-    }
-
-    // Cleanup
     return () => {
+      clearInterval(retry);
       const s = socketService.socket;
-      if (s) {
-        s.off('new_notification', handleNewNotification);
-        s.off('connect', handleSocketConnect);
-      }
+      if (s && attached) s.off('new_notification', handleNewNotification);
     };
   }, []);
 
@@ -199,7 +192,11 @@ export default function Notification() {
 
     // Navigate to the chat if chat_id is present
     if (notification.chat_id) {
-      navigate('/portal/chats');
+      if (notification.type === 'queue_new') {
+        navigate('/portal/queue', { state: { queueId: notification.chat_id } });
+      } else {
+        navigate('/portal/chats', { state: { chatId: notification.chat_id } });
+      }
       setOpen(false);
     }
   };
@@ -306,8 +303,7 @@ export default function Notification() {
                           <ListItemText
                             primary={
                               <Typography variant="h6" sx={{ fontWeight: notification.is_read ? 400 : 600 }}>
-                                {notification.type === 'new_message' ? 'New Message' :
-                                  notification.type === 'chat_assigned' ? 'Chat Assigned' : 'Notification'}
+                                {style.label}
                               </Typography>
                             }
                             secondary={
