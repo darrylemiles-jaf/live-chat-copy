@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
+import { API_URL } from '../constants/constants';
 
 const AUTH_STORAGE_KEY = 'user';
 const TOKEN_STORAGE_KEY = 'authToken';
@@ -39,10 +39,35 @@ export function useAuth() {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     try {
+      // Set user status to 'away' before clearing session
+      const token = localStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem('serviceToken');
+      const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const userId = parsedUser?.id;
+
+      if (userId && token) {
+        const apiVer = import.meta.env.VITE_API_VER;
+        try {
+          await fetch(`${API_URL}/api/${apiVer}/users/${userId}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: 'away' }),
+            keepalive: true
+          });
+          console.log('✅ User status set to away on logout');
+        } catch (err) {
+          console.error('Failed to set away status on logout:', err);
+        }
+      }
+
       localStorage.removeItem(AUTH_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem('serviceToken');
       setUser(null);
       setIsLoggedIn(false);
 

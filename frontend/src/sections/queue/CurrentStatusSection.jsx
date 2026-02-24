@@ -26,9 +26,6 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
       <Typography variant="subtitle1" color='#000' sx={{ fontWeight: 600 }}>
         Current Status
       </Typography>
-      <IconButton size="small" sx={{ color: '#000000' }}>
-        <DotsHorizontal />
-      </IconButton>
     </Box>
 
     <Box

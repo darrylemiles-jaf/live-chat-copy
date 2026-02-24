@@ -54,9 +54,6 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
           badgeContent={queue.length}
         />
       </Stack>
-      <IconButton size="small" sx={{ color: '#000000' }}>
-        <DotsHorizontal />
-      </IconButton>
     </Box>
 
     <Stack spacing={1} sx={{ px: 2, py: 1.5, flex: 1 }}>
@@ -70,8 +67,9 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
           </Typography>
         </Box>
       ) : (
-        queue.map((item) => {
+        queue.map((item, index) => {
           const isSelected = item.id === selectedId;
+          const position = index + 1;
           return (
             <Box
               key={item.id}
@@ -94,6 +92,36 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
               }}
             >
               <Stack direction="row" spacing={1.5} alignItems="center">
+                {/* Queue position number */}
+                <Box
+                  sx={{
+                    minWidth: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: position === 1
+                      ? palette.error.main
+                      : position === 2
+                        ? palette.warning.main
+                        : withAlpha(palette.text.secondary, 0.15),
+                    flexShrink: 0
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                      color: position <= 2 ? '#fff' : palette.text.secondary,
+                      lineHeight: 1
+                    }}
+                  >
+                    {position}
+                  </Typography>
+                </Box>
+
                 <Badge
                   overlap="circular"
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}

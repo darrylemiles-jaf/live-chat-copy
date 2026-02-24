@@ -34,9 +34,6 @@ const HistoryQueueSection = ({ palette, history = [] }) => (
       <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#000' }}>
         History
       </Typography>
-      <IconButton size="small" sx={{ color: '#000' }}>
-        <DotsHorizontal />
-      </IconButton>
     </Box>
 
     {/* Column labels */}
