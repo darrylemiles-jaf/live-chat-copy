@@ -1130,11 +1130,11 @@
         } catch (error) {
           console.error('Error loading user info:', error);
           // Redirect to login if no valid user
-          window.location.href = 'login.html';
+          window.location.href = 'loginFake.html';
         }
       } else {
         // No user found, redirect to login
-        window.location.href = 'login.html';
+        window.location.href = 'loginFake.html';
       }
     }
 
@@ -1161,7 +1161,7 @@
       console.log('User logged out - localStorage cleared');
 
       // Redirect to login page
-      window.location.href = 'login.html';
+      window.location.href = 'loginFake.html';
     });
 
     // Load user info on page load

@@ -343,7 +343,8 @@
 
         const data = await response.json();
 
-        if (response.ok && response.status === 200) {
+        // Check both HTTP status AND API success flag
+        if (response.ok && response.status === 200 && data.success) {
           // Store user credentials in localStorage for the chat widget
           localStorage.setItem('chat_widget_user', JSON.stringify({
             id: data.data.id,
@@ -356,7 +357,7 @@
           // Success - redirect to fake dashboard
           window.location.href = 'fake-dashboard.html';
         } else {
-          // Login failed
+          // Login failed - check for error message in response
           const errorMsg = data.message || data.error || 'Invalid email or password';
           showError(errorMsg);
           setLoading(false);
