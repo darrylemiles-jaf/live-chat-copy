@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { customGreen, customGold, customRed } from "../../../themes/palette";
-import {  Button,
+import {
+  Button,
   Box,
   Typography,
   FormControl,
@@ -35,11 +36,11 @@ const SupportAgents = () => {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
   const [agents, setAgents] = useState([]);
-  
-  
+
+
   const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
-  
-  
+
+
   useEffect(() => {
     if (users && users.length > 0) {
       const transformedAgents = users.map(user => ({
@@ -117,7 +118,7 @@ const SupportAgents = () => {
       case 'Away':
         return { label: 'Away', color: '#ffb300' };
       case 'Busy':
-        return { label: 'Busy', color: '#f44336' };      
+        return { label: 'Busy', color: '#f44336' };
       default:
         return { label: status || 'Unknown', color: '#9e9e9e' };
     }
@@ -149,8 +150,8 @@ const SupportAgents = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography  
-                sx={{ 
+              <Typography
+                sx={{
                   fontWeight: 600,
                   cursor: 'pointer',
                   '&:hover': {
@@ -316,7 +317,7 @@ const SupportAgents = () => {
   return (
     <React.Fragment>
       <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
-      
+
       <ReusableTable
         columns={columns}
         rows={filteredRowsForTable}
@@ -326,9 +327,9 @@ const SupportAgents = () => {
           orderBy: '__originalOrder',
           order: 'asc',
           otherActionButton: (
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 1, 
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
               alignItems: { xs: 'stretch', sm: 'center' },
               flexDirection: { xs: 'column', sm: 'row' },
               width: { xs: '100%', sm: 'auto' }
@@ -351,22 +352,13 @@ const SupportAgents = () => {
                   <MenuItem value="Away">Away</MenuItem>
                 </Select>
               </FormControl>
-              <Button 
-                variant="outlined" 
-                color="inherit" 
+              <Button
+                variant="outlined"
                 onClick={() => { setFilterRole(''); setFilterStatus(''); }}
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
+                size='small'
               >
                 Clear
-              </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                startIcon={<PlusOutlined />} 
-                onClick={handleCreateClick}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                Add Agent
               </Button>
             </Box>
           )
@@ -423,8 +415,8 @@ const SupportAgents = () => {
           <Button onClick={handleCloseEditModal} color="inherit">
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             variant="contained"
             sx={{
               bgcolor: customGold[5],
@@ -483,8 +475,8 @@ const SupportAgents = () => {
           <Button onClick={handleCloseCreateModal} color="inherit">
             Cancel
           </Button>
-          <Button 
-            onClick={handleCreate} 
+          <Button
+            onClick={handleCreate}
             variant="contained"
             startIcon={<PlusOutlined />}
             sx={{
