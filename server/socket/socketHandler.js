@@ -125,6 +125,14 @@ export const emitQueueUpdate = (queueData) => {
   }
 };
 
+// Emit queue position update to a specific queued client
+export const emitQueuePositionUpdate = (clientId, newPosition) => {
+  if (io) {
+    console.log(`📤 Emitting queue position update to client ${clientId}: now position ${newPosition}`);
+    io.to(`user_${clientId}`).emit('queue_position_update', { position: newPosition });
+  }
+};
+
 // Emit notification to a specific user
 export const emitNotification = (userId, notification) => {
   if (io) {
@@ -153,6 +161,7 @@ export default {
   emitChatAssigned,
   emitChatStatusUpdate,
   emitQueueUpdate,
+  emitQueuePositionUpdate,
   emitNotification,
   emitUserStatusChange
 };
