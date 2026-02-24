@@ -1,148 +1,183 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import { getCurrentUser } from 'utils/auth';
 import Users from 'api/users';
 import socketService from 'services/socketService';
 import { API_URL } from 'constants/constants';
 
-/**
- * Hook to automatically set user status to 'away' when:
- * - User logs out
- * - User closes the browser tab/window
- * - User navigates away from the app
- * - Page visibility changes (tab switch)
- */
+const INACTIVITY_MS = 60_000; // 1 minute â†’ away
+
 const useStatusSync = () => {
-  const hasSetAwayRef = useRef(false);
-  const lastStatusRef = useRef(null);
+  const timerRef = useRef(null);
+  const currentStatusRef = useRef(null);  // null forces the first API call
+  const isAwayFromIdleRef = useRef(false);
+  const manualOverrideRef = useRef(false);
+  const beaconSentRef = useRef(false);
 
-  const setUserAway = async () => {
-    if (hasSetAwayRef.current) return; // Prevent duplicate calls
-
+  useEffect(() => {
     const user = getCurrentUser();
     if (!user?.id) return;
 
-    try {
-      hasSetAwayRef.current = true;
-      console.log('🔄 Setting user status to away (logout/close detected)');
+    // â”€â”€ persist status to localStorage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const persist = (status) => {
+      try {
+        const stored = localStorage.getItem('user');
+        if (stored) localStorage.setItem('user', JSON.stringify({ ...JSON.parse(stored), status }));
+      } catch { /* ignore */ }
+    };
 
-      // Use sendBeacon for reliable delivery even when page is closing
+    // â”€â”€ call API to change status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const applyStatus = async (status) => {
+      if (currentStatusRef.current === status) return;
+      console.log(`ðŸ”„ [StatusSync] â†’ ${status}`);
+      try {
+        const res = await Users.updateUserStatus(user.id, status);
+        if (res?.success) {
+          currentStatusRef.current = status;
+          persist(status);
+        }
+      } catch (e) {
+        console.error('[StatusSync] API error:', e.message);
+      }
+    };
+
+    // â”€â”€ fetch server status; set available unless server says busy â”€â”€â”€â”€
+    const applyActiveStatus = async () => {
+      try {
+        const res = await Users.getSingleUser(user.id);
+        if (res?.success && res.data?.status === 'busy') {
+          currentStatusRef.current = 'busy';
+          persist('busy');
+        } else {
+          await applyStatus('available');
+        }
+      } catch {
+        await applyStatus('available');
+      }
+    };
+
+    // â”€â”€ inactivity timer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const resetTimer = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (manualOverrideRef.current) return;
+      timerRef.current = setTimeout(async () => {
+        if (manualOverrideRef.current) return;
+        if (document.visibilityState !== 'visible') return;
+        console.log('â±ï¸ [StatusSync] idle 1 min â†’ away');
+        isAwayFromIdleRef.current = true;
+        await applyStatus('away');
+      }, INACTIVITY_MS);
+    };
+
+    // â”€â”€ activity (restore from idle-away on first interaction) â”€â”€â”€â”€â”€â”€â”€â”€
+    const onActivity = async () => {
+      if (isAwayFromIdleRef.current && !manualOverrideRef.current) {
+        isAwayFromIdleRef.current = false;
+        await applyActiveStatus();
+      }
+      resetTimer();
+    };
+
+    // â”€â”€ tab visibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const onVisibility = async () => {
+      if (document.visibilityState === 'hidden') {
+        manualOverrideRef.current = false;
+        isAwayFromIdleRef.current = true;
+        await applyStatus('away');
+        console.log('ðŸ“µ [StatusSync] tab hidden â†’ away');
+      } else {
+        beaconSentRef.current = false;
+        if (!manualOverrideRef.current) {
+          isAwayFromIdleRef.current = false;
+          await applyActiveStatus();
+        }
+        resetTimer();
+        console.log('ðŸ‘ï¸ [StatusSync] tab visible â†’ active');
+      }
+    };
+
+    // â”€â”€ page close â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const sendAwayBeacon = () => {
+      if (beaconSentRef.current) return;
+      beaconSentRef.current = true;
       const apiUrl = `${API_URL}/api/${import.meta.env.VITE_API_VER}/users/${user.id}/status`;
       const token = localStorage.getItem('serviceToken');
-
-      const data = JSON.stringify({ status: 'away' });
-      const blob = new Blob([data], { type: 'application/json' });
-
-      // Try sendBeacon first (works during page unload)
-      const beaconSent = navigator.sendBeacon
-        ? navigator.sendBeacon(apiUrl, blob)
-        : false;
-
-      if (!beaconSent) {
-        // Fallback to synchronous fetch if sendBeacon not available or fails
-        await fetch(apiUrl, {
+      const body = JSON.stringify({ status: 'away' });
+      const blob = new Blob([body], { type: 'application/json' });
+      if (!navigator.sendBeacon?.(apiUrl, blob)) {
+        fetch(apiUrl, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: data,
-          keepalive: true // Keep request alive during page unload
-        });
-      }
-    } catch (error) {
-      console.error('Failed to set user away on logout:', error);
-    }
-  };
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (!user?.id) return;
-
-    // Handle page visibility changes (tab switching)
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'hidden') {
-        lastStatusRef.current = 'away';
-        try {
-          await Users.updateUserStatus(user.id, 'away');
-          console.log('📵 Tab hidden: status set to away');
-        } catch (error) {
-          console.error('Failed to set away on visibility change:', error);
-        }
-      } else if (document.visibilityState === 'visible') {
-        // Optionally restore last active status when tab becomes visible again
-        // For now, we'll let the user manually change it back if needed
-        console.log('👁️ Tab visible again');
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body, keepalive: true
+        }).catch(() => {});
       }
     };
 
-    // Handle before page unload (closing tab/window, navigating away)
-    const handleBeforeUnload = (e) => {
-      setUserAway();
-      // Note: Modern browsers ignore custom messages in beforeunload
-    };
-
-    // Handle page unload/pagehide (backup for beforeunload)
-    const handleUnload = () => {
-      setUserAway();
-    };
-
-    // Override logout function to set status to away
-    const originalLogout = window.logout;
-    window.logout = () => {
-      setUserAway();
-      if (originalLogout) originalLogout();
-    };
-
-    // Add event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handleUnload);
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handleUnload);
-      window.logout = originalLogout;
-    };
-  }, []);
-
-  // Listen for real-time status updates from other sessions
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (!user?.id) return;
-
-    const handleStatusUpdate = (data) => {
-      // If this status update is for the current user from another session
-      if (data.userId === user.id) {
-        console.log('📡 Received status update for current user from another session:', data.status);
-        // Update local storage or state if needed
-        try {
-          const stored = localStorage.getItem('user');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            localStorage.setItem('user', JSON.stringify({ ...parsed, status: data.status }));
-          }
-        } catch (e) {
-          console.error('Failed to update local user status:', e);
-        }
+    // â”€â”€ socket: sync when server changes status (chat assign/end) â”€â”€â”€â”€â”€
+    const handleSocketStatus = (data) => {
+      if (data.userId !== user.id) return;
+      console.log(`ðŸ“¡ [StatusSync] socket â†’ ${data.status}`);
+      currentStatusRef.current = data.status;
+      persist(data.status);
+      if (data.status !== 'away') {
+        manualOverrideRef.current = false;
+        isAwayFromIdleRef.current = false;
+        resetTimer();
       }
     };
 
-    const socket = socketService.socket;
-    if (socket) {
-      socket.on('user_status_changed', handleStatusUpdate);
-    }
-
-    return () => {
+    // Socket may not be ready yet â€” retry until attached
+    let socketAttached = false;
+    const attachSocket = () => {
       const s = socketService.socket;
-      if (s) {
-        s.off('user_status_changed', handleStatusUpdate);
+      if (s && !socketAttached) {
+        s.on('user_status_changed', handleSocketStatus);
+        socketAttached = true;
       }
+    };
+    attachSocket();
+    const socketRetry = setInterval(() => { if (socketAttached) { clearInterval(socketRetry); return; } attachSocket(); }, 500);
+
+    // â”€â”€ manual override from Settings drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const onManualOverride = () => {
+      manualOverrideRef.current = true;
+      isAwayFromIdleRef.current = false;
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+      try {
+        const stored = localStorage.getItem('user');
+        if (stored) currentStatusRef.current = JSON.parse(stored).status || currentStatusRef.current;
+      } catch { /* ignore */ }
+    };
+
+    // â”€â”€ override window.logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const origLogout = window.logout;
+    window.logout = () => { sendAwayBeacon(); if (origLogout) origLogout(); };
+
+    // â”€â”€ attach all listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    EVENTS.forEach(e => document.addEventListener(e, onActivity, { passive: true }));
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('beforeunload', sendAwayBeacon);
+    window.addEventListener('pagehide', sendAwayBeacon);
+    window.addEventListener('manual_status_override', onManualOverride);
+
+    // On mount: sync DB status, then start idle timer
+    applyActiveStatus().then(() => resetTimer());
+
+    return () => {
+      EVENTS.forEach(e => document.removeEventListener(e, onActivity));
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', sendAwayBeacon);
+      window.removeEventListener('pagehide', sendAwayBeacon);
+      window.removeEventListener('manual_status_override', onManualOverride);
+      clearInterval(socketRetry);
+      const s = socketService.socket;
+      if (s && socketAttached) s.off('user_status_changed', handleSocketStatus);
+      window.logout = origLogout;
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
-  return null; // This hook doesn't return anything, it just runs side effects
+  return null;
 };
 
 export default useStatusSync;
