@@ -58,8 +58,9 @@ export const logout = async () => {
   } catch (error) {
     console.error('Error during logout process:', error);
   } finally {
-    // Always clear token and redirect
+    // Always clear all token/user keys and redirect
     localStorage.removeItem('serviceToken');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     window.location.href = '/login';
   }
