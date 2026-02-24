@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Box, Grid, Paper, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { withAlpha } from '../../utils/colorUtils';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
@@ -77,6 +77,7 @@ const Queue = () => {
   const theme = useTheme();
   const palette = theme.vars?.palette ?? theme.palette;
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoggedIn } = useAuth();
 
   const [queue, setQueue] = useState([]);
@@ -155,6 +156,14 @@ const Queue = () => {
     if (!user?.id) return;
     fetchQueueData();
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-select queue entry when navigated from dashboard
+  useEffect(() => {
+    if (!location.state?.queueId) return;
+    if (queue.length === 0) return; // wait for queue to load
+    const match = queue.find((q) => q.id === location.state.queueId);
+    if (match) setSelectedId(match.id);
+  }, [location.state, queue]);
 
   // Socket listeners — separate effect so handlers don't re-register when fetchQueueData changes
   useEffect(() => {

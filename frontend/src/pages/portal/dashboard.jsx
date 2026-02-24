@@ -128,8 +128,28 @@ const Dashboard = () => {
 
     fetchQueueData();
 
-    const interval = setInterval(fetchQueueData, 30000);
-    return () => clearInterval(interval);
+    // Real-time: refresh queue on socket events
+    let attached = false;
+    const handler = () => fetchQueueData();
+    const tryAttach = () => {
+      const s = socketService.socket;
+      if (s && !attached) {
+        s.on('queue_update', handler);
+        s.on('chat_assigned', handler);
+        attached = true;
+      }
+    };
+    tryAttach();
+    const retry = setInterval(() => { if (attached) { clearInterval(retry); return; } tryAttach(); }, 500);
+
+    return () => {
+      clearInterval(retry);
+      const s = socketService.socket;
+      if (s && attached) {
+        s.off('queue_update', handler);
+        s.off('chat_assigned', handler);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -589,7 +609,11 @@ const Dashboard = () => {
                     : '?';
 
                   return (
-                    <ListItem key={index}>
+                    <ListItem
+                      key={index}
+                      onClick={() => navigate('/portal/queue', { state: { queueId: chat.id } })}
+                      sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                    >
                       <ListItemAvatar>
                         <Avatar sx={{ bgcolor: '#008E86' }}>{initials}</Avatar>
                       </ListItemAvatar>
