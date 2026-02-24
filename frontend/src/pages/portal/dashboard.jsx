@@ -1,4 +1,4 @@
-import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, ListItemAvatar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer, TextField, FormControl, InputLabel, Select, MenuItem, Pagination } from '@mui/material';
+import { Grid, Box, Typography, Badge, List, ListItem, ListItemText, ListItemAvatar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Modal, IconButton, Divider, Avatar, Drawer, TextField, FormControl, InputLabel, Select, MenuItem, Pagination, Chip, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { AccountClock, Close, MessageText } from 'mdi-material-ui';
 import { Gauge } from '@mui/x-charts/Gauge';
@@ -28,8 +28,8 @@ const Dashboard = () => {
   const [queueLoading, setQueueLoading] = useState(false);
   const [recentChats, setRecentChats] = useState([]);
   const [chatsLoading, setChatsLoading] = useState(false);
-  const [orgStats, setOrgStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
-  const [personalStats, setPersonalStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 } });
+  const [orgStats, setOrgStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 }, avgResponseTime: 0, avgResolutionTime: 0, activeChats: 0, queuedChats: 0, totalResolved: 0 });
+  const [personalStats, setPersonalStats] = useState({ days: [], newChats: [], closedChats: [], weeklyTotal: { new: 0, closed: 0 }, avgResponseTime: 0, avgResolutionTime: 0, activeChats: 0, queuedChats: 0, totalResolved: 0 });
   const [statsLoading, setStatsLoading] = useState(false);
 
   const { users, usersLoading, usersError } = useGetUsers({ role: 'support' });
@@ -244,6 +244,16 @@ const Dashboard = () => {
       .join('');
   };
 
+  const formatDuration = (totalSeconds) => {
+    if (!totalSeconds || totalSeconds === 0) return '0s';
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    if (hrs > 0) return `${hrs}h ${mins}m`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+  };
+
   const getAvatarBg = (palette, item) => {
     if (!palette) return undefined;
     if (item?.priority === 'High') return palette.error.main;
@@ -341,7 +351,7 @@ const Dashboard = () => {
                 }}
               />
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h3" fontWeight={500}>{orgStats.weeklyTotal.new}</Typography>
                 <Typography variant="body2" color="text.secondary">Requests (week)</Typography>
@@ -349,6 +359,14 @@ const Dashboard = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h3" fontWeight={500}>{orgStats.weeklyTotal.closed}</Typography>
                 <Typography variant="body2" color="text.secondary">Resolved (week)</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{formatDuration(orgStats.avgResponseTime)}</Typography>
+                <Typography variant="body2" color="text.secondary">Avg Response</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{formatDuration(orgStats.avgResolutionTime)}</Typography>
+                <Typography variant="body2" color="text.secondary">Avg Resolution</Typography>
               </Box>
             </Box>
           </MainCard>
@@ -388,7 +406,7 @@ const Dashboard = () => {
                 }}
               />
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h3" fontWeight={500}>{personalStats.weeklyTotal.new}</Typography>
                 <Typography variant="body2" color="text.secondary">Requests (week)</Typography>
@@ -396,6 +414,14 @@ const Dashboard = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h3" fontWeight={500}>{personalStats.weeklyTotal.closed}</Typography>
                 <Typography variant="body2" color="text.secondary">Resolved (week)</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{formatDuration(personalStats.avgResponseTime)}</Typography>
+                <Typography variant="body2" color="text.secondary">Avg Response</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h3" fontWeight={500}>{formatDuration(personalStats.avgResolutionTime)}</Typography>
+                <Typography variant="body2" color="text.secondary">Avg Resolution</Typography>
               </Box>
             </Box>
           </MainCard>
