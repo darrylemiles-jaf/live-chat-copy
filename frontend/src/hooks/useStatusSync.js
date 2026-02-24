@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { getCurrentUser } from 'utils/auth';
-import Users from 'api/users';
 import socketService from 'services/socketService';
 import { API_URL } from 'constants/constants';
 
@@ -9,11 +8,13 @@ import { API_URL } from 'constants/constants';
  * - User logs out
  * - User closes the browser tab/window
  * - User navigates away from the app
- * - Page visibility changes (tab switch)
+ *
+ * Status changes driven by chat assignment are handled server-side:
+ * - Auto/manual assign → 'busy'
+ * - Chat end (no remaining active chats) → 'available'
  */
 const useStatusSync = () => {
   const hasSetAwayRef = useRef(false);
-  const lastStatusRef = useRef(null);
 
   const setUserAway = async () => {
     if (hasSetAwayRef.current) return; // Prevent duplicate calls
@@ -58,23 +59,6 @@ const useStatusSync = () => {
     const user = getCurrentUser();
     if (!user?.id) return;
 
-    // Handle page visibility changes (tab switching)
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'hidden') {
-        lastStatusRef.current = 'away';
-        try {
-          await Users.updateUserStatus(user.id, 'away');
-          console.log('📵 Tab hidden: status set to away');
-        } catch (error) {
-          console.error('Failed to set away on visibility change:', error);
-        }
-      } else if (document.visibilityState === 'visible') {
-        // Optionally restore last active status when tab becomes visible again
-        // For now, we'll let the user manually change it back if needed
-        console.log('👁️ Tab visible again');
-      }
-    };
-
     // Handle before page unload (closing tab/window, navigating away)
     const handleBeforeUnload = (e) => {
       setUserAway();
@@ -94,13 +78,11 @@ const useStatusSync = () => {
     };
 
     // Add event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handleUnload);
 
     // Cleanup
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handleUnload);
       window.logout = originalLogout;
