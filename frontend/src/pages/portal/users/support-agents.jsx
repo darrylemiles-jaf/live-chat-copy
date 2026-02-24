@@ -98,10 +98,6 @@ const SupportAgents = () => {
       if (s && attached) s.off('user_status_changed', handler);
     };
   }, []);
-    setFormData(selectedAgent);
-    setOpenViewModal(false);
-    setOpenEditModal(true);
-  };
 
   const handleViewById = (agent) => {
     setSelectedAgent(agent);
@@ -532,6 +528,7 @@ const SupportAgents = () => {
       </Dialog>
     </React.Fragment>
   );
+
 };
 
 export default SupportAgents;
