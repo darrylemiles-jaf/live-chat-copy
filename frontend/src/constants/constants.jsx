@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_MODE === 'production'
     : import.meta.env.VITE_APP_API_URL_DEV;
 
 const SOCKET_URL = import.meta.env.VITE_MODE === 'production'
-    ? (import.meta.env.VITE_SOCKET_URL || '')
+    ? (import.meta.env.VITE_SOCKET_URL_PROD || '')
     : (import.meta.env.VITE_SOCKET_URL);
 
 const ROLES = {
