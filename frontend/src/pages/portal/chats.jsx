@@ -603,6 +603,7 @@ const Chats = () => {
                   onKeyPress={handleKeyPress}
                   onFileUpload={handleFileUpload}
                   isUploading={isUploading}
+                  userName={user?.name}
                 />
               ) : (
                 <Box

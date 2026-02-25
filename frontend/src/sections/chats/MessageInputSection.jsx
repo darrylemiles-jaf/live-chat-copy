@@ -9,9 +9,25 @@ import {
   Typography,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  Popover,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider
 } from '@mui/material';
-import { SendOutlined, PaperClipOutlined, SmileOutlined, CloseOutlined } from '@ant-design/icons';
+import { SendOutlined, PaperClipOutlined, SmileOutlined, CloseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+
+const getQuickReplies = (userName) => [
+  { label: 'Greeting', text: `Hi, I'm ${userName || 'your agent'} — how can I help you today?` },
+  { label: 'Welcome', text: 'Thank you for reaching out! How can I assist you?' },
+  { label: 'One moment', text: 'Please hold on while I check that for you.' },
+  { label: 'More info', text: 'Could you please provide more details so I can better assist you?' },
+  { label: 'Looking into it', text: "I'll look into that for you right away." },
+  { label: 'Apology', text: "I'm sorry to hear that. Let me help resolve this for you." },
+  { label: 'Anything else', text: 'Is there anything else I can help you with?' },
+  { label: 'Closing', text: 'Thank you for contacting us. Have a great day!' },
+];
 
 const MessageInputSection = ({
   message,
@@ -19,13 +35,23 @@ const MessageInputSection = ({
   onSendMessage,
   onKeyPress,
   onFileUpload,
-  isUploading = false
+  isUploading = false,
+  userName = ''
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const [quickRepliesAnchor, setQuickRepliesAnchor] = useState(null);
   const fileInputRef = useRef(null);
+
+  const handleOpenQuickReplies = (e) => setQuickRepliesAnchor(e.currentTarget);
+  const handleCloseQuickReplies = () => setQuickRepliesAnchor(null);
+
+  const handleSelectQuickReply = (text) => {
+    onMessageChange(text);
+    handleCloseQuickReplies();
+  };
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -179,6 +205,78 @@ const MessageInputSection = ({
           style={{ display: 'none' }}
           accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
         />
+        {/* Quick Replies Button */}
+        <Tooltip title="Quick replies">
+          <IconButton
+            color="default"
+            size="small"
+            onClick={handleOpenQuickReplies}
+            sx={{
+              color: quickRepliesAnchor ? 'primary.main' : '#64748b',
+              '&:hover': { color: 'primary.main', bgcolor: 'primary.lighter' }
+            }}
+          >
+            <ThunderboltOutlined />
+          </IconButton>
+        </Tooltip>
+
+        {/* Quick Replies Popover */}
+        <Popover
+          open={Boolean(quickRepliesAnchor)}
+          anchorEl={quickRepliesAnchor}
+          onClose={handleCloseQuickReplies}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          PaperProps={{
+            sx: {
+              width: 320,
+              maxHeight: 360,
+              borderRadius: 2,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }
+          }}
+        >
+          <Box sx={{ px: 2, py: 1.5, bgcolor: 'primary.lighter', borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="subtitle2" fontWeight={700} color="primary.main">
+              ⚡ Quick Replies
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Click to insert into message
+            </Typography>
+          </Box>
+          <List dense disablePadding sx={{ overflowY: 'auto' }}>
+            {getQuickReplies(userName).map((reply, index) => (
+              <React.Fragment key={reply.label}>
+                <ListItemButton
+                  onClick={() => handleSelectQuickReply(reply.text)}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    '&:hover': { bgcolor: 'primary.lighter' }
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography variant="caption" fontWeight={700} color="primary.main" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        {reply.label}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography variant="body2" color="text.primary" sx={{ mt: 0.25, lineHeight: 1.4 }}>
+                        {reply.text}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+                {index < getQuickReplies(userName).length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        </Popover>
+
         <Tooltip title="Attach file">
           <IconButton
             color="default"
