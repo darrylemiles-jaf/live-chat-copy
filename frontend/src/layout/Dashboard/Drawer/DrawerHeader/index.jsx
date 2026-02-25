@@ -29,12 +29,21 @@ export default function DrawerHeader({ open }) {
     const user = getCurrentUser();
     if (!user?.id) return;
 
+    // Fetch current status from DB on mount
     Users.getSingleUser(user.id)
       .then((res) => { if (res?.success && res.data?.status) setStatus(res.data.status); })
       .catch(() => {});
 
+    // Listen for same-tab status changes dispatched by HeaderContent
+    const handleSameTabChange = (e) => { if (e.detail?.status) setStatus(e.detail.status); };
+    window.addEventListener('userStatusChanged', handleSameTabChange);
+
+    // Listen for real-time socket updates from other sessions / server-side status changes
     let attached = false;
-    const handler = (data) => { if (data.userId === user.id) setStatus(data.status); };
+    const handler = (data) => {
+      const uid = user.id;
+      if (data.userId == uid) setStatus(data.status); // == intentional: handles string/number mismatch
+    };
     const tryAttach = () => {
       const s = socketService.socket;
       if (s && !attached) { s.on('user_status_changed', handler); attached = true; }
@@ -43,6 +52,7 @@ export default function DrawerHeader({ open }) {
     const retry = setInterval(() => { if (attached) { clearInterval(retry); return; } tryAttach(); }, 500);
 
     return () => {
+      window.removeEventListener('userStatusChanged', handleSameTabChange);
       clearInterval(retry);
       const s = socketService.socket;
       if (s && attached) s.off('user_status_changed', handler);

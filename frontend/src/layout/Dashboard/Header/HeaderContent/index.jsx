@@ -133,6 +133,8 @@ export default function HeaderContent() {
           const parsed = JSON.parse(stored);
           localStorage.setItem('user', JSON.stringify({ ...parsed, status: newStatus }));
         }
+        // Notify other components in the same tab (e.g. DrawerHeader status chip)
+        window.dispatchEvent(new CustomEvent('userStatusChanged', { detail: { status: newStatus } }));
         mutate((key) => Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/users'));
         const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
         setSnackbar({ open: true, message: `Status updated to ${label}`, severity: 'success', color: STATUS_COLORS[newStatus] || null });
