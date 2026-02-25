@@ -1,5 +1,6 @@
-import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Avatar, Badge, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { ChatOutline, CheckAll, DotsHorizontal } from 'mdi-material-ui';
+import { useState } from 'react';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -21,7 +22,15 @@ function getAvatarBg(palette, item) {
   return palette.primary.main;
 }
 
-const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, handleOpenChat, handleResolve }) => (
+const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, handleOpenChat, handleResolve, isFirst }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleConfirm = () => {
+    setConfirmOpen(false);
+    handleOpenChat();
+  };
+
+  return (
   <Paper
     elevation={0}
     sx={{
@@ -183,23 +192,41 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
 
     <Box sx={{ px: 2, pb: 2, pt: 0 }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-        <Button
-          fullWidth
-          variant="contained"
-          startIcon={<ChatOutline />}
-          disabled={!selected}
-          onClick={handleOpenChat}
-          sx={{
-            borderRadius: 1,
-            backgroundColor: palette.success.dark,
-            fontWeight: 600
-          }}
-        >
-          Open Chat
-        </Button>
+        {isFirst && (
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<ChatOutline />}
+            disabled={!selected}
+            onClick={() => setConfirmOpen(true)}
+            sx={{
+              borderRadius: 1,
+              backgroundColor: palette.success.dark,
+              fontWeight: 600
+            }}
+          >
+            Open Chat
+          </Button>
+        )}
       </Stack>
     </Box>
+
+    <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+      <DialogTitle>Assign Chat</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Are you sure you want to open this chat? It will be assigned to you.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+        <Button variant="contained" onClick={handleConfirm} autoFocus>
+          Confirm
+        </Button>
+      </DialogActions>
+    </Dialog>
   </Paper>
-);
+  );
+};
 
 export default CustomerDetailsSection;
