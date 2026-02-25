@@ -30,7 +30,6 @@ import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 export default function AuthLogin({ isDemo = false }) {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showSnackbar } = useSnackbar();
   const [showPassword, setShowPassword] = React.useState(false);
 
   const handleClickShowPassword = () => {
@@ -89,12 +88,7 @@ export default function AuthLogin({ isDemo = false }) {
       setSubmitting(false);
 
       const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-
-      if (error.response?.status === 403) {
-        showSnackbar(errorMessage, 'error');
-      } else {
-        setErrors({ submit: errorMessage });
-      }
+      setErrors({ submit: errorMessage });
     }
   };
 

@@ -219,14 +219,6 @@ const authUser = async (email, password) => {
         };
       }
 
-      if (newUser.data.role !== 'support') {
-        return {
-          statusCode: 403,
-          success: false,
-          message: "You don't have permission to log in with this account"
-        };
-      }
-
       const token = generateUserToken(newUser.data);
 
       // Remove password from user data before sending
@@ -261,14 +253,6 @@ const authUser = async (email, password) => {
       statusCode: 401,
       success: false,
       message: "Invalid email or password"
-    };
-  }
-
-  if (user.data.role !== 'support') {
-    return {
-      statusCode: 403,
-      success: false,
-      message: "You don't have permission to log in with this account"
     };
   }
 
