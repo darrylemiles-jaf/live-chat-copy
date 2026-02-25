@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import { customGreen } from 'themes/palette';
+import { useSnackbar } from 'contexts/SnackbarContext';
+import { Formik } from 'formik';
+
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import Button from '@mui/material/Button';
 import FormHelperText from '@mui/material/FormHelperText';
@@ -9,16 +13,12 @@ import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import * as Yup from 'yup';
-import { Formik } from 'formik';
 
-import { customGreen } from 'themes/palette';
 import axiosServices from 'utils/axios';
 import useAuth from 'hooks/useAuth';
-import { useSnackbar } from 'contexts/SnackbarContext';
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
 
