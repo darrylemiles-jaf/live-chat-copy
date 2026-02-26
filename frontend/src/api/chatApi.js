@@ -102,18 +102,6 @@ export const sendMessageWithAttachment = async (senderId, file, message = '', ch
   }
 };
 
-export const assignChat = async (chatId, agentId) => {
-  try {
-    const response = await axiosServices.post('/chats/assign', {
-      chat_id: chatId,
-      agent_id: agentId
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error assigning chat:', error);
-    throw error;
-  }
-};
 
 export const autoAssignChat = async (chatId) => {
   try {
@@ -195,7 +183,6 @@ export default {
   getAvailableAgents,
   sendMessage,
   sendMessageWithAttachment,
-  assignChat,
   autoAssignChat,
   endChat,
   getNotifications,

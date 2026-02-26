@@ -44,8 +44,9 @@ const transformChatData = (chat) => {
     name: chat.client?.name || chat.client_name || `User ${chat.client_id}`,
     lastMessage: chat.last_message || chat.messages?.[chat.messages.length - 1]?.message || 'No messages yet',
     timestamp: formatTimestamp(chat.updated_at || chat.created_at),
-    avatar: null, // Can be updated if you have avatars
-    unread: 0, // Can be calculated if you track read status
+    rawTimestamp: new Date(chat.updated_at || chat.created_at).getTime(),
+    avatar: null,
+    unread: 0,
     online: chat.status === 'active',
     status: chat.status
   };
@@ -73,6 +74,7 @@ const Chats = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [currentMessages, setCurrentMessages] = useState([]);
   const [loading, setLoading] = useState(true); // only true on first load
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -80,15 +82,12 @@ const Chats = () => {
   const [typingUser, setTypingUser] = useState('');
   const messagesEndRef = useRef(null);
   const selectedChatRef = useRef(null);
-  // Stable refs so socket handlers always call the latest version without re-registering
   const fetchChatsDataRef = useRef(null);
   const fetchMessagesRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({ open: false, loading: false });
 
-  // Snackbar / feedback state
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const showSnackbar = (message, severity = 'success') => {
@@ -128,10 +127,6 @@ const Chats = () => {
       const transformedChats = response.data.map(transformChatData);
       console.log(`✅ Fetched ${transformedChats.length} chats`);
       setChats(transformedChats);
-
-      // Join all assigned chat rooms so new_message events arrive without opening a chat.
-      // Use the existing socket — never call connect() without URL as it would recreate the socket.
-      // socket.io buffers emit() calls made before connection, so no connected guard needed.
       const socket = socketService.socket;
       if (socket) {
         response.data.forEach(chat => {
@@ -141,7 +136,6 @@ const Chats = () => {
         });
       }
 
-      // Keep selected chat status in sync after a silent refresh
       if (silent) {
         setSelectedChat(prev => {
           if (!prev) return prev;
@@ -156,8 +150,6 @@ const Chats = () => {
       if (!silent) setLoading(false);
     }
   }, [user?.id]);
-
-  // Keep refs in sync so socket handlers always call the latest version
   useEffect(() => {
     fetchChatsDataRef.current = fetchChatsData;
   }, [fetchChatsData]);
@@ -188,7 +180,6 @@ const Chats = () => {
     }
   }, [user?.id]);
 
-  // Keep fetchMessagesRef in sync with the latest fetchMessages function
   useEffect(() => {
     fetchMessagesRef.current = fetchMessages;
   }, [fetchMessages]);
@@ -196,7 +187,6 @@ const Chats = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Connect socket FIRST so the personal room join fires before fetchChatsData tries to emit join_chat
     const socket = socketService.connect(SOCKET_URL, user.id);
 
     console.log(`🔧 Portal socket setup for user ${user.id}:`, {
@@ -205,7 +195,6 @@ const Chats = () => {
       url: SOCKET_URL
     });
 
-    // If already connected, join personal room immediately
     if (socket.connected) {
       socket.emit('join', user.id);
       console.log(`👤 Explicitly joined personal room for user ${user.id}`);
@@ -213,16 +202,13 @@ const Chats = () => {
 
     fetchChatsData();
 
-    // On (re)connect, rejoin personal room AND all chat rooms so we don't miss events after reconnection
     const handleConnect = () => {
       console.log('🔌 Socket (re)connected — rejoining personal room and all chat rooms');
       socket.emit('join', user.id);
       console.log(`👤 Rejoined personal room for user ${user.id}`);
 
-      // Refetch chat list to rejoin all active chat rooms
       fetchChatsDataRef.current?.(true);
 
-      // If we have a selected chat, rejoin its room and refetch messages to ensure we're in sync
       if (selectedChatRef.current) {
         console.log(`🔄 Rejoining chat room and refetching messages for chat ${selectedChatRef.current.id}`);
         socket.emit('join_chat', selectedChatRef.current.id);
@@ -253,7 +239,6 @@ const Chats = () => {
           const transformedMessage = transformMessageData(messageData, user.id);
           console.log(`✅ Adding message to UI: "${messageData.message?.substring(0, 30)}..."`);
 
-          // If this is our own message echoed back, replace the optimistic placeholder
           if (transformedMessage.isSender) {
             const optimisticIdx = prev.findIndex(m => m.id?.toString().startsWith('optimistic-'));
             if (optimisticIdx !== -1) {
@@ -265,7 +250,6 @@ const Chats = () => {
             }
           }
 
-          // Deduplicate by real ID
           if (prev.some(msg => msg.id === transformedMessage.id)) {
             console.log('⚠️ Message already exists, skipping duplicate');
             return prev;
@@ -278,7 +262,6 @@ const Chats = () => {
         return prev;
       });
 
-      // Always silently refresh the chat list to update last-message preview
       fetchChatsDataRef.current?.(true);
     };
 
@@ -286,7 +269,6 @@ const Chats = () => {
       console.log('✅ Chat assigned:', chatData);
       console.log('🔄 Refreshing chat list after assignment...');
 
-      // If this is the currently open chat, refetch its messages to ensure we're in sync
       if (selectedChatRef.current && chatData.id === selectedChatRef.current.id) {
         console.log('🔄 Refetching messages for currently open chat after assignment');
         fetchMessagesRef.current?.(chatData.id, true);
@@ -308,7 +290,6 @@ const Chats = () => {
     };
 
     const handleUserTyping = ({ userName, role }) => {
-      // Only show typing indicator when the customer is typing (not the agent themselves)
       if (role === 'agent') return;
       if (selectedChatRef.current) {
         setTypingUser(userName || 'User');
@@ -340,10 +321,7 @@ const Chats = () => {
       socket.off('user_typing', handleUserTyping);
       socket.off('user_stop_typing', handleUserStopTyping);
     };
-  }, [user?.id]); // fetchChatsData intentionally excluded — accessed via ref to avoid re-registering listeners
-
-  // Polling fallback: periodically check for new messages in the selected chat
-  // This ensures messages appear even if socket events are missed
+  }, [user?.id]);
   useEffect(() => {
     if (!selectedChat || selectedChat.status === 'ended') return;
 
@@ -356,6 +334,11 @@ const Chats = () => {
   }, [selectedChat?.id, selectedChat?.status]);
 
   const handleSelectChat = async (chat) => {
+    if (chat.status === 'queued') {
+      navigate('/portal/queue', { state: { queueId: chat.id } });
+      return;
+    }
+
     console.log(`🎯 Selecting chat ${chat.id} (${chat.name})`);
     const socket = socketService.socket;
 
@@ -366,7 +349,6 @@ const Chats = () => {
 
     setSelectedChat(chat);
 
-    // Join the chat room BEFORE fetching messages so we don't miss any real-time updates
     if (socket) {
       socket.emit('join_chat', chat.id);
       console.log(`🚪 Joined chat room: chat_${chat.id}`);
@@ -405,7 +387,6 @@ const Chats = () => {
       socket.emit('stop_typing', { chatId: selectedChat.id });
     }
 
-    // Optimistically add message to the UI immediately
     const optimisticMsg = {
       id: `optimistic-${Date.now()}`,
       sender: 'You',
@@ -420,14 +401,12 @@ const Chats = () => {
       await sendMessage(user.id, messageText, selectedChat.id);
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove optimistic message on failure
       setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setMessage(messageText);
       showSnackbar('Failed to send message. Please try again.', 'error');
     }
   };
 
-  // Handle file upload
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (file, messageText = '') => {
@@ -436,16 +415,13 @@ const Chats = () => {
     setIsUploading(true);
     setMessage('');
 
-    // Stop typing indicator
     const socket = socketService.socket;
     if (socket && selectedChat) {
       socket.emit('stop_typing', { chatId: selectedChat.id });
     }
 
-    // Create preview URL for images
     const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
 
-    // Optimistically add message with file
     const optimisticMsg = {
       id: `optimistic-${Date.now()}`,
       sender: 'You',
@@ -455,16 +431,13 @@ const Chats = () => {
         file.type.startsWith('video/') ? 'video' :
           file.type.startsWith('audio/') ? 'audio' :
             (file.type.includes('zip') || file.type.includes('rar') || file.type.includes('7z')) ? 'archive' : 'document',
-      attachment_url: previewUrl, // Show preview immediately for images
-      timestamp: 'Uploading...',
-      isSender: true
+      attachment_url: previewUrl, 
     };
     setCurrentMessages(prev => [...prev, optimisticMsg]);
     setTimeout(scrollToBottom, 50);
 
     try {
       await sendMessageWithAttachment(user.id, file, messageText, selectedChat.id);
-      // Clean up preview URL after successful upload (the real URL will come from socket)
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -472,7 +445,6 @@ const Chats = () => {
       console.error('Error uploading file:', error);
       setCurrentMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       showSnackbar('Failed to upload file. Please try again.', 'error');
-      // Clean up preview URL on error
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -481,7 +453,6 @@ const Chats = () => {
     }
   };
 
-  // Handle typing indicator emission
   const handleTyping = () => {
     if (!selectedChat) return;
 
@@ -489,10 +460,8 @@ const Chats = () => {
     if (socket) {
       socket.emit('typing', { chatId: selectedChat.id, userName: user?.name || 'Agent', role: 'agent' });
 
-      // Clear any existing timeout
       clearTimeout(typingTimeoutRef.current);
 
-      // Set timeout to stop typing indicator
       typingTimeoutRef.current = setTimeout(() => {
         socket.emit('stop_typing', { chatId: selectedChat.id });
       }, 3000);
@@ -568,6 +537,8 @@ const Chats = () => {
           onSelectChat={handleSelectChat}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
         />
 
         <Box
@@ -627,7 +598,6 @@ const Chats = () => {
         </Box>
       </Paper>
 
-      {/* End Chat Confirmation Dialog */}
       <Dialog
         open={confirmDialog.open}
         onClose={handleCancelEnd}
@@ -656,7 +626,6 @@ const Chats = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Feedback Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
