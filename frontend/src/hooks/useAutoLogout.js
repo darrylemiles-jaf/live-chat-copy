@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentUser, logout } from 'utils/auth';
 
 /** How long (ms) of inactivity before showing the warning modal */
-const INACTIVITY_MS = 3000; // 1 minute
+const INACTIVITY_MS = 60000; // 1 minute
 
 /** Seconds user has to respond once the modal appears */
-const COUNTDOWN_SEC = 5;
+const COUNTDOWN_SEC = 30;
 
 /** DOM events that count as "activity" */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
