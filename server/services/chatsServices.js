@@ -4,7 +4,6 @@ const getChatsWithMessages = async (user_id, query = {}) => {
   try {
     const { status, limit = 50 } = query;
 
-    // Get user role to determine filtering
     const [userData] = await pool.query(
       `SELECT role FROM users WHERE id = ?`,
       [user_id]
@@ -19,13 +18,11 @@ const getChatsWithMessages = async (user_id, query = {}) => {
     let sql = `SELECT * FROM chats WHERE 1=1`;
     const params = [];
 
-    // Filter based on user role
     if (userRole === 'client') {
       sql += ` AND client_id = ?`;
       params.push(user_id);
     } else {
-      // Agent or admin - show chats assigned to them
-      sql += ` AND agent_id = ?`;
+      sql += ` AND (agent_id = ? OR (agent_id IS NULL AND status = 'queued'))`;
       params.push(user_id);
     }
 
@@ -39,7 +36,6 @@ const getChatsWithMessages = async (user_id, query = {}) => {
 
     const [chats] = await pool.query(sql, params);
 
-    // Get messages for each chat
     const chatsWithMessages = await Promise.all(
       chats.map(async (chat) => {
         const [messages] = await pool.query(
@@ -51,13 +47,11 @@ const getChatsWithMessages = async (user_id, query = {}) => {
           [chat.id]
         );
 
-        // Get client info
         const [client] = await pool.query(
           `SELECT id, name, username, email, role FROM users WHERE id = ?`,
           [chat.client_id]
         );
 
-        // Get agent info if assigned
         let agent = null;
         if (chat.agent_id) {
           const [agentData] = await pool.query(

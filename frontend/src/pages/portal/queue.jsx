@@ -92,7 +92,6 @@ const Queue = () => {
 
   const selected = useMemo(() => queue.find((item) => item.id === selectedId), [queue, selectedId]);
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!isLoggedIn) {
       console.warn('User not logged in, redirecting to login');
@@ -100,7 +99,6 @@ const Queue = () => {
     }
   }, [isLoggedIn, navigate]);
 
-  // Fetch queue data
   const fetchQueueData = useCallback(async () => {
     if (!user?.id) {
       console.warn('No user ID available');
@@ -109,33 +107,33 @@ const Queue = () => {
 
     try {
       setLoading(true);
-      const [queueResponse, chatsResponse, agentsResponse] = await Promise.all([
+      const [queueResponse, agentsResponse] = await Promise.all([
         getQueue(),
-        getChats(user.id),
         getAvailableAgents()
       ]);
 
-      // Transform the queue data
       const transformedQueue = queueResponse.data.map(transformQueueData);
       setQueue(transformedQueue);
 
-      // Calculate active chats (chats with status 'active')
-      const activeChatsData = chatsResponse.data.filter(chat => chat.status === 'active');
-      setActiveChats(activeChatsData.length);
-
-      // Calculate resolved today (chats with status 'closed' and updated today)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const resolvedTodayData = chatsResponse.data.filter(chat => {
-        if (chat.status !== 'closed') return false;
-        const updatedDate = new Date(chat.updated_at);
-        updatedDate.setHours(0, 0, 0, 0);
-        return updatedDate.getTime() === today.getTime();
-      });
-      setResolvedToday(resolvedTodayData.length);
-
-      // Set available agents count
       setAvailableAgents(agentsResponse.data?.length || 0);
+
+      try {
+        const chatsResponse = await getChats(user.id);
+        const activeChatsData = chatsResponse.data.filter(chat => chat.status === 'active');
+        setActiveChats(activeChatsData.length);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const resolvedTodayData = chatsResponse.data.filter(chat => {
+          if (chat.status !== 'ended') return false;
+          const updatedDate = new Date(chat.updated_at);
+          updatedDate.setHours(0, 0, 0, 0);
+          return updatedDate.getTime() === today.getTime();
+        });
+        setResolvedToday(resolvedTodayData.length);
+      } catch (statsErr) {
+        console.warn('Could not fetch chat stats:', statsErr.message);
+      }
 
       if (transformedQueue.length > 0 && !selectedId) {
         setSelectedId(transformedQueue[0].id);
@@ -151,13 +149,10 @@ const Queue = () => {
     }
   }, [user?.id, selectedId]);
 
-  // Initial data fetch
   useEffect(() => {
     if (!user?.id) return;
     fetchQueueData();
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Auto-select queue entry when navigated from dashboard
+  }, [user?.id]); 
   useEffect(() => {
     if (!location.state?.queueId) return;
     if (queue.length === 0) return; // wait for queue to load
@@ -165,17 +160,13 @@ const Queue = () => {
     if (match) setSelectedId(match.id);
   }, [location.state, queue]);
 
-  // Socket listeners — separate effect so handlers don't re-register when fetchQueueData changes
   useEffect(() => {
     if (!user?.id) return;
 
-    // Ensure socket is connected (DashboardLayout also connects, but just in case)
     const socket = socketService.connect(SOCKET_URL, user.id);
 
-    // Use a ref-like approach: handlers call the latest fetchQueueData via closure
     const handleQueueUpdate = (data) => {
       console.log('📢 Queue update received:', data);
-      // Re-fetch queue data
       fetchQueueData();
     };
 
@@ -189,7 +180,6 @@ const Queue = () => {
       fetchQueueData();
     };
 
-    // Clean slate — remove old handlers, then attach fresh ones
     socket.off('queue_update');
     socket.off('new_message');
     socket.off('chat_assigned');
@@ -205,9 +195,7 @@ const Queue = () => {
       socket.off('new_message', handleNewMessage);
       socket.off('chat_assigned', handleChatAssigned);
     };
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Auto-select first item when queue changes
+  }, [user?.id]);
   useEffect(() => {
     if (queue.length === 0) {
       setSelectedId(null);
@@ -264,14 +252,12 @@ const Queue = () => {
       return;
     }
 
-    console.log('🎯 Opening chat:', selected.id, 'for user:', user.id);
+    console.log('🎯 Accepting chat:', selected.id, 'for agent:', user.id);
 
     try {
-      // Auto-assign the chat to current agent
       const result = await autoAssignChat(selected.id);
-      console.log('✅ Chat assigned:', result);
+      console.log('✅ Chat accepted:', result);
 
-      // Remove from queue and navigate to chats
       setQueue((prev) => prev.filter((item) => item.id !== selected.id));
       setActiveChats((prev) => prev + 1);
 
