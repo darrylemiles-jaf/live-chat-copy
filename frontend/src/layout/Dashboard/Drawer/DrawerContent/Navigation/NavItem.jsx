@@ -31,7 +31,8 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   }
 
   const itemHandler = () => {
-    if (downLG) {
+    // Always close drawer for Chats page, or on small screens for any page
+    if (item.id === 'messages' || downLG) {
       handlerDrawerOpen(false);
     }
 
