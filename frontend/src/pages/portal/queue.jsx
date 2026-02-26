@@ -324,6 +324,7 @@ const Queue = () => {
                 setDetailsTab={setDetailsTab}
                 handleOpenChat={handleOpenChat}
                 handleResolve={handleResolve}
+                isFirst={queue.length > 0 && queue[0]?.id === selectedId}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>

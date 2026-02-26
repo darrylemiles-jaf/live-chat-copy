@@ -182,7 +182,7 @@ const authUser = async (email, password) => {
     return {
       statusCode: 404,
       success: false,
-      message: "User not found in API"
+      message: "User does not exist. Please contact your administrator."
     };
   }
 
@@ -219,10 +219,19 @@ const authUser = async (email, password) => {
         };
       }
 
-      const token = generateUserToken(newUser.data);
+      // Set status to available on login
+      await pool.query('UPDATE users SET status = ? WHERE id = ?', ['available', newUser.data.id]);
+      const [updatedNewUser] = await pool.query(
+        'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
+        [newUser.data.id]
+      );
+      const { emitUserStatusChange: emitNew } = await import('../socket/socketHandler.js');
+      emitNew(updatedNewUser[0]);
+
+      const token = generateUserToken(updatedNewUser[0]);
 
       // Remove password from user data before sending
-      const { password: _, ...userWithoutPassword } = newUser.data;
+      const { password: _, ...userWithoutPassword } = updatedNewUser[0];
 
       return {
         statusCode: 201,
@@ -256,10 +265,19 @@ const authUser = async (email, password) => {
     };
   }
 
-  const token = generateUserToken(user.data);
+  // Set status to available on login
+  await pool.query('UPDATE users SET status = ? WHERE id = ?', ['available', user.data.id]);
+  const [updatedUser] = await pool.query(
+    'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
+    [user.data.id]
+  );
+  const { emitUserStatusChange } = await import('../socket/socketHandler.js');
+  emitUserStatusChange(updatedUser[0]);
+
+  const token = generateUserToken(updatedUser[0]);
 
   // Remove password from user data before sending
-  const { password: _, ...userWithoutPassword } = user.data;
+  const { password: _, ...userWithoutPassword } = updatedUser[0];
 
   return {
     statusCode: 200,
