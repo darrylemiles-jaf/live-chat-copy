@@ -20,10 +20,10 @@ import {
 import { SearchOutlined, MessageOutlined } from '@ant-design/icons';
 
 const STATUS_FILTERS = [
-  { value: 'all',    label: 'All',    color: '#008E86' },
   { value: 'active', label: 'Active', color: '#22c55e' },
-  { value: 'queued', label: 'Queued', color: '#f59e0b' },
-  { value: 'ended',  label: 'Ended',  color: '#94a3b8' }
+  { value: 'ended',  label: 'Ended',  color: '#94a3b8' },
+  { value: 'all',    label: 'All',    color: '#008E86' },
+
 ];
 
 const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', onSearchChange, statusFilter = 'all', onStatusFilterChange }) => {

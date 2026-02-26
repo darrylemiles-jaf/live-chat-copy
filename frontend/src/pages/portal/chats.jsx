@@ -74,7 +74,7 @@ const Chats = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('active');
   const [currentMessages, setCurrentMessages] = useState([]);
   const [loading, setLoading] = useState(true); // only true on first load
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -480,8 +480,10 @@ const Chats = () => {
       setConfirmDialog({ open: false, loading: false });
       setSelectedChat(null);
       setCurrentMessages([]);
+      setStatusFilter('queued');
       fetchChatsData();
       showSnackbar('Conversation ended successfully.', 'success');
+      navigate('/portal/queue');
     } catch (error) {
       console.error('Error ending chat:', error);
       setConfirmDialog({ open: false, loading: false });
@@ -608,7 +610,7 @@ const Chats = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to end this conversation? This action cannot be undone.
-            Your status will also be set to "Available".
+            Your status will also be set to "Available". And you will navigate to Queue page 
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
