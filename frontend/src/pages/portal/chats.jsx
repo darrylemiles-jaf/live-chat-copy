@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Box, Paper, CircularProgress, Typography,
+  Box, Paper, CircularProgress, Typography, Grid,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   Button, Snackbar, Alert
 } from '@mui/material';
@@ -48,7 +48,14 @@ const transformChatData = (chat) => {
     avatar: null,
     unread: 0,
     online: chat.status === 'active',
-    status: chat.status
+    status: chat.status,
+    email: chat.client?.email || chat.client_email || null,
+    username: chat.client?.username || null,
+    client_id: chat.client_id,
+    agent_name: chat.agent?.name || null,
+    created_at: chat.created_at,
+    updated_at: chat.updated_at,
+    message_count: chat.messages?.length || 0
   };
 };
 
@@ -528,76 +535,214 @@ const Chats = () => {
       <Paper
         sx={{
           height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' },
-          display: 'flex',
           overflow: 'hidden',
           mt: 2
         }}
       >
-        <ChatListSection
-          chats={chats}
-          selectedChat={selectedChat}
-          onSelectChat={handleSelectChat}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-        />
+        <Grid container sx={{ height: '100%' }}>
+          <Grid
+            size={{ xs: 12, md: 3 }}
+            sx={{
+              display: { xs: selectedChat ? 'none' : 'flex', md: 'flex' },
+              flexDirection: 'column',
+              height: '100%',
+              borderRight: 1,
+              borderColor: 'divider'
+            }}
+          >
+            <ChatListSection
+              chats={chats}
+              selectedChat={selectedChat}
+              onSelectChat={handleSelectChat}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+            />
+          </Grid>
 
-        <Box
-          sx={{
-            flex: 1,
-            display: { xs: selectedChat ? 'flex' : 'none', md: 'flex' },
-            flexDirection: 'column',
-            width: { xs: '100%', md: 'auto' }
-          }}
-        >
-          {selectedChat ? (
-            <>
-              <ChatHeaderSection
-                selectedChat={selectedChat}
-                onBack={handleBackToList}
-                onEndChat={handleEndChat}
-              />
-              <MessagesAreaSection
-                messages={currentMessages}
-                messagesEndRef={messagesEndRef}
-                isLoading={loadingMessages}
-                isTyping={isTyping}
-                typingUser={typingUser}
-              />
-              {selectedChat.status !== 'ended' ? (
-                <MessageInputSection
-                  message={message}
-                  onMessageChange={(value) => {
-                    setMessage(value);
-                    handleTyping();
-                  }}
-                  onSendMessage={handleSendMessage}
-                  onKeyPress={handleKeyPress}
-                  onFileUpload={handleFileUpload}
-                  isUploading={isUploading}
-                  userName={user?.name}
+          <Grid
+            size={{ xs: 12, md: 6 }}
+            sx={{
+              display: { xs: selectedChat ? 'flex' : 'none', md: 'flex' },
+              flexDirection: 'column',
+              height: '100%',
+              minWidth: 0
+            }}
+          >
+            {selectedChat ? (
+              <>
+                <ChatHeaderSection
+                  selectedChat={selectedChat}
+                  onBack={handleBackToList}
+                  onEndChat={handleEndChat}
                 />
-              ) : (
-                <Box
-                  sx={{
-                    p: 2,
-                    borderTop: 1,
-                    borderColor: 'divider',
-                    bgcolor: 'action.disabledBackground',
-                    textAlign: 'center'
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    This conversation has ended
+                <MessagesAreaSection
+                  messages={currentMessages}
+                  messagesEndRef={messagesEndRef}
+                  isLoading={loadingMessages}
+                  isTyping={isTyping}
+                  typingUser={typingUser}
+                />
+                {selectedChat.status !== 'ended' ? (
+                  <MessageInputSection
+                    message={message}
+                    onMessageChange={(value) => {
+                      setMessage(value);
+                      handleTyping();
+                    }}
+                    onSendMessage={handleSendMessage}
+                    onKeyPress={handleKeyPress}
+                    onFileUpload={handleFileUpload}
+                    isUploading={isUploading}
+                    userName={user?.name}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderTop: 1,
+                      borderColor: 'divider',
+                      bgcolor: 'action.disabledBackground',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      This conversation has ended
+                    </Typography>
+                  </Box>
+                )}
+              </>
+            ) : (
+              <EmptyStateSection />
+            )}
+          </Grid>
+
+          {selectedChat && (
+            <Grid
+              size={{ xs: 0, md: 3 }}
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                flexDirection: 'column',
+                height: '100%',
+                borderLeft: 1,
+                borderColor: 'divider',
+                bgcolor: '#fafbfc',
+                overflow: 'auto'
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+                <Typography variant="subtitle2" fontWeight={700} color="text.primary">
+                  Client Details
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.4rem',
+                      fontWeight: 700,
+                      color: 'white',
+                      mb: 1
+                    }}
+                  >
+                    {selectedChat.name.charAt(0).toUpperCase()}
+                  </Box>
+                  <Typography variant="subtitle2" fontWeight={700} textAlign="center">
+                    {selectedChat.name}
                   </Typography>
+                  <Box
+                    sx={{
+                      mt: 0.5,
+                      px: 1,
+                      py: 0.25,
+                      borderRadius: 1,
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      bgcolor:
+                        selectedChat.status === 'active' ? '#dcfce7' :
+                        selectedChat.status === 'queued' ? '#fef3c7' : '#f1f5f9',
+                      color:
+                        selectedChat.status === 'active' ? '#16a34a' :
+                        selectedChat.status === 'queued' ? '#d97706' : '#64748b'
+                    }}
+                  >
+                    {selectedChat.status.charAt(0).toUpperCase() + selectedChat.status.slice(1)}
+                  </Box>
                 </Box>
-              )}
-            </>
-          ) : (
-            <EmptyStateSection />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Contact Info
+                  </Typography>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Email</Typography>
+                    <Typography variant="body2" fontSize="0.8rem" sx={{ wordBreak: 'break-all' }}>
+                      {selectedChat.email || '—'}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Username</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">
+                      {selectedChat.username || '—'}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Client ID</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">#{selectedChat.client_id}</Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ height: 1, bgcolor: 'divider' }} />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Chat Info
+                  </Typography>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Chat ID</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">#{selectedChat.id}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Started</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">
+                      {selectedChat.created_at ? new Date(selectedChat.created_at).toLocaleString() : selectedChat.timestamp}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Last Activity</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">{selectedChat.timestamp}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.disabled">Messages</Typography>
+                    <Typography variant="body2" fontSize="0.8rem">{currentMessages.length}</Typography>
+                  </Box>
+                  {selectedChat.agent_name && (
+                    <Box>
+                      <Typography variant="caption" color="text.disabled">Assigned Agent</Typography>
+                      <Typography variant="body2" fontSize="0.8rem">{selectedChat.agent_name}</Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                {selectedChat.status !== 'ended' && (
+                  <>
+                    <Box sx={{ height: 1, bgcolor: 'divider' }} />
+                   
+                  </>
+                )}
+              </Box>
+            </Grid>
           )}
-        </Box>
+        </Grid>
       </Paper>
 
       <Dialog

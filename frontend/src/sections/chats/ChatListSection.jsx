@@ -56,10 +56,8 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
   return (
     <Box
       sx={{
-        width: { xs: '100%', md: 380 },
-        borderRight: { xs: 0, md: 1 },
-        borderColor: 'divider',
-        display: { xs: selectedChat ? 'none' : 'flex', md: 'flex' },
+        width: '100%',
+        display: 'flex',
         flexDirection: 'column',
         height: '100%',
         bgcolor: '#fafbfc'
