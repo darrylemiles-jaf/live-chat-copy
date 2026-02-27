@@ -3,6 +3,7 @@ import { useGetUsers } from '../api/users';
 import socketService from '../services/socketService';
 import { transformAgent, getStatusColor } from '../utils/agents/agentTransformers';
 import { agentColumns, agentViewConfig } from '../utils/agents/agentTableConfig';
+import { getAgentRatings } from '../api/ratingsApi';
 
 export const useSupportAgents = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
@@ -13,6 +14,8 @@ export const useSupportAgents = () => {
   const [agents, setAgents] = useState([]);
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [agentRatingData, setAgentRatingData] = useState(null);
+  const [loadingAgentRating, setLoadingAgentRating] = useState(false);
 
   const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
 
@@ -64,6 +67,13 @@ export const useSupportAgents = () => {
   const handleViewById = (agent) => {
     setSelectedAgent(agent);
     setOpenViewModal(true);
+    // Fetch this agent's ratings
+    setAgentRatingData(null);
+    setLoadingAgentRating(true);
+    getAgentRatings(agent.id)
+      .then((res) => { if (res) setAgentRatingData(res); })
+      .catch(() => { })
+      .finally(() => setLoadingAgentRating(false));
   };
 
   const handleCloseViewModal = () => {
@@ -178,6 +188,9 @@ export const useSupportAgents = () => {
     handleCreate,
     handleClearFilters,
     setFilterRole,
-    setFilterStatus
+    setFilterStatus,
+    // ratings
+    agentRatingData,
+    loadingAgentRating
   };
 };

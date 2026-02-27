@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem, DialogActions, DialogContent, DialogTitle, Dialog, TextField } from '@mui/material';
 
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
+import AgentRatingsTab from '../../../components/AgentRatingsTab';
 import AgentEditDialog from '../../../sections/agents/AgentEditDialog';
 import AgentCreateDialog from '../../../sections/agents/AgentCreateDialog';
 import { useSupportAgents } from '../../../hooks/useSupportAgents';
+import { agentViewConfig } from '../../../utils/agents/agentTableConfig';
 import { PlusOutlined } from '@ant-design/icons';
 
 
@@ -22,12 +24,41 @@ const SupportAgents = () => {
     selectedAgent, formData,
     filterRole, filterStatus,
     usersLoading, usersError,
-    filteredRowsForTable, uniqueRoles, columns, viewConfig,
+    filteredRowsForTable, uniqueRoles, columns,
     handleViewById, handleCloseViewModal,
     handleCloseEditModal, handleCreateClick, handleCloseCreateModal,
     handleFormChange, handleSave, handleCreate, handleClearFilters,
-    setFilterRole, setFilterStatus
+    setFilterRole, setFilterStatus,
+    agentRatingData, loadingAgentRating
   } = useSupportAgents();
+
+  // Build a viewConfig that includes the live ratings tab
+  const viewConfig = useMemo(() => {
+    const avg = parseFloat(agentRatingData?.stats?.average_rating) || 0;
+    return {
+      ...agentViewConfig,
+      badges: [
+        ...agentViewConfig.badges,
+        ...(avg > 0
+          ? [{
+            render: () => (
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                <Box component="span" sx={{ color: '#fbbf24', fontSize: '0.85rem' }}>&#9733;</Box>
+                <Box component="span" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{avg.toFixed(1)}</Box>
+              </Box>
+            ),
+            sx: { bgcolor: '#92400e', color: 'white' }
+          }]
+          : [])
+      ],
+      tabs: [
+        {
+          label: 'Satisfaction Ratings',
+          content: () => <AgentRatingsTab ratingData={agentRatingData} loading={loadingAgentRating} />
+        }
+      ]
+    };
+  }, [agentRatingData, loadingAgentRating]);
 
 
 

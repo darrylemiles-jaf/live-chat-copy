@@ -2,6 +2,7 @@ import usersTable from './usersTable.js';
 import chatsTable from './chatsTable.js';
 import messagesTable, { messagesTableMigration } from './messagesTable.js';
 import notificationsTable, { notificationsTableMigration } from './notificationsTable.js';
+import ratingsTable from './ratingsTable.js';
 
 const tables = async (dbConnection) => {
   const queries = [
@@ -15,7 +16,10 @@ const tables = async (dbConnection) => {
     messagesTable,
 
     // notifications
-    notificationsTable
+    notificationsTable,
+
+    // ratings
+    ratingsTable
   ];
 
   for (const query of queries) {

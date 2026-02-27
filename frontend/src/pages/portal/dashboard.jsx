@@ -15,6 +15,7 @@ import PageHead from '../../components/PageHead';
 import MainCard from '../../components/MainCard';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import { getChatStats, getDetailedStats } from '../../api/chatApi';
+import { getRatingsLeaderboard } from '../../api/ratingsApi';
 import socketService from '../../services/socketService';
 
 const breadcrumbLinks = [
@@ -120,8 +121,10 @@ const Dashboard = () => {
 
   const [orgStats, setOrgStats] = useState(emptyBase);
   const [detailedStats, setDetailedStats] = useState(emptyDetailed);
+  const [ratingsLeaderboard, setRatingsLeaderboard] = useState([]);
   const [loadingBase, setLoadingBase] = useState(true);
   const [loadingDetailed, setLoadingDetailed] = useState(true);
+  const [loadingRatings, setLoadingRatings] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const formatDuration = (totalSeconds) => {
@@ -157,10 +160,22 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchRatings = useCallback(async () => {
+    try {
+      const res = await getRatingsLeaderboard(10);
+      if (res.success) setRatingsLeaderboard(res.data);
+    } catch (e) {
+      console.error('Error fetching ratings leaderboard:', e);
+    } finally {
+      setLoadingRatings(false);
+    }
+  }, []);
+
   const refreshAll = useCallback(() => {
     fetchBaseStats();
     fetchDetailedStats();
-  }, [fetchBaseStats, fetchDetailedStats]);
+    fetchRatings();
+  }, [fetchBaseStats, fetchDetailedStats, fetchRatings]);
 
   // Initial load
   useEffect(() => { refreshAll(); }, [refreshAll]);
@@ -536,7 +551,7 @@ const Dashboard = () => {
                           <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: 0.5 }}>Excellent</Typography>
                         </Box>
                         {[
-                          { range: '≤ 30s',   score: 100 },
+                          { range: '≤ 30s', score: 100 },
                           { range: '≤ 1 min', score: 95 },
                           { range: '≤ 2 min', score: 88 },
                           { range: '≤ 3 min', score: 82 },
@@ -578,7 +593,7 @@ const Dashboard = () => {
                           { range: '≤ 10 min', score: 45 },
                           { range: '≤ 20 min', score: 30 },
                           { range: '≤ 30 min', score: 20 },
-                          { range: '> 30 min',  score: 10 },
+                          { range: '> 30 min', score: 10 },
                         ].map((row) => (
                           <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
                             <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
@@ -606,16 +621,16 @@ const Dashboard = () => {
                   {topAgents.map((agent, i) => {
                     // 🟢 Excellent: ≤ 3min | 🟡 Acceptable: ≤ 5min | 🔴 Needs Improvement: > 5min
                     const r = agent.avgResponse;
-                    const score = r === 0  ? 100
-                      : r <= 30   ? 100  // ≤ 30s  → 100 🟢
-                      : r <= 60   ? 95   // ≤ 1min → 95  🟢
-                      : r <= 120  ? 88   // ≤ 2min → 88  🟢
-                      : r <= 180  ? 82   // ≤ 3min → 82  🟢
-                      : r <= 300  ? 70   // ≤ 5min → 70  🟡
-                      : r <= 600  ? 45   // ≤ 10min→ 45  🔴
-                      : r <= 1200 ? 30   // ≤ 20min→ 30  🔴
-                      : r <= 1800 ? 20   // ≤ 30min→ 20  🔴
-                      : 10;              // >30min → 10  🔴
+                    const score = r === 0 ? 100
+                      : r <= 30 ? 100  // ≤ 30s  → 100 🟢
+                        : r <= 60 ? 95   // ≤ 1min → 95  🟢
+                          : r <= 120 ? 88   // ≤ 2min → 88  🟢
+                            : r <= 180 ? 82   // ≤ 3min → 82  🟢
+                              : r <= 300 ? 70   // ≤ 5min → 70  🟡
+                                : r <= 600 ? 45   // ≤ 10min→ 45  🔴
+                                  : r <= 1200 ? 30   // ≤ 20min→ 30  🔴
+                                    : r <= 1800 ? 20   // ≤ 30min→ 20  🔴
+                                      : 10;              // >30min → 10  🔴
                     const scoreColor = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#f44336';
                     return (
                       <Box key={agent.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -646,6 +661,129 @@ const Dashboard = () => {
                           <Typography variant="caption" fontWeight={700} sx={{ color: scoreColor }}>
                             {score}
                           </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              )}
+            </MainCard>
+          </Grid>
+
+          {/* ── Row 5: Agent Satisfaction Ratings ──────────────────── */}
+          <Grid size={{ xs: 12 }}>
+            <MainCard sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box>
+                  <Typography variant="subtitle2" fontWeight={700} color="text.primary">
+                    Agent Satisfaction Ratings
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Based on post-chat client feedback (1–5 stars)
+                  </Typography>
+                </Box>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              {loadingRatings ? (
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} variant="rectangular" height={90} sx={{ borderRadius: 2, flex: '1 1 200px' }} />
+                  ))}
+                </Box>
+              ) : ratingsLeaderboard.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 5 }}>
+                  <Typography variant="h2" sx={{ mb: 1, lineHeight: 1 }}>&#9733;</Typography>
+                  <Typography variant="body2" color="text.disabled" fontWeight={500}>
+                    No ratings yet — ratings appear after clients end a chat
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 2 }}>
+                  {ratingsLeaderboard.map((agent, i) => {
+                    const avg = parseFloat(agent.average_rating) || 0;
+                    const total = parseInt(agent.total_ratings) || 0;
+                    const pct5 = total ? Math.round((agent.five_star / total) * 100) : 0;
+                    const starColor = avg >= 4.5 ? '#f59e0b' : avg >= 3.5 ? '#f59e0b' : avg >= 2.5 ? '#f97316' : '#ef4444';
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                    return (
+                      <Box
+                        key={agent.id}
+                        sx={{
+                          p: 2,
+                          border: '1px solid',
+                          borderColor: i === 0 ? '#f59e0b44' : 'divider',
+                          borderRadius: 2,
+                          bgcolor: i === 0 ? '#fffbeb' : 'background.paper',
+                          position: 'relative',
+                          transition: 'box-shadow .2s',
+                          '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }
+                        }}
+                      >
+                        {/* Rank badge */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                          <Box
+                            sx={{
+                              width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                              bgcolor: i < 3 ? '#008E86' : 'action.selected',
+                              color: i < 3 ? 'white' : 'text.secondary',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '0.7rem', fontWeight: 700
+                            }}
+                          >
+                            {i + 1}
+                          </Box>
+                          <Typography variant="body2" fontWeight={700} noWrap sx={{ flex: 1 }}>
+                            {agent.name}
+                          </Typography>
+                          {medal && <span style={{ fontSize: '1rem' }}>{medal}</span>}
+                        </Box>
+
+                        {/* Big average */}
+                        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mb: 0.75 }}>
+                          <Typography variant="h4" fontWeight={800} sx={{ color: starColor, lineHeight: 1 }}>
+                            {avg.toFixed(1)}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+                            / 5
+                          </Typography>
+                        </Box>
+
+                        {/* Stars row */}
+                        <Box sx={{ display: 'flex', gap: 0.25, mb: 1 }}>
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Box
+                              key={s}
+                              component="span"
+                              sx={{
+                                fontSize: '0.9rem',
+                                color: s <= Math.round(avg) ? starColor : '#d1d5db',
+                                lineHeight: 1
+                              }}
+                            >
+                              &#9733;
+                            </Box>
+                          ))}
+                        </Box>
+
+                        {/* Total ratings */}
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                          {total} {total === 1 ? 'review' : 'reviews'}
+                        </Typography>
+
+                        {/* 5-star % bar */}
+                        <Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
+                            <Typography variant="caption" color="text.secondary">5★ share</Typography>
+                            <Typography variant="caption" fontWeight={700} sx={{ color: starColor }}>{pct5}%</Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={pct5}
+                            sx={{
+                              height: 5, borderRadius: 3, bgcolor: '#f1f5f9',
+                              '& .MuiLinearProgress-bar': { bgcolor: starColor, borderRadius: 3 }
+                            }}
+                          />
                         </Box>
                       </Box>
                     );

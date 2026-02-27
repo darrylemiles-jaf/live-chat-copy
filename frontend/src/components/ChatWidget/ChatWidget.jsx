@@ -21,6 +21,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
   const [queuePosition, setQueuePosition] = useState(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -511,6 +516,38 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setMessages([]);
     setIsChatEnded(false);
     setQueuePosition(null);
+    setRatingValue(0);
+    setRatingHover(0);
+    setRatingComment('');
+    setRatingSubmitted(false);
+  };
+
+  const handleSubmitRating = async () => {
+    if (!ratingValue || !chatId || !userId) return;
+    setIsRatingSubmitting(true);
+    try {
+      const response = await fetch(`${apiUrl}/ratings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          client_id: userId,
+          rating: ratingValue,
+          comment: ratingComment.trim() || undefined
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setRatingSubmitted(true);
+      } else {
+        showToast(data.message || 'Failed to submit rating.');
+      }
+    } catch (error) {
+      console.error('Rating error:', error);
+      showToast('Failed to submit rating. Please try again.');
+    } finally {
+      setIsRatingSubmitting(false);
+    }
   };
 
   const formatTime = (timestamp) => {
@@ -687,6 +724,64 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <div className="chat-ended-icon">✓</div>
                   <p className="chat-ended-title">Chat session ended</p>
                   <p className="chat-ended-sub">This conversation has been closed by the support team.</p>
+
+                  {/* Star Rating */}
+                  {!ratingSubmitted ? (
+                    <div className="chat-rating-section">
+                      <p className="chat-rating-prompt">How would you rate your experience?</p>
+                      <div className="chat-stars-row">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            className={`chat-star-btn ${star <= (ratingHover || ratingValue) ? 'active' : ''
+                              }`}
+                            onClick={() => setRatingValue(star)}
+                            onMouseEnter={() => setRatingHover(star)}
+                            onMouseLeave={() => setRatingHover(0)}
+                            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                      {ratingValue > 0 && (
+                        <div className="chat-rating-labels">
+                          {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][ratingValue]}
+                        </div>
+                      )}
+                      {ratingValue > 0 && (
+                        <textarea
+                          className="chat-rating-comment"
+                          placeholder="Leave a comment (optional)…"
+                          value={ratingComment}
+                          onChange={(e) => setRatingComment(e.target.value)}
+                          rows={2}
+                          maxLength={300}
+                        />
+                      )}
+                      {ratingValue > 0 && (
+                        <button
+                          type="button"
+                          className="chat-rating-submit-btn"
+                          onClick={handleSubmitRating}
+                          disabled={isRatingSubmitting}
+                        >
+                          {isRatingSubmitting ? 'Submitting…' : 'Submit Rating'}
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="chat-rating-thankyou">
+                      <div className="chat-rating-thankyou-stars">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <span key={s} className={s <= ratingValue ? 'filled' : ''}>★</span>
+                        ))}
+                      </div>
+                      <p className="chat-rating-thankyou-text">Thanks for your feedback! 🙏</p>
+                    </div>
+                  )}
+
                   <button className="chat-new-session-btn" onClick={handleStartNewChat}>
                     Start New Chat
                   </button>
