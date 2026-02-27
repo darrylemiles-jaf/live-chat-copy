@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { useTheme } from '@mui/material/styles';
-import { customGreen, customGold, customRed } from "../../../themes/palette";
+import { customGreen, customGold } from "../../../themes/palette";
 import {
   Button,
   Box,
@@ -14,16 +13,18 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton,
   CircularProgress,
   Alert
 } from '@mui/material';
 import { PlusOutlined } from '@ant-design/icons';
+import { useGetUsers } from '../../../api/users';
+
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
-import { useGetUsers } from '../../../api/users';
 import socketService from '../../../services/socketService';
+import PageHead from '../../../components/PageHead';
+
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -58,12 +59,10 @@ const SupportAgents = () => {
     }
   }, [users]);
 
-  // Real-time status updates via socket
   useEffect(() => {
     let attached = false;
 
     const handler = (data) => {
-      // data: { userId, status, name, role }
       const normalized = data.status.charAt(0).toUpperCase() + data.status.slice(1);
 
       setAgents((prev) =>
@@ -72,7 +71,6 @@ const SupportAgents = () => {
         )
       );
 
-      // Also update detail modal if it's open for this agent
       setSelectedAgent((prev) =>
         prev && prev.id === data.userId ? { ...prev, status: normalized } : prev
       );
@@ -316,10 +314,10 @@ const SupportAgents = () => {
     ]
   };
 
-  // Show loading state
   if (usersLoading) {
     return (
       <React.Fragment>
+        
         <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress />
@@ -328,7 +326,6 @@ const SupportAgents = () => {
     );
   }
 
-  // Show error state
   if (usersError) {
     return (
       <React.Fragment>
@@ -342,6 +339,7 @@ const SupportAgents = () => {
 
   return (
     <React.Fragment>
+      <PageHead title='Support Agents' description='Timora Live Chat, Support Agents Overview' />
       <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
 
       <ReusableTable

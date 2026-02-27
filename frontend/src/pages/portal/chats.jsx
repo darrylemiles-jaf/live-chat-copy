@@ -4,17 +4,18 @@ import {
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   Button, Snackbar, Alert
 } from '@mui/material';
+import { getChats, getChatMessages, sendMessage, sendMessageWithAttachment, endChat } from '../../api/chatApi';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { SOCKET_URL } from '../../constants/constants';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
 import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
 import MessagesAreaSection from '../../sections/chats/MessagesAreaSection';
 import MessageInputSection from '../../sections/chats/MessageInputSection';
 import EmptyStateSection from '../../sections/chats/EmptyStateSection';
-import { getChats, getChatMessages, sendMessage, sendMessageWithAttachment, endChat } from '../../api/chatApi';
 import socketService from '../../services/socketService';
+import PageHead from '../../components/PageHead';
 import useAuth from '../../hooks/useAuth';
-import { SOCKET_URL } from '../../constants/constants';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
@@ -526,6 +527,8 @@ const Chats = () => {
 
   return (
     <React.Fragment>
+        <PageHead title='Chats' description='Timora Live Chat, Chats Overview' />
+
       <Breadcrumbs
         heading="Chats"
         links={breadcrumbLinks}
