@@ -1,29 +1,13 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { customGreen, customGold } from "../../../themes/palette";
-import {
-  Button,
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  CircularProgress,
-  Alert
-} from '@mui/material';
-import { PlusOutlined } from '@ant-design/icons';
-import { useGetUsers } from '../../../api/users';
+import React from 'react';
+import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
+import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
-import socketService from '../../../services/socketService';
-import PageHead from '../../../components/PageHead';
+import AgentEditDialog from '../../../sections/agents/AgentEditDialog';
+import AgentCreateDialog from '../../../sections/agents/AgentCreateDialog';
+import { useSupportAgents } from '../../../hooks/useSupportAgents';
 
 
 const breadcrumbLinks = [
@@ -32,292 +16,26 @@ const breadcrumbLinks = [
 ];
 
 const SupportAgents = () => {
-  const [openViewModal, setOpenViewModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openCreateModal, setOpenCreateModal] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState(null);
-  const [formData, setFormData] = useState({ id: '', name: '', email: '', role: '', status: '', successfulAssists: 0 });
-  const [agents, setAgents] = useState([]);
+  const {
+    openViewModal, openEditModal, openCreateModal,
+    selectedAgent, formData,
+    filterRole, filterStatus,
+    usersLoading, usersError,
+    filteredRowsForTable, uniqueRoles, columns, viewConfig,
+    handleViewById, handleCloseViewModal,
+    handleCloseEditModal, handleCreateClick, handleCloseCreateModal,
+    handleFormChange, handleSave, handleCreate, handleClearFilters,
+    setFilterRole, setFilterStatus
+  } = useSupportAgents();
 
 
-  const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
 
 
-  useEffect(() => {
-    if (users && users.length > 0) {
-      const transformedAgents = users.map(user => ({
-        id: user.id,
-        name: user.name || user.username,
-        email: user.email,
-        phone: user.phone,
-        profile_picture: user.profile_picture,
-        role: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Support',
-        status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Available',
-        successfulAssists: 0
-      }));
-      setAgents(transformedAgents);
-    }
-  }, [users]);
-
-  useEffect(() => {
-    let attached = false;
-
-    const handler = (data) => {
-      const normalized = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-
-      setAgents((prev) =>
-        prev.map((agent) =>
-          agent.id === data.userId ? { ...agent, status: normalized } : agent
-        )
-      );
-
-      setSelectedAgent((prev) =>
-        prev && prev.id === data.userId ? { ...prev, status: normalized } : prev
-      );
-    };
-
-    const tryAttach = () => {
-      const s = socketService.socket;
-      if (s && !attached) {
-        s.on('user_status_changed', handler);
-        attached = true;
-      }
-    };
-
-    tryAttach();
-    const retry = setInterval(() => {
-      if (attached) { clearInterval(retry); return; }
-      tryAttach();
-    }, 500);
-
-    return () => {
-      clearInterval(retry);
-      const s = socketService.socket;
-      if (s && attached) s.off('user_status_changed', handler);
-    };
-  }, []);
-
-  const handleViewById = (agent) => {
-    setSelectedAgent(agent);
-    setOpenViewModal(true);
-  };
-
-  const handleCloseViewModal = () => {
-    setOpenViewModal(false);
-    setSelectedAgent(null);
-  };
-
-  const handleCloseEditModal = () => {
-    setOpenEditModal(false);
-    setFormData({});
-  };
-
-  const handleCreateClick = () => {
-    setFormData({ id: '', name: '', email: '', role: 'Agent', status: 'Available', successfulAssists: 0 });
-    setOpenCreateModal(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setOpenCreateModal(false);
-    setFormData({});
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
-    setAgents(agents.map((agent) => (agent.id === formData.id ? formData : agent)));
-    console.log('Updating agent:', formData);
-    handleCloseEditModal();
-  };
-
-  const handleCreate = () => {
-    const maxId = Math.max(...agents.map((a) => parseInt(a.id.split('-')[1])));
-    const newAgent = {
-      ...formData,
-      id: `AGT-${String(maxId + 1).padStart(4, '0')}`,
-      successfulAssists: 0
-    };
-    setAgents([newAgent, ...agents]);
-    console.log('Creating agent:', newAgent);
-    handleCloseCreateModal();
-  };
-
-  const getStatusColor = useCallback((status) => {
-    switch (status) {
-      case 'Available':
-        return { label: 'Available', color: '#4caf50' };
-      case 'Away':
-        return { label: 'Away', color: '#ffb300' };
-      case 'Busy':
-        return { label: 'Busy', color: '#f44336' };
-      default:
-        return { label: status || 'Unknown', color: '#9e9e9e' };
-    }
-  }, []);
-
-  const columns = useMemo(
-    () => [
-      {
-        id: 'name',
-        label: 'Name',
-        minWidth: 220,
-        align: 'left',
-        renderCell: (row) => (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                backgroundColor: customGreen[0],
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                color: customGreen[7],
-                fontSize: '16px'
-              }}
-            >
-              {row.name ? row.name.charAt(0).toUpperCase() : '-'}
-            </Box>
-            <Box>
-             
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.name}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
-            </Box>
-          </Box>
-        )
-      },
-      { id: 'role', label: 'Role', minWidth: 140, align: 'left' },
-      {
-        id: 'status',
-        label: 'Status',
-        minWidth: 120,
-        renderCell: (row) => {
-          const info = getStatusColor(row.status);
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: info.color }} />
-              <Typography variant="body2">{info.label}</Typography>
-            </Box>
-          );
-        }
-      }
-    ],
-    [getStatusColor]
-  );
-
-  const rows = useMemo(
-    () => agents,
-    [agents]
-  );
-
-  const [filterRole, setFilterRole] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-
-  const uniqueRoles = useMemo(() => Array.from(new Set(rows.map((r) => r.role))).sort(), [rows]);
-
-  const mapStatusLabel = (rowStatus) => getStatusColor(rowStatus).label;
-
-  const filteredRowsForTable = useMemo(() => {
-    const filtered = rows.filter((r) => {
-      if (filterRole && r.role !== filterRole) return false;
-      if (filterStatus) {
-        const label = mapStatusLabel(r.status);
-        if (label !== filterStatus) return false;
-      }
-      return true;
-    });
-
-    const weight = (r) => {
-      const label = mapStatusLabel(r.status);
-      if (label === 'Available') return 0;
-      if (label === 'Busy') return 1;
-      if (label === 'Away') return 2;
-      return 3;
-    };
-    return filtered.slice().sort((a, b) => {
-      const wa = weight(a);
-      const wb = weight(b);
-      if (wa !== wb) return wa - wb;
-      return a.name.localeCompare(b.name);
-    });
-  }, [rows, filterRole, filterStatus]);
-
-  const viewConfig = {
-    avatar: {
-      nameField: 'name',
-      emailField: 'email'
-    },
-    badges: [
-      {
-        field: 'role',
-        color: customGreen[6]
-      },
-      {
-        render: (data) => {
-          const info = getStatusColor(data.status);
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: info.color }} />
-              {info.label}
-            </Box>
-          );
-        },
-        color: 'rgba(255,255,255,0.25)'
-      }
-    ],
-    stats: [
-      {
-        field: 'successfulAssists',
-        label: 'Successful assists',
-        defaultValue: 0
-      }
-    ],
-    infoSections: [
-      {
-        title: 'Personal Information',
-        columns: '1fr 1fr',
-        fields: [
-          {
-            label: 'Member ID',
-            field: 'id',
-            valueStyle: { color: customGreen[5] }
-          },
-          {
-            label: 'Email',
-            field: 'email'
-          },
-          {
-            label: 'Role',
-            field: 'role'
-          },
-          {
-            label: 'Status',
-            render: (data) => {
-              const info = getStatusColor(data.status);
-              return (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: info.color }} />
-                  <Typography variant="body2" sx={{ color: customGreen[5] }}>
-                    {info.label}
-                  </Typography>
-                </Box>
-              );
-            }
-          }
-        ]
-      }
-    ]
-  };
 
   if (usersLoading) {
     return (
       <React.Fragment>
-        
+
         <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress />
