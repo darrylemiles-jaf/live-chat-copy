@@ -1,10 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { customGreen } from '../../../themes/palette';
+import { useGetUsers } from '../../../api/users';
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
+import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
-import { useGetUsers } from '../../../api/users';
   
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Clients' }];
 
@@ -140,6 +141,7 @@ const Clients = () => {
 
   return (
     <React.Fragment>
+      <PageHead title='Clients' description='Timora Live Chat, Clients Overview' />
       <Breadcrumbs heading="Clients" links={breadcrumbLinks} subheading="View and manage your clients here." />
       
       <ReusableTable

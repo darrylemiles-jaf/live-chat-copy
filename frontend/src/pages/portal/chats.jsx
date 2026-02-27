@@ -67,6 +67,8 @@ const Chats = () => {
 
   return (
     <React.Fragment>
+      <PageHead title='Chats' description='Timora Live Chat, Chats Overview' />
+
       <Breadcrumbs
         heading="Chats"
         links={breadcrumbLinks}

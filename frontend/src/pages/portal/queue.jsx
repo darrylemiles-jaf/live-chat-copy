@@ -4,16 +4,18 @@ import { useTheme } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { withAlpha } from '../../utils/colorUtils';
+import { SOCKET_URL } from '../../constants/constants';
+import { getQueue, getAvailableAgents, autoAssignChat, getChats } from '../../api/chatApi';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
 import WaitingQueueSection from '../../sections/queue/WaitingQueueSection';
 import CustomerDetailsSection from '../../sections/queue/CustomerDetailsSection';
 import CurrentStatusSection from '../../sections/queue/CurrentStatusSection';
-import { getQueue, getAvailableAgents, autoAssignChat, getChats } from '../../api/chatApi';
 import socketService from '../../services/socketService';
+import PageHead from '../../components/PageHead';
+
 import useAuth from '../../hooks/useAuth';
-import { SOCKET_URL } from '../../constants/constants';
 
 const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Queue' }];
 
@@ -295,6 +297,7 @@ const Queue = () => {
 
   return (
     <React.Fragment>
+      <PageHead title='Queue' description='Timora Live Chat Queue Overview' />
       <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
 
       <Box sx={{ mt: 2, borderRadius: 1, border: `1px solid ${palette.divider}` }}>
