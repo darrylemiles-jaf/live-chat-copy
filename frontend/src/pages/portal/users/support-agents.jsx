@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem, DialogActions, DialogContent, DialogTitle, Dialog, TextField } from '@mui/material';
 
 import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import PageHead from '../../../components/PageHead';
@@ -8,6 +8,7 @@ import UserDetailsView from '../../../components/UserDetailsView';
 import AgentEditDialog from '../../../sections/agents/AgentEditDialog';
 import AgentCreateDialog from '../../../sections/agents/AgentCreateDialog';
 import { useSupportAgents } from '../../../hooks/useSupportAgents';
+import { PlusOutlined } from '@ant-design/icons';
 
 
 const breadcrumbLinks = [
@@ -115,7 +116,7 @@ const SupportAgents = () => {
       />
 
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: customGold[7], fontWeight: 700 }}>Update Agent</DialogTitle>
+        <DialogTitle sx={{ color: `warning.main`, fontWeight: 700 }}>Update Agent</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
@@ -161,10 +162,10 @@ const SupportAgents = () => {
             onClick={handleSave}
             variant="contained"
             sx={{
-              bgcolor: customGold[5],
+              bgcolor: 'warning.main',
               color: '#000',
               fontWeight: 600,
-              '&:hover': { bgcolor: customGold[6] }
+              '&:hover': { bgcolor: `warning.dark` }
             }}
           >
             Save Changes
@@ -173,7 +174,7 @@ const SupportAgents = () => {
       </Dialog>
 
       <Dialog open={openCreateModal} onClose={handleCloseCreateModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: customGreen[8], fontWeight: 700 }}>Create New Agent</DialogTitle>
+        <DialogTitle sx={{ color: 'warning.main', fontWeight: 700 }}>Create New Agent</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -222,10 +223,10 @@ const SupportAgents = () => {
             variant="contained"
             startIcon={<PlusOutlined />}
             sx={{
-              bgcolor: customGreen[8],
+              bgcolor: 'warning.main',
               color: '#fff',
               fontWeight: 600,
-              '&:hover': { bgcolor: customGreen[7] }
+              '&:hover': { bgcolor: 'warning.main' }
             }}
           >
             Create Agent
