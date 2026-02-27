@@ -3,6 +3,7 @@ import {
   Box, Paper, CircularProgress, Typography, Grid,
   Snackbar, Alert
 } from '@mui/material';
+
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
 import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
@@ -12,6 +13,7 @@ import EmptyStateSection from '../../sections/chats/EmptyStateSection';
 import ClientDetailSection from '../../sections/chats/ClientDetailSection';
 import EndChatDialog from '../../sections/chats/EndChatDialog';
 import useChats from '../../hooks/useChats';
+import PageHead from '../../components/PageHead';
 
 const breadcrumbLinks = [
   { title: 'Home', to: '/' },
