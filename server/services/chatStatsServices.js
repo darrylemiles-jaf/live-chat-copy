@@ -146,22 +146,26 @@ const getDetailedStats = async () => {
     const totalResolved = statusMap.ended || 1;
 
     // --- Top agents by resolved chats ---
+    // avg_response = average time from each client message to the next agent reply across ALL messages
     const [topAgentRows] = await pool.query(`
       SELECT
         u.id,
         u.name,
-        COUNT(c.id)                                             AS resolved,
+        COUNT(DISTINCT c.id)                                            AS resolved,
         AVG(NULLIF(TIMESTAMPDIFF(SECOND, c.started_at, c.ended_at), 0)) AS avg_resolution,
         AVG(
           NULLIF(
-            TIMESTAMPDIFF(SECOND, c.created_at,
-              (SELECT MIN(m.created_at) FROM messages m
-               WHERE m.chat_id = c.id AND m.sender_role IN ('support','admin'))
+            TIMESTAMPDIFF(SECOND, cm.created_at,
+              (SELECT MIN(am.created_at) FROM messages am
+               WHERE am.chat_id = cm.chat_id
+                 AND am.sender_role IN ('support','admin')
+                 AND am.created_at > cm.created_at)
             ), 0
           )
         ) AS avg_response
       FROM users u
       JOIN chats c ON c.agent_id = u.id AND c.status = 'ended'
+      JOIN messages cm ON cm.chat_id = c.id AND cm.sender_role = 'client'
       GROUP BY u.id, u.name
       ORDER BY resolved DESC
       LIMIT 6

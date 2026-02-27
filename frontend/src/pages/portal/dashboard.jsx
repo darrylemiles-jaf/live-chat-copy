@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid, Box, Typography, Skeleton, LinearProgress,
-  Divider, Tooltip, IconButton
+  Divider, Tooltip, IconButton, Popover
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { LineChart } from '@mui/x-charts/LineChart';
@@ -99,6 +99,8 @@ const RankedRow = ({ rank, name, subtext, value, percent, color }) => (
 
 const Dashboard = () => {
   const theme = useTheme();
+  const [scoreGuideAnchor, setScoreGuideAnchor] = useState(null);
+  const scoreGuideOpen = Boolean(scoreGuideAnchor);
 
   const emptyBase = {
     days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -192,6 +194,7 @@ const Dashboard = () => {
         s.on('chat_assigned', trigger);
         s.on('chat_status_update', trigger);
         s.on('user_status_changed', trigger);
+        s.on('stats_update', trigger);
         attached = true;
       }
     };
@@ -206,6 +209,7 @@ const Dashboard = () => {
         s.off('chat_assigned', trigger);
         s.off('chat_status_update', trigger);
         s.off('user_status_changed', trigger);
+        s.off('stats_update', trigger);
       }
     };
   }, [refreshAll]);
@@ -525,89 +529,104 @@ const Dashboard = () => {
                 <Typography variant="subtitle2" fontWeight={700} color="text.primary">
                   Agent Performance Scores
                 </Typography>
-                <Tooltip
-                  arrow
-                  placement="left"
-                  componentsProps={{
-                    tooltip: { sx: { maxWidth: 260, p: 0, bgcolor: '#1e293b', borderRadius: 2, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' } },
-                    arrow: { sx: { color: '#1e293b' } }
-                  }}
-                  title={
-                    <Box>
-                      {/* Header */}
-                      <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: 'white', letterSpacing: 0.3 }}>
-                          Performance Score Guide
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)', mt: 0.25 }}>
-                          Based on avg first-response time
-                        </Typography>
-                      </Box>
 
-                      {/* Green group */}
-                      <Box sx={{ px: 2, pt: 1.25, pb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-                          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
-                          <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: 0.5 }}>Excellent</Typography>
-                        </Box>
-                        {[
-                          { range: '≤ 30s', score: 100 },
-                          { range: '≤ 1 min', score: 95 },
-                          { range: '≤ 2 min', score: 88 },
-                          { range: '≤ 3 min', score: 82 },
-                        ].map((row) => (
-                          <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
-                            <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#22c55e' }}>{row.score}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-
-                      <Box sx={{ mx: 2, borderTop: '1px solid rgba(255,255,255,0.06)' }} />
-
-                      {/* Orange group */}
-                      <Box sx={{ px: 2, pt: 0.75, pb: 0.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-                          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
-                          <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Acceptable</Typography>
-                        </Box>
-                        {[
-                          { range: '≤ 5 min', score: 70 },
-                        ].map((row) => (
-                          <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
-                            <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#f59e0b' }}>{row.score}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-
-                      <Box sx={{ mx: 2, borderTop: '1px solid rgba(255,255,255,0.06)' }} />
-
-                      {/* Red group */}
-                      <Box sx={{ px: 2, pt: 0.75, pb: 1.25 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-                          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f44336', flexShrink: 0 }} />
-                          <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f44336', textTransform: 'uppercase', letterSpacing: 0.5 }}>Needs Improvement</Typography>
-                        </Box>
-                        {[
-                          { range: '≤ 10 min', score: 45 },
-                          { range: '≤ 20 min', score: 30 },
-                          { range: '≤ 30 min', score: 20 },
-                          { range: '> 30 min', score: 10 },
-                        ].map((row) => (
-                          <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
-                            <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#f44336' }}>{row.score}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  }
-                >
-                  <IconButton size="small" sx={{ p: 0.25 }}>
-                    <InfoCircleOutlined style={{ fontSize: 15, color: '#94a3b8' }} />
+                <Tooltip title="View scoring guide">
+                  <IconButton
+                    size="small"
+                    sx={{ p: 0.25 }}
+                    onClick={(e) => setScoreGuideAnchor(e.currentTarget)}
+                  >
+                    <InfoCircleOutlined style={{ fontSize: 15, color: scoreGuideOpen ? '#008E86' : '#94a3b8' }} />
                   </IconButton>
                 </Tooltip>
+
+                <Popover
+                  open={scoreGuideOpen}
+                  anchorEl={scoreGuideAnchor}
+                  onClose={() => setScoreGuideAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  slotProps={{ paper: { sx: { width: 290, p: 0, bgcolor: '#1e293b', borderRadius: 2, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.35)', mt: 0.5 } } }}
+                >
+                  {/* Header */}
+                  <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'white', letterSpacing: 0.3 }}>
+                        Performance Score Guide
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', mt: 0.25 }}>
+                        Based on average reply time across all messages
+                      </Typography>
+                    </Box>
+                    <IconButton size="small" onClick={() => setScoreGuideAnchor(null)} sx={{ p: 0.25, color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' }, mt: -0.25, mr: -0.5 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1 }}>✕</span>
+                    </IconButton>
+                  </Box>
+
+                  {/* Column labels */}
+                  <Box sx={{ px: 2, pt: 1, pb: 0.25, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: 0.6 }}>Response Time</Typography>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: 0.6 }}>Score</Typography>
+                  </Box>
+
+                  {/* Excellent */}
+                  <Box sx={{ px: 2, pt: 0.75, pb: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.6 }}>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: 0.5 }}>Excellent</Typography>
+                    </Box>
+                    {[
+                      { range: 'Less than or equal to 30 sec', score: 100 },
+                      { range: 'Less than or equal to 1 min', score: 95 },
+                      { range: 'Less than or equal to 2 min', score: 88 },
+                      { range: 'Less than or equal to 3 min', score: 82 },
+                    ].map((row) => (
+                      <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.35, pl: 1.75 }}>
+                        <Typography sx={{ fontSize: '0.69rem', color: 'rgba(255,255,255,0.6)' }}>{row.range}</Typography>
+                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: '#22c55e', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Box sx={{ mx: 2, borderTop: '1px solid rgba(255,255,255,0.07)' }} />
+
+                  {/* Acceptable */}
+                  <Box sx={{ px: 2, pt: 0.75, pb: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.6 }}>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Acceptable</Typography>
+                    </Box>
+                    {[
+                      { range: 'Less than or equal to 5 min', score: 70 },
+                    ].map((row) => (
+                      <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.35, pl: 1.75 }}>
+                        <Typography sx={{ fontSize: '0.69rem', color: 'rgba(255,255,255,0.6)' }}>{row.range}</Typography>
+                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: '#f59e0b', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Box sx={{ mx: 2, borderTop: '1px solid rgba(255,255,255,0.07)' }} />
+
+                  {/* Red group */}
+                  <Box sx={{ px: 2, pt: 0.75, pb: 1.25 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f44336', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f44336', textTransform: 'uppercase', letterSpacing: 0.5 }}>Needs Improvement</Typography>
+                    </Box>
+                    {[
+                      { range: 'Less than or equal to 10 min', score: 45 },
+                      { range: 'Less than or equal to 20 min', score: 30 },
+                      { range: 'Less than or equal to 30 min', score: 20 },
+                      { range: 'More than 30 min', score: 10 },
+                    ].map((row) => (
+                      <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
+                        <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#f44336' }}>{row.score}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Popover>
               </Box>
               <Divider sx={{ mb: 2 }} />
               {loading ? (
@@ -648,7 +667,7 @@ const Dashboard = () => {
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography variant="body2" fontWeight={600} noWrap>{agent.name}</Typography>
                           <Typography variant="caption" color="text.secondary" noWrap>
-                            Avg response: {formatDuration(agent.avgResponse)}
+                            Avg reply time: {formatDuration(agent.avgResponse)}
                           </Typography>
                         </Box>
                         <Box
@@ -793,8 +812,8 @@ const Dashboard = () => {
             </MainCard>
           </Grid>
 
-        </Grid>
-      </Box>
+        </Grid >
+      </Box >
     </>
   );
 };
