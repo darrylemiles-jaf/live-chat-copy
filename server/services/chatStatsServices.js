@@ -129,6 +129,98 @@ const getChatStats = async (userId = null) => {
   }
 };
 
+/**
+ * Get detailed statistics for the Statistics Dashboard
+ * Includes per-agent rankings, status breakdown, and agent availability
+ */
+const getDetailedStats = async () => {
+  try {
+    // --- Status breakdown ---
+    const [statusRows] = await pool.query(
+      `SELECT status, COUNT(*) AS count FROM chats GROUP BY status`
+    );
+    const statusMap = { queued: 0, active: 0, ended: 0 };
+    statusRows.forEach(r => { statusMap[r.status] = Number(r.count); });
+
+    // --- Total resolved (for percentage) ---
+    const totalResolved = statusMap.ended || 1;
+
+    // --- Top agents by resolved chats ---
+    const [topAgentRows] = await pool.query(`
+      SELECT
+        u.id,
+        u.name,
+        COUNT(c.id)                                             AS resolved,
+        AVG(NULLIF(TIMESTAMPDIFF(SECOND, c.started_at, c.ended_at), 0)) AS avg_resolution,
+        AVG(
+          NULLIF(
+            TIMESTAMPDIFF(SECOND, c.created_at,
+              (SELECT MIN(m.created_at) FROM messages m
+               WHERE m.chat_id = c.id AND m.sender_role IN ('support','admin'))
+            ), 0
+          )
+        ) AS avg_response
+      FROM users u
+      JOIN chats c ON c.agent_id = u.id AND c.status = 'ended'
+      GROUP BY u.id, u.name
+      ORDER BY resolved DESC
+      LIMIT 6
+    `);
+
+    const topAgents = topAgentRows.map(a => ({
+      id: a.id,
+      name: a.name,
+      resolved: Number(a.resolved),
+      percent: Math.min(100, Math.round((Number(a.resolved) / totalResolved) * 100)),
+      avgResolution: Math.round(a.avg_resolution || 0),
+      avgResponse: Math.round(a.avg_response || 0)
+    }));
+
+    // --- Top clients by chat count ---
+    const [topClientRows] = await pool.query(`
+      SELECT u.id, u.name, u.email, COUNT(c.id) AS chat_count
+      FROM users u
+      JOIN chats c ON c.client_id = u.id
+      GROUP BY u.id, u.name, u.email
+      ORDER BY chat_count DESC
+      LIMIT 6
+    `);
+    const topClients = topClientRows.map(c => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      chatCount: Number(c.chat_count)
+    }));
+
+    // --- Agent availability ---
+    const [agentAvailRows] = await pool.query(
+      `SELECT status, COUNT(*) AS count FROM users WHERE role IN ('support','admin') GROUP BY status`
+    );
+    const avail = { available: 0, busy: 0, away: 0, total: 0 };
+    agentAvailRows.forEach(r => {
+      const s = r.status;
+      if (s in avail) avail[s] = Number(r.count);
+      avail.total += Number(r.count);
+    });
+    const availPercent = avail.total > 0
+      ? Math.round((avail.available / avail.total) * 100)
+      : 0;
+
+    return {
+      success: true,
+      data: {
+        statusBreakdown: statusMap,
+        topAgents,
+        topClients,
+        agentAvailability: { ...avail, availPercent }
+      }
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 export default {
-  getChatStats
+  getChatStats,
+  getDetailedStats
 };

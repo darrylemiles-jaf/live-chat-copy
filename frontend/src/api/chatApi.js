@@ -47,6 +47,16 @@ export const getChatStats = async (userId = null) => {
   }
 };
 
+export const getDetailedStats = async () => {
+  try {
+    const response = await axiosServices.get('/chats/detailed-stats');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching detailed stats:', error);
+    throw error;
+  }
+};
+
 export const getAvailableAgents = async () => {
   try {
     const response = await axiosServices.get('/queue/available-agents');
@@ -180,6 +190,7 @@ export default {
   getChatMessages,
   getQueue,
   getChatStats,
+  getDetailedStats,
   getAvailableAgents,
   sendMessage,
   sendMessageWithAttachment,

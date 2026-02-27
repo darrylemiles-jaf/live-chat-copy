@@ -7,7 +7,8 @@ import {
   endChat
 } from '../controllers/chatsAssignmentControllers.js'
 import {
-  getChatStats
+  getChatStats,
+  getDetailedStats
 } from '../controllers/chatStatsControllers.js'
 
 import express from 'express'
@@ -17,6 +18,7 @@ const router = express.Router()
 router.get('/', getChats);
 
 router.get('/stats', getChatStats);
+router.get('/detailed-stats', getDetailedStats);
 
 router.post('/auto-assign', autoAssignChat);
 

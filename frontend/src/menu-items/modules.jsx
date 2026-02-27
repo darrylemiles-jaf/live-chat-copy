@@ -1,6 +1,5 @@
 // icons
 import {
-  DashboardOutlined,
   MessageOutlined,
   UserOutlined,
   HomeOutlined,
@@ -20,7 +19,6 @@ import {
 } from '../constants/constants'
 
 const icons = {
-  DashboardOutlined,
   MessageOutlined,
   UserOutlined,
   HomeOutlined,

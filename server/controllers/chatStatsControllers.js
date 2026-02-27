@@ -12,6 +12,17 @@ const getChatStats = expressAsync(async (req, res) => {
   }
 });
 
+const getDetailedStats = expressAsync(async (req, res) => {
+  try {
+    const stats = await chatStatsServices.getDetailedStats();
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('Error fetching detailed stats:', error.message);
+    throw new Error(error.message);
+  }
+});
+
 export {
-  getChatStats
+  getChatStats,
+  getDetailedStats
 };
