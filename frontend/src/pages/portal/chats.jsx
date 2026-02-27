@@ -78,7 +78,6 @@ const Chats = () => {
       <Paper sx={{ height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' }, overflow: 'hidden', mt: 2 }}>
         <Grid container sx={{ height: '100%' }}>
 
-          {/* ── Chat list ── */}
           <Grid
             size={{ xs: 12, md: 3 }}
             sx={{
@@ -100,7 +99,6 @@ const Chats = () => {
             />
           </Grid>
 
-          {/* ── Message area ── */}
           <Grid
             size={{ xs: 12, md: 6 }}
             sx={{
@@ -147,7 +145,6 @@ const Chats = () => {
             )}
           </Grid>
 
-          {/* ── Client details ── */}
           {selectedChat && (
             <Grid
               size={{ xs: 0, md: 3 }}
