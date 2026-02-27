@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Box, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import Breadcrumbs from '../../components/@extended/Breadcrumbs'
 import { getCurrentUser } from '../../utils/auth'
 import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../../api/chatApi'
+
+import Breadcrumbs from '../../components/@extended/Breadcrumbs'
+import PageHead from '../../components/PageHead'  
 import socketService from '../../services/socketService'
 
 const breadcrumbLinks = [
@@ -346,6 +348,7 @@ const Notifications = () => {
 
   return (
     <React.Fragment>
+      <PageHead title='Notifications' description='Timora Live Chat, Notifications Overview' />
       <Breadcrumbs
         heading="Notifications"
         links={breadcrumbLinks}
