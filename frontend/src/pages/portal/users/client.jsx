@@ -6,9 +6,9 @@ import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
 import { useGetUsers } from '../../../api/users';
   
-const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Customers' }];
+const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Clients' }];
 
-const Customers = () => {
+const Clients = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customers, setCustomers] = useState([]);
@@ -81,17 +81,7 @@ const Customers = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 600,
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                ID: {row.id}
-              </Typography>
+             
               <Typography variant="subtitle2" color="initial">
                 {row.name}
               </Typography>
@@ -150,7 +140,7 @@ const Customers = () => {
 
   return (
     <React.Fragment>
-      <Breadcrumbs heading="Customers" links={breadcrumbLinks} subheading="View and manage your customers here." />
+      <Breadcrumbs heading="Clients" links={breadcrumbLinks} subheading="View and manage your clients here." />
       
       <ReusableTable
         columns={columns}
@@ -174,4 +164,4 @@ const Customers = () => {
   );
 };
 
-export default Customers;
+export default Clients;
