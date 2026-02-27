@@ -68,6 +68,12 @@ export const getIO = () => {
   return io;
 };
 
+// Emit stats_update to all portal users (triggers dashboard refresh)
+export const emitStatsUpdate = () => {
+  if (!io) return;
+  io.emit('stats_update', { ts: Date.now() });
+};
+
 // Emit new message to chat room AND the agent's personal room (fallback for when portal hasn't joined the chat room yet)
 export const emitNewMessage = (chatId, message, agentId = null) => {
   if (io) {

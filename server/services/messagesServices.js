@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-import { emitNewMessage, emitChatAssigned, emitQueueUpdate } from "../socket/socketHandler.js";
+import { emitNewMessage, emitChatAssigned, emitQueueUpdate, emitStatsUpdate } from "../socket/socketHandler.js";
 import notificationServices from "./notificationServices.js";
 
 
@@ -160,6 +160,11 @@ const createMessage = async (payload) => {
     // Only notify the agent via personal room if the message is from a client (avoids double-delivery)
     const notifyAgentId = sender_role === 'client' ? chatAgentId : null;
     emitNewMessage(usedChatId, newMessage[0], notifyAgentId);
+
+    // When an agent replies, update dashboard stats in real time
+    if (sender_role === 'support' || sender_role === 'admin') {
+      emitStatsUpdate();
+    }
 
     // Notify assigned agent of new message from client
     if (sender_role === 'client' && chatAgentId) {
