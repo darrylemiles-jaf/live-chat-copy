@@ -9,7 +9,7 @@ import UnderConstruction from '../components/maintenance/UnderConstruction';
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
 const Queue = Loadable(lazy(() => import('../pages/portal/queue')));
 const Chats = Loadable(lazy(() => import('../pages/portal/chats')));
-const Clients = Loadable(lazy(() => import('../pages/portal/users/client')));
+const Clients = Loadable(lazy(() => import('../pages/portal/users/clients')));
 const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
 const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
