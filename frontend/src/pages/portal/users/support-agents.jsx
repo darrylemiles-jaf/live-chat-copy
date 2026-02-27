@@ -186,17 +186,7 @@ const SupportAgents = () => {
               {row.name ? row.name.charAt(0).toUpperCase() : '-'}
             </Box>
             <Box>
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                ID: {row.id}
-              </Typography>
+             
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{row.name}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
             </Box>

@@ -92,10 +92,10 @@ const modules = [
         access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
         children: [
           {
-            id: 'customers',
-            title: 'Customers',
+            id: 'clients',
+            title: 'Clients',
             type: 'item',
-            url: '/portal/users/customers',
+            url: '/portal/users/clients',
             icon: icons.UsergroupAddOutlined,
             breadcrumbs: false,
           },
