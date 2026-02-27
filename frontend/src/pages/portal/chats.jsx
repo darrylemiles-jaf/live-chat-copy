@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box, Paper, CircularProgress, Typography, Grid,
-  Snackbar, Alert
+  Snackbar, Alert, Drawer
 } from '@mui/material';
 
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
@@ -21,6 +21,8 @@ const breadcrumbLinks = [
 ];
 
 const Chats = () => {
+  const [clientDetailOpen, setClientDetailOpen] = useState(false);
+
   const {
     chats,
     selectedChat,
@@ -116,6 +118,7 @@ const Chats = () => {
                   selectedChat={selectedChat}
                   onBack={handleBackToList}
                   onEndChat={handleEndChat}
+                  onAvatarClick={() => setClientDetailOpen(true)}
                 />
                 <MessagesAreaSection
                   messages={currentMessages}
@@ -169,6 +172,21 @@ const Chats = () => {
 
         </Grid>
       </Paper>
+
+      {/* Mobile client detail drawer */}
+      <Drawer
+        anchor="right"
+        open={clientDetailOpen}
+        onClose={() => setClientDetailOpen(false)}
+        sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { width: 300 } }}
+      >
+        {selectedChat && (
+          <ClientDetailSection
+            selectedChat={selectedChat}
+            messageCount={currentMessages.length}
+          />
+        )}
+      </Drawer>
 
       <EndChatDialog
         open={confirmDialog.open}

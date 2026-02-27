@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { ArrowLeftOutlined, StopOutlined, PhoneOutlined, VideoCameraOutlined } from '@ant-design/icons';
 
-const ChatHeaderSection = ({ selectedChat, onBack, onEndChat }) => {
+const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return '#22c55e';
@@ -58,36 +58,41 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat }) => {
           <ArrowLeftOutlined />
         </IconButton>
 
-        <Badge
-          overlap="circular"
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          variant="dot"
-          sx={{
-            '& .MuiBadge-badge': {
-              backgroundColor: getStatusColor(selectedChat.status),
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              border: '2.5px solid white',
-              boxShadow: `0 0 0 2px ${getStatusColor(selectedChat.status)}33`
-            }
-          }}
+        <Box
+          onClick={onAvatarClick}
+          sx={{ cursor: onAvatarClick ? 'pointer' : 'default', display: 'inline-flex' }}
         >
-          <Avatar
-            src={selectedChat.avatar}
-            alt={selectedChat.name}
+          <Badge
+            overlap="circular"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            variant="dot"
             sx={{
-              width: 48,
-              height: 48,
-              bgcolor: 'primary.main',
-              fontSize: '1.25rem',
-              fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              '& .MuiBadge-badge': {
+                backgroundColor: getStatusColor(selectedChat.status),
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                border: '2.5px solid white',
+                boxShadow: `0 0 0 2px ${getStatusColor(selectedChat.status)}33`
+              }
             }}
           >
-            {selectedChat.name.charAt(0).toUpperCase()}
-          </Avatar>
-        </Badge>
+            <Avatar
+              src={selectedChat.avatar}
+              alt={selectedChat.name}
+              sx={{
+                width: 48,
+                height: 48,
+                bgcolor: 'primary.main',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              {selectedChat.name.charAt(0).toUpperCase()}
+            </Avatar>
+          </Badge>
+        </Box>
 
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
