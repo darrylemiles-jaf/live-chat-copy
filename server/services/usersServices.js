@@ -108,7 +108,7 @@ const getUserByEmail = async (email) => {
 const validateIfExists = async (email) => {
   try {
     const response = await axios.get(
-      "https://api-staging-admin.timora.ph/api/users/all",
+      API_VALIDATOR_URL,
     );
 
     const data = response.data;
