@@ -1,7 +1,11 @@
 import express from 'express';
 import { submitRating, getRatingByChatId, getAgentRatings, getLeaderboard } from '../controllers/ratingsControllers.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+// All routes require authentication
+router.use(protect);
 
 // POST /ratings           — submit a new rating
 router.post('/', submitRating);
