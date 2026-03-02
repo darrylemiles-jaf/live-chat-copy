@@ -1,17 +1,45 @@
 import pool from "../config/db.js";
 import { emitNotification } from "../socket/socketHandler.js";
 
-// Create a notification and emit it via socket
+// Create a notification and emit it via socket.
+// For new_message type: upsert — update the existing notification for the same chat
+// so there is only ever ONE notification per chat instead of one per message.
 const createNotification = async ({ user_id, type, message, chat_id = null, reference_id = null }) => {
   try {
-    const [result] = await pool.query(
-      `INSERT INTO notifications (user_id, type, message, chat_id, reference_id) VALUES (?, ?, ?, ?, ?)`,
-      [user_id, type, message, chat_id, reference_id]
-    );
+    let notificationId;
+
+    if (type === 'new_message' && chat_id) {
+      // Check for an existing notification for this user + chat
+      const [existing] = await pool.query(
+        `SELECT id FROM notifications WHERE user_id = ? AND type = 'new_message' AND chat_id = ? LIMIT 1`,
+        [user_id, chat_id]
+      );
+
+      if (existing.length > 0) {
+        // Update the existing notification with the latest message and mark unread
+        await pool.query(
+          `UPDATE notifications SET message = ?, is_read = 0, reference_id = ?, created_at = NOW() WHERE id = ?`,
+          [message, reference_id, existing[0].id]
+        );
+        notificationId = existing[0].id;
+      } else {
+        const [result] = await pool.query(
+          `INSERT INTO notifications (user_id, type, message, chat_id, reference_id) VALUES (?, ?, ?, ?, ?)`,
+          [user_id, type, message, chat_id, reference_id]
+        );
+        notificationId = result.insertId;
+      }
+    } else {
+      const [result] = await pool.query(
+        `INSERT INTO notifications (user_id, type, message, chat_id, reference_id) VALUES (?, ?, ?, ?, ?)`,
+        [user_id, type, message, chat_id, reference_id]
+      );
+      notificationId = result.insertId;
+    }
 
     const [rows] = await pool.query(
       `SELECT * FROM notifications WHERE id = ?`,
-      [result.insertId]
+      [notificationId]
     );
 
     const notification = rows[0];

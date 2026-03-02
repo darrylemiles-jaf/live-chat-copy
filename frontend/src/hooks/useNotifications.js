@@ -66,7 +66,14 @@ const useNotifications = () => {
   // ── Socket setup ───────────────────────────────────────────────────────────
   useEffect(() => {
     const handleNewNotification = (notification) => {
-      setNotifications((prev) => [notification, ...prev]);
+      setNotifications((prev) => {
+        const exists = prev.some((n) => n.id === notification.id);
+        if (exists) {
+          // Update in place and move to top
+          return [notification, ...prev.filter((n) => n.id !== notification.id)];
+        }
+        return [notification, ...prev];
+      });
       setUnreadCount((prev) => prev + 1);
     };
 

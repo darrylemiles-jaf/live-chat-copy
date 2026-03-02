@@ -169,7 +169,8 @@ const createMessage = async (payload) => {
     // Notify assigned agent of new message from client
     if (sender_role === 'client' && chatAgentId) {
       const senderName = newMessage[0].sender_name || 'A client';
-      const msgPreview = message ? (message.length > 50 ? message.substring(0, 50) + '...' : message) : 'sent an attachment';
+      const lastMsg = newMessage[0].message;
+      const msgPreview = lastMsg ? (lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : lastMsg) : 'sent an attachment';
       try {
         await notificationServices.createNotification({
           user_id: chatAgentId,
