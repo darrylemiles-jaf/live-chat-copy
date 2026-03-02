@@ -2,6 +2,7 @@ const chatsTable = `CREATE TABLE IF NOT EXISTS chats (
   id INT AUTO_INCREMENT PRIMARY KEY,
   client_id INT NOT NULL,
   agent_id INT NULL,
+  concern VARCHAR(255) NULL,
   status ENUM('queued','active','ended') NOT NULL DEFAULT 'queued',
   started_at DATETIME NULL,
   ended_at DATETIME NULL,

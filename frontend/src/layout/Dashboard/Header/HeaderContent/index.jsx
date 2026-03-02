@@ -37,6 +37,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getCurrentUser, logout } from 'utils/auth';
 import Users from 'api/users';
+import { getChats } from 'api/chatApi';
 import socketService from 'services/socketService';
 import {
   DashboardOutlined,
@@ -59,6 +60,7 @@ export default function HeaderContent() {
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('available');
   const [statusLoading, setStatusLoading] = useState(false);
+  const [activeChatsCount, setActiveChatsCount] = useState(0);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', color: null });
@@ -66,57 +68,110 @@ export default function HeaderContent() {
   const STATUS_COLORS = { available: '#008E86', busy: '#B53654', away: '#CC9000' };
 
   useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = getCurrentUser();
-      if (!currentUser?.id) return setUser(currentUser);
+    let attached = false;
+    let attachedSocket = null;
+    let heartbeatTimer = null;
 
+    const getUid = () => getCurrentUser()?.id;
+
+    const syncStatus = async () => {
+      const uid = getUid();
+      if (!uid) return;
+      try {
+        const [userRes, chatRes] = await Promise.all([Users.getSingleUser(uid), getChats(uid)]);
+        if (!userRes?.success || !userRes?.data) return;
+        const freshUser = userRes.data;
+        const chats = Array.isArray(chatRes) ? chatRes : chatRes?.data || [];
+        const activeCount = chats.filter((c) => c.status === 'active').length;
+        setActiveChatsCount(activeCount);
+        if (activeCount > 0 && freshUser.status !== 'busy') {
+          try {
+            await Users.updateUserStatus(freshUser.id, 'busy');
+          } catch (_) {}
+          setStatus('busy');
+        } else if (activeCount === 0 && freshUser.status === 'busy') {
+          try {
+            await Users.updateUserStatus(freshUser.id, 'available');
+          } catch (_) {}
+          setStatus('available');
+        } else {
+          setStatus(freshUser.status || 'available');
+        }
+      } catch (_) {}
+    };
+
+    const handleUserStatusChange = (data) => {
+      if (data.userId == getUid()) {
+        setStatus(data.status);
+        syncStatus();
+      }
+    };
+
+    const handleChatAssigned = () => {
+      setStatus('busy');
+      syncStatus();
+    };
+
+    const handleChatStatusUpdate = () => {
+      syncStatus();
+    };
+
+    const tryAttach = () => {
+      const s = socketService.socket;
+      if (!s || attached) return;
+      s.on('user_status_changed', handleUserStatusChange);
+      s.on('chat_assigned', handleChatAssigned);
+      s.on('chat_status_update', handleChatStatusUpdate);
+      s.on('queue_update', syncStatus);
+      attachedSocket = s;
+      attached = true;
+    };
+
+    const init = async () => {
+      const currentUser = getCurrentUser();
+      if (!currentUser?.id) return;
       try {
         const res = await Users.getSingleUser(currentUser.id);
-        if (res?.success && res.data) {
-          setUser(res.data);
-          setStatus(res.data.status || 'available');
-          try {
-            localStorage.setItem('user', JSON.stringify(res.data));
-          } catch (e) {
-            /* ignore storage errors */
-          }
+        if (!res?.success || !res?.data) {
+          logout();
           return;
         }
-        // User ID from token no longer exists in DB — force re-login
-        logout();
-        return;
-      } catch (e) {
-        // 404 / 'User not found' means stale JWT — force re-login
+        const freshUser = res.data;
+        setUser(freshUser);
+        try {
+          localStorage.setItem('user', JSON.stringify(freshUser));
+        } catch (_) {}
+      } catch (_) {
         logout();
         return;
       }
+      await syncStatus();
     };
 
-    loadUser();
-  }, []);
+    init();
 
-  // Listen for real-time status updates from socket
-  useEffect(() => {
-    const handleUserStatusChange = (data) => {
-      // Update status if it's the current user's status that changed
-      if (user && data.userId === user.id) {
-        console.log('📡 Current user status changed to:', data.status);
-        setStatus(data.status);
+    tryAttach();
+    const retryInterval = setInterval(() => {
+      if (attached) {
+        clearInterval(retryInterval);
+        return;
       }
-    };
+      tryAttach();
+    }, 300);
 
-    const socket = socketService.socket;
-    if (socket) {
-      socket.on('user_status_changed', handleUserStatusChange);
-    }
+    heartbeatTimer = setInterval(syncStatus, 5000);
 
     return () => {
-      const s = socketService.socket;
-      if (s) {
-        s.off('user_status_changed', handleUserStatusChange);
+      clearInterval(retryInterval);
+      clearInterval(heartbeatTimer);
+      if (attachedSocket && attached) {
+        attachedSocket.off('user_status_changed', handleUserStatusChange);
+        attachedSocket.off('chat_assigned', handleChatAssigned);
+        attachedSocket.off('chat_status_update', handleChatStatusUpdate);
+        attachedSocket.off('queue_update', syncStatus);
       }
     };
-  }, [user]);
+  }, []);
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
@@ -138,7 +193,7 @@ export default function HeaderContent() {
         setSnackbar({ open: true, message: `Status updated to ${label}`, severity: 'success', color: STATUS_COLORS[newStatus] || null });
         setOpenSettings(false);
       } else {
-        setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
+        setSnackbar({ open: true, message: response?.message || 'Failed to update status', severity: 'error' });
       }
     } catch (e) {
       console.error('Failed to update status:', e.message);
@@ -186,7 +241,6 @@ export default function HeaderContent() {
         <Divider />
         <DialogContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
           <Box>
-            {/* Navigation */}
             <Typography
               variant="subtitle1"
               sx={{ fontWeight: 600, mb: { xs: 1, sm: 1.5 }, color: '#064856', fontSize: { xs: '0.875rem', sm: '0.95rem' } }}
@@ -246,7 +300,6 @@ export default function HeaderContent() {
               ))}
             </Box>
 
-            {/* Management */}
             <Typography
               variant="subtitle1"
               sx={{ fontWeight: 600, mb: { xs: 1, sm: 1.5 }, color: '#064856', fontSize: { xs: '0.875rem', sm: '0.95rem' } }}
@@ -339,7 +392,6 @@ export default function HeaderContent() {
       {!downLG && <Profile />}
       {downLG && <MobileSection />}
 
-      {/* Right Drawer - Settings */}
       <Drawer
         anchor="right"
         open={openSettings}
@@ -369,7 +421,6 @@ export default function HeaderContent() {
         </Box>
 
         <Box sx={{ px: 2.5, pt: 3 }}>
-          {/* Status Section */}
           <Typography
             variant="subtitle2"
             sx={{
@@ -386,7 +437,7 @@ export default function HeaderContent() {
           <Select
             value={status}
             onChange={(e) => handleToggleStatus(e.target.value)}
-            disabled={statusLoading}
+            disabled={statusLoading || activeChatsCount > 0}
             size="small"
             fullWidth
             sx={{
@@ -442,6 +493,11 @@ export default function HeaderContent() {
               </Box>
             </MenuItem>
           </Select>
+          {activeChatsCount > 0 && (
+            <Typography variant="caption" sx={{ mt: 1.25, display: 'block', color: '#B53654', fontWeight: 500 }}>
+              Status is locked while you have {activeChatsCount} active chat{activeChatsCount > 1 ? 's' : ''}.
+            </Typography>
+          )}
         </Box>
       </Drawer>
 

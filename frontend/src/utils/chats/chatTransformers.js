@@ -34,6 +34,7 @@ export const transformChatData = (chat) => ({
   created_at: chat.created_at,
   updated_at: chat.updated_at,
   message_count: chat.messages?.length || 0,
+  concern: chat.concern || null,
 });
 
 export const transformMessageData = (message, agentId) => ({

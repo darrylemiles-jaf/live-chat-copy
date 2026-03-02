@@ -1,7 +1,7 @@
+import { generateUserToken } from "../utils/jwtUtils.js";
 import pool from "../config/db.js";
 import axios from "axios";
 import bcrypt from "bcryptjs";
-import { generateUserToken } from "../utils/jwtUtils.js";
 
 const getUsers = async (query = {}) => {
   try {
@@ -12,21 +12,26 @@ const getUsers = async (query = {}) => {
     let whereClauses = [];
     let values = [];
     if (query.role) {
-      whereClauses.push('role = ?');
+      whereClauses.push("role = ?");
       values.push(query.role);
     }
     if (query.username) {
-      whereClauses.push('username LIKE ?');
+      whereClauses.push("username LIKE ?");
       values.push(`%${query.username}%`);
     }
     if (query.email) {
-      whereClauses.push('email LIKE ?');
+      whereClauses.push("email LIKE ?");
       values.push(`%${query.email}%`);
     }
 
-    const where = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const where = whereClauses.length
+      ? `WHERE ${whereClauses.join(" AND ")}`
+      : "";
 
-    const [countRows] = await pool.query(`SELECT COUNT(*) as count FROM users ${where}`, values);
+    const [countRows] = await pool.query(
+      `SELECT COUNT(*) as count FROM users ${where}`,
+      values,
+    );
     const total = countRows[0].count;
 
     const [users] = await pool.query(
@@ -39,19 +44,19 @@ const getUsers = async (query = {}) => {
       role,
       status
       FROM users ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-      [...values, limit, offset]
+      [...values, limit, offset],
     );
 
     return {
       success: true,
-      message: 'Users fetched successfully',
+      message: "Users fetched successfully",
       data: users,
       pagination: {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   } catch (error) {
     throw new Error(error.message);
@@ -60,18 +65,18 @@ const getUsers = async (query = {}) => {
 
 const getSingleUser = async (id) => {
   try {
-    const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+    const [users] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
     if (users.length === 0) {
       return {
         success: false,
-        message: 'User not found',
-        data: null
+        message: "User not found",
+        data: null,
       };
     }
     return {
       success: true,
-      message: 'User fetched successfully',
-      data: users[0]
+      message: "User fetched successfully",
+      data: users[0],
     };
   } catch (error) {
     throw new Error(error.message);
@@ -80,18 +85,20 @@ const getSingleUser = async (id) => {
 
 const getUserByEmail = async (email) => {
   try {
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
     if (users.length === 0) {
       return {
         success: false,
-        message: 'User not found',
-        data: null
+        message: "User not found",
+        data: null,
       };
     }
     return {
       success: true,
-      message: 'User fetched successfully',
-      data: users[0]
+      message: "User fetched successfully",
+      data: users[0],
     };
   } catch (error) {
     throw new Error(error.message);
@@ -101,7 +108,7 @@ const getUserByEmail = async (email) => {
 const validateIfExists = async (email) => {
   try {
     const response = await axios.get(
-      "https://api-staging-admin.timora.ph/api/users/all"
+      "https://api-staging-admin.timora.ph/api/users/all",
     );
 
     const data = response.data;
@@ -119,7 +126,7 @@ const validateIfUserExistsInUsersDB = async (email) => {
   try {
     const [rows] = await pool.query(
       "SELECT id FROM users WHERE email = ? LIMIT 1",
-      [email]
+      [email],
     );
 
     return rows.length > 0;
@@ -129,30 +136,41 @@ const validateIfUserExistsInUsersDB = async (email) => {
   }
 };
 
-
-
 const createUser = async (userData) => {
   try {
-    const { name, username, email, phone, role, status = 'AVAILABLE', password } = userData;
-
+    const {
+      name,
+      username,
+      email,
+      phone,
+      role,
+      status = "AVAILABLE",
+      password,
+    } = userData;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [insertResult] = await pool.query(
       `INSERT INTO users (name, username, email, phone, role, status, password, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [name, username, email, phone || null, role || 'user', status || 'active', hashedPassword]
+      [
+        name,
+        username,
+        email,
+        phone || null,
+        role || "user",
+        status || "active",
+        hashedPassword,
+      ],
     );
 
-    const [newUser] = await pool.query(
-      "SELECT * FROM users WHERE id = ?",
-      [insertResult.insertId]
-    );
+    const [newUser] = await pool.query("SELECT * FROM users WHERE id = ?", [
+      insertResult.insertId,
+    ]);
 
     return {
-      data: newUser[0]
+      data: newUser[0],
     };
-
   } catch (error) {
     console.error("Create user error:", error.message);
     throw new Error(error.message);
@@ -164,7 +182,7 @@ const authUser = async (email, password) => {
     return {
       statusCode: 400,
       success: false,
-      message: "Email is required"
+      message: "Email is required",
     };
   }
 
@@ -172,7 +190,7 @@ const authUser = async (email, password) => {
     return {
       statusCode: 400,
       success: false,
-      message: "Password is required"
+      message: "Password is required",
     };
   }
 
@@ -182,7 +200,7 @@ const authUser = async (email, password) => {
     return {
       statusCode: 404,
       success: false,
-      message: "User does not exist. Please contact your administrator."
+      message: "User does not exist. Please contact your administrator.",
     };
   }
 
@@ -190,10 +208,10 @@ const authUser = async (email, password) => {
 
   if (!existsInUsersDB) {
     const response = await axios.get(
-      "https://api-staging-admin.timora.ph/api/users/all"
+      "https://api-staging-admin.timora.ph/api/users/all",
     );
 
-    const DEFAULT_PASSWORD = "SecurePass123"
+    const DEFAULT_PASSWORD = "SecurePass123";
 
     const apiUser = response.data?.users?.find((u) => u.email === email);
 
@@ -208,29 +226,33 @@ const authUser = async (email, password) => {
         password: DEFAULT_PASSWORD,
       });
 
-      // Verify password matches the default
-      const isPasswordValid = await bcrypt.compare(password, newUser.data.password);
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        newUser.data.password,
+      );
 
       if (!isPasswordValid) {
         return {
           statusCode: 401,
           success: false,
-          message: "Invalid email or password"
+          message: "Invalid email or password",
         };
       }
 
-      // Set status to available on login
-      await pool.query('UPDATE users SET status = ? WHERE id = ?', ['available', newUser.data.id]);
+      await pool.query("UPDATE users SET status = ? WHERE id = ?", [
+        "available",
+        newUser.data.id,
+      ]);
       const [updatedNewUser] = await pool.query(
-        'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
-        [newUser.data.id]
+        "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
+        [newUser.data.id],
       );
-      const { emitUserStatusChange: emitNew } = await import('../socket/socketHandler.js');
+      const { emitUserStatusChange: emitNew } =
+        await import("../socket/socketHandler.js");
       emitNew(updatedNewUser[0]);
 
       const token = generateUserToken(updatedNewUser[0]);
 
-      // Remove password from user data before sending
       const { password: _, ...userWithoutPassword } = updatedNewUser[0];
 
       return {
@@ -238,45 +260,44 @@ const authUser = async (email, password) => {
         success: true,
         message: "User created successfully",
         data: userWithoutPassword,
-        token
+        token,
       };
     }
   }
 
-  // User exists, validate password
   const user = await getUserByEmail(email);
 
   if (!user.success) {
     return {
       statusCode: 401,
       success: false,
-      message: "Invalid email or password"
+      message: "Invalid email or password",
     };
   }
 
-  // Compare password
   const isPasswordValid = await bcrypt.compare(password, user.data.password);
 
   if (!isPasswordValid) {
     return {
       statusCode: 401,
       success: false,
-      message: "Invalid email or password"
+      message: "Invalid email or password",
     };
   }
 
-  // Set status to available on login
-  await pool.query('UPDATE users SET status = ? WHERE id = ?', ['available', user.data.id]);
+  await pool.query("UPDATE users SET status = ? WHERE id = ?", [
+    "available",
+    user.data.id,
+  ]);
   const [updatedUser] = await pool.query(
-    'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
-    [user.data.id]
+    "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
+    [user.data.id],
   );
-  const { emitUserStatusChange } = await import('../socket/socketHandler.js');
+  const { emitUserStatusChange } = await import("../socket/socketHandler.js");
   emitUserStatusChange(updatedUser[0]);
 
   const token = generateUserToken(updatedUser[0]);
 
-  // Remove password from user data before sending
   const { password: _, ...userWithoutPassword } = updatedUser[0];
 
   return {
@@ -284,41 +305,59 @@ const authUser = async (email, password) => {
     success: true,
     message: "Success login",
     data: userWithoutPassword,
-    token
+    token,
   };
 };
 
-const VALID_STATUSES = ['available', 'busy', 'away'];
+const VALID_STATUSES = ["available", "busy", "away"];
 
 const updateUserStatus = async (id, status) => {
   if (!status || !VALID_STATUSES.includes(status)) {
     return {
       success: false,
-      message: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`
+      message: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
     };
   }
   try {
-    const [existing] = await pool.query('SELECT id FROM users WHERE id = ?', [Number(id)]);
+    const [existing] = await pool.query(
+      "SELECT id, role FROM users WHERE id = ?",
+      [Number(id)],
+    );
     if (!existing.length) {
-      return { success: false, message: 'User not found' };
+      return { success: false, message: "User not found" };
     }
-    await pool.query('UPDATE users SET status = ? WHERE id = ?', [status, Number(id)]);
+
+    if (["support", "admin"].includes(existing[0].role) && status !== "busy") {
+      const [activeChats] = await pool.query(
+        `SELECT COUNT(*) as count FROM chats WHERE agent_id = ? AND status = 'active'`,
+        [Number(id)],
+      );
+      if (activeChats[0].count > 0) {
+        return {
+          success: false,
+          message: "Cannot change status while handling active chats",
+        };
+      }
+    }
+    await pool.query("UPDATE users SET status = ? WHERE id = ?", [
+      status,
+      Number(id),
+    ]);
     const [rows] = await pool.query(
-      'SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?',
-      [Number(id)]
+      "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
+      [Number(id)],
     );
 
-    // Emit real-time status update to all connected clients
-    const { emitUserStatusChange } = await import('../socket/socketHandler.js');
+    const { emitUserStatusChange } = await import("../socket/socketHandler.js");
     emitUserStatusChange(rows[0]);
 
     return {
       success: true,
-      message: 'User status updated successfully',
-      data: rows[0]
+      message: "User status updated successfully",
+      data: rows[0],
     };
   } catch (error) {
-    console.error('Update user status error:', error.message);
+    console.error("Update user status error:", error.message);
     throw new Error(error.message);
   }
 };
@@ -331,5 +370,5 @@ export default {
   validateIfUserExistsInUsersDB,
   createUser,
   authUser,
-  updateUserStatus
+  updateUserStatus,
 };

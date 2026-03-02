@@ -40,7 +40,8 @@ const createMessage = async (payload) => {
       attachment_url = null,
       attachment_type = null,
       attachment_name = null,
-      attachment_size = null
+      attachment_size = null,
+      concern = null
     } = payload || {}
 
     let usedChatId = chat_id;
@@ -63,8 +64,8 @@ const createMessage = async (payload) => {
           usedChatId = existingChat[0].id;
         } else {
           const [chatResult] = await pool.query(
-            `INSERT INTO chats (client_id, agent_id, status) VALUES (?, NULL, 'queued')`,
-            [sender_id]
+            `INSERT INTO chats (client_id, agent_id, status, concern) VALUES (?, NULL, 'queued', ?)`,
+            [sender_id, concern]
           );
           usedChatId = chatResult.insertId;
           isNewChat = true;
@@ -169,7 +170,8 @@ const createMessage = async (payload) => {
     // Notify assigned agent of new message from client
     if (sender_role === 'client' && chatAgentId) {
       const senderName = newMessage[0].sender_name || 'A client';
-      const msgPreview = message ? (message.length > 50 ? message.substring(0, 50) + '...' : message) : 'sent an attachment';
+      const lastMsg = newMessage[0].message;
+      const msgPreview = lastMsg ? (lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : lastMsg) : 'sent an attachment';
       try {
         await notificationServices.createNotification({
           user_id: chatAgentId,

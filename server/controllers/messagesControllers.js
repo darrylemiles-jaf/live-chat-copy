@@ -54,7 +54,8 @@ const createMessageWithAttachment = expressAsync(async (req, res) => {
       attachment_url: file.path, // Cloudinary URL
       attachment_type: attachmentType,
       attachment_name: file.originalname,
-      attachment_size: file.size
+      attachment_size: file.size,
+      concern: req.body.concern || null
     };
 
     const response = await messagesServices.createMessage(payload);

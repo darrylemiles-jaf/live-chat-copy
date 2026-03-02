@@ -128,7 +128,14 @@ export default function Notification() {
   useEffect(() => {
     const handleNewNotification = (notification) => {
       console.log('🔔 New notification received:', notification);
-      setNotifications((prev) => [notification, ...prev]);
+      setNotifications((prev) => {
+        const exists = prev.some((n) => n.id === notification.id);
+        if (exists) {
+          // Update in place and move to top
+          return [notification, ...prev.filter((n) => n.id !== notification.id)];
+        }
+        return [notification, ...prev];
+      });
       setUnreadCount((prev) => prev + 1);
     };
 
@@ -302,23 +309,17 @@ export default function Notification() {
                           </ListItemAvatar>
                           <ListItemText
                             primary={
-                              <Typography variant="h6" sx={{ fontWeight: notification.is_read ? 400 : 600 }}>
-                                {style.label}
-                              </Typography>
-                            }
-                            secondary={
                               <Typography
-                                variant="caption"
-                                color="text.secondary"
+                                variant="h6"
                                 sx={{
-                                  display: 'block',
+                                  fontWeight: notification.is_read ? 400 : 600,
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
                                   maxWidth: 200
                                 }}
                               >
-                                {notification.message}
+                                {style.label}{notification.message ? `: ${notification.message}` : ''}
                               </Typography>
                             }
                           />
