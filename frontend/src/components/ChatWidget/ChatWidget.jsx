@@ -26,6 +26,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [ratingComment, setRatingComment] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
+  const [endedChatId, setEndedChatId] = useState(null);
   const [concern, setConcern] = useState('');
   const [lastConcern, setLastConcern] = useState('');
   const [lastIsCustomConcern, setLastIsCustomConcern] = useState(false);
@@ -109,7 +110,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     fetch(`${apiUrl}/concern-types`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(r => r.json())
       .then(data => { if (data?.success) setConcernOptions(data.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, [apiUrl]);
 
   // Close concern dropdown on outside click
@@ -204,6 +205,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       if (updatedChatId === chatIdRef.current) {
         if (status === 'ended') {
           setIsChatEnded(true);
+          setEndedChatId(updatedChatId);
         } else if (status === 'active') {
           // Chat was assigned to an agent — clear queue position
           setQueuePosition(null);
@@ -372,7 +374,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
               map[newChatId] = formattedConcern;
               localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) {}
+            } catch (_) { }
             // Update state with formatted concern
             if (isCustomConcern) {
               setConcern(formattedConcern);
@@ -506,7 +508,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
               map[newChatId] = formattedConcern;
               localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) {}
+            } catch (_) { }
             // Update state with formatted concern
             if (isCustomConcern) {
               setConcern(formattedConcern);
@@ -582,6 +584,31 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   }, [userId, isRegistered]);
 
+  // Check if rating already exists when chat ends
+  useEffect(() => {
+    const checkExistingRating = async () => {
+      const activeChatId = chatId || endedChatId;
+      if (isChatEnded && activeChatId) {
+        try {
+          const response = await fetch(`${apiUrl}/ratings/chat/${activeChatId}`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Rating already exists for this chat
+            setRatingSubmitted(true);
+            setRatingValue(data.data.rating);
+            setRatingComment(data.data.comment || '');
+          }
+        } catch (error) {
+          console.error('Error checking existing rating:', error);
+        }
+      }
+    };
+
+    checkExistingRating();
+  }, [isChatEnded, chatId, endedChatId, apiUrl]);
+
   const loadChatHistory = async () => {
     try {
       const response = await fetch(`${apiUrl}/chats?user_id=${userId}`, {
@@ -602,7 +629,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             try {
               const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
               if (map[activeChat.id]) setConcern(map[activeChat.id]);
-            } catch (_) {}
+            } catch (_) { }
           } else {
             setConcern(activeChat.concern);
           }
@@ -616,6 +643,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           }
           if (latestChat.status === 'ended') {
             setIsChatEnded(true);
+            setEndedChatId(latestChat.id);
           }
         }
       }
@@ -631,6 +659,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setChatId(null);
     setMessages([]);
     setIsChatEnded(false);
+    setEndedChatId(null);
     setQueuePosition(null);
     setRatingValue(0);
     setRatingHover(0);
@@ -646,14 +675,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   };
 
   const handleSubmitRating = async () => {
-    if (!ratingValue || !chatId || !userId) return;
+    const activeChatId = chatId || endedChatId;
+    if (!ratingValue || !activeChatId || !userId) return;
     setIsRatingSubmitting(true);
     try {
       const response = await fetch(`${apiUrl}/ratings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
-          chat_id: chatId,
+          chat_id: activeChatId,
           client_id: userId,
           rating: ratingValue,
           comment: ratingComment.trim() || undefined
@@ -1042,47 +1072,47 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                       </div>
                     )}
                     <div className="chat-input-row" style={!chatId && !isChatEnded && !concern.trim() ? { display: 'none' } : {}}>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      style={{ display: 'none' }}
-                      accept="image/*"
-                    />
-                    <button
-                      type="button"
-                      className="chat-attach-button"
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label="Attach file"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                      </svg>
-                    </button>
-                    <input
-                      type="text"
-                      value={inputMessage}
-                      onChange={(e) => {
-                        setInputMessage(e.target.value);
-                        handleTyping();
-                      }}
-                      placeholder={selectedFile ? 'Add a message (optional)...' : 'Type a message…'}
-                      className="chat-message-input"
-                    />
-                    <button
-                      type="submit"
-                      disabled={(!inputMessage.trim() && !selectedFile) || isUploading}
-                      className="chat-send-button"
-                      aria-label="Send message"
-                    >
-                      {isUploading ? (
-                        <div className="chat-upload-spinner" />
-                      ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                      />
+                      <button
+                        type="button"
+                        className="chat-attach-button"
+                        onClick={() => fileInputRef.current?.click()}
+                        aria-label="Attach file"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                         </svg>
-                      )}
-                    </button>
+                      </button>
+                      <input
+                        type="text"
+                        value={inputMessage}
+                        onChange={(e) => {
+                          setInputMessage(e.target.value);
+                          handleTyping();
+                        }}
+                        placeholder={selectedFile ? 'Add a message (optional)...' : 'Type a message…'}
+                        className="chat-message-input"
+                      />
+                      <button
+                        type="submit"
+                        disabled={(!inputMessage.trim() && !selectedFile) || isUploading}
+                        className="chat-send-button"
+                        aria-label="Send message"
+                      >
+                        {isUploading ? (
+                          <div className="chat-upload-spinner" />
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
                   </form>
                 </>

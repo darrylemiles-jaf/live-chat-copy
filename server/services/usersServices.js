@@ -2,6 +2,7 @@ import { generateUserToken } from "../utils/jwtUtils.js";
 import pool from "../config/db.js";
 import axios from "axios";
 import bcrypt from "bcryptjs";
+import { API_VALIDATOR_URL } from "../constants/constants.js";
 
 const getUsers = async (query = {}) => {
   try {
