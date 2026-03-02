@@ -298,14 +298,6 @@ export default function HeaderContent() {
                 </Typography>
               </Box>
             </MenuItem>
-            <MenuItem value="busy">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#B53654' }} />
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Busy
-                </Typography>
-              </Box>
-            </MenuItem>
             <MenuItem value="away">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#CC9000' }} />
