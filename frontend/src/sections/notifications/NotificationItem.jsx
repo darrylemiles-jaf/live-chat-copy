@@ -58,9 +58,7 @@ const NotificationItem = ({ notification, onClick }) => {
                 marginBottom: '4px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
+                whiteSpace: 'nowrap',
               }}
             >
               {notification.message}
