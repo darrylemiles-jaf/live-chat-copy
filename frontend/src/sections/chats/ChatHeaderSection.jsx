@@ -112,6 +112,21 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) =
                 '& .MuiChip-label': { px: 1 }
               }}
             />
+            {selectedChat.concern && (
+              <Chip
+                label={selectedChat.concern}
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  bgcolor: '#e0f2fe',
+                  color: '#0369a1',
+                  border: '1px solid #bae6fd',
+                  '& .MuiChip-label': { px: 1 }
+                }}
+              />
+            )}
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {selectedChat.online ? (

@@ -40,7 +40,8 @@ const createMessage = async (payload) => {
       attachment_url = null,
       attachment_type = null,
       attachment_name = null,
-      attachment_size = null
+      attachment_size = null,
+      concern = null
     } = payload || {}
 
     let usedChatId = chat_id;
@@ -63,8 +64,8 @@ const createMessage = async (payload) => {
           usedChatId = existingChat[0].id;
         } else {
           const [chatResult] = await pool.query(
-            `INSERT INTO chats (client_id, agent_id, status) VALUES (?, NULL, 'queued')`,
-            [sender_id]
+            `INSERT INTO chats (client_id, agent_id, status, concern) VALUES (?, NULL, 'queued', ?)`,
+            [sender_id, concern]
           );
           usedChatId = chatResult.insertId;
           isNewChat = true;

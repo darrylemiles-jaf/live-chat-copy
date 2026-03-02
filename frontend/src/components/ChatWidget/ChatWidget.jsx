@@ -26,6 +26,57 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [ratingComment, setRatingComment] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
+  const [concern, setConcern] = useState('');
+  const [lastConcern, setLastConcern] = useState('');
+  const [lastIsCustomConcern, setLastIsCustomConcern] = useState(false);
+  const [concernOptions, setConcernOptions] = useState([]);
+  const [concernDropdownOpen, setConcernDropdownOpen] = useState(false);
+  const [isCustomConcern, setIsCustomConcern] = useState(false);
+
+  // Title-case transformer: "general inquiry" → "General Inquiry"
+  const toTitleCase = (str) => {
+    if (!str) return '';
+    return str
+      .trim()
+      .split(/\s+/) // Split by whitespace
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const handleConcernInput = (e) => {
+    const value = e.target.value;
+    if (isCustomConcern) {
+      // Apply title case transformation while typing for custom concerns
+      // Split by space, capitalize each word, preserve trailing space
+      const hasTrailingSpace = value.endsWith(' ');
+      const transformed = toTitleCase(value);
+      setConcern(hasTrailingSpace && value.trim() ? transformed + ' ' : transformed);
+    } else {
+      // Regular autocomplete behavior
+      setConcern(toTitleCase(value));
+      setConcernDropdownOpen(true);
+    }
+  };
+
+  const STATIC_CONCERNS = [
+    { id: 's1', name: 'General Inquiry' },
+    { id: 's2', name: 'Technical Issue' },
+  ];
+
+  // Merge static + DB options, deduplicate, and add "Other" at the end
+  const allConcernOptions = [
+    ...STATIC_CONCERNS,
+    ...concernOptions.filter(
+      opt => !STATIC_CONCERNS.some(s => s.name.toLowerCase() === opt.name.toLowerCase())
+    ),
+    { id: 'other', name: 'Other' }
+  ];
+
+  const filteredConcernOptions = allConcernOptions.filter(opt =>
+    // In dropdown mode (non-custom), always show all options so user can change selection
+    // In custom mode, filter as user types
+    !isCustomConcern || concern === '' || opt.name.toLowerCase().includes(concern.toLowerCase())
+  );
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -46,11 +97,31 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
   const fileInputRef = useRef(null);
+  const concernRef = useRef(null);
 
   // Keep chatIdRef in sync
   useEffect(() => {
     chatIdRef.current = chatId;
   }, [chatId]);
+
+  // Fetch concern types from server
+  useEffect(() => {
+    fetch(`${apiUrl}/concern-types`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      .then(r => r.json())
+      .then(data => { if (data?.success) setConcernOptions(data.data); })
+      .catch(() => {});
+  }, [apiUrl]);
+
+  // Close concern dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (concernRef.current && !concernRef.current.contains(e.target)) {
+        setConcernDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   // Initialize socket connection (only when registered)
   useEffect(() => {
@@ -270,6 +341,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     if (chatId) {
       messagePayload.chat_id = chatId;
+    } else if (concern) {
+      // Apply title case transformation for custom concerns before sending and trim
+      messagePayload.concern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
     }
 
     console.log('Sending message:', messagePayload);
@@ -290,7 +364,20 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
-          console.log('Joined chat room:', newChatId);
+
+          // Persist concern to localStorage so it survives refreshes
+          if (concern) {
+            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
+            try {
+              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
+              map[newChatId] = formattedConcern;
+              localStorage.setItem('chat_concern_map', JSON.stringify(map));
+            } catch (_) {}
+            // Update state with formatted concern
+            if (isCustomConcern) {
+              setConcern(formattedConcern);
+            }
+          }
 
           // Add the first message manually since we just joined the room
           if (data.data) {
@@ -388,6 +475,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       formData.append('sender_id', userId);
       if (chatId) {
         formData.append('chat_id', chatId);
+      } else if (concern) {
+        // Apply title case transformation for custom concerns before sending and trim
+        formData.append('concern', isCustomConcern ? toTitleCase(concern.trim()) : concern);
       }
       if (inputMessage.trim()) {
         formData.append('message', inputMessage.trim());
@@ -408,6 +498,20 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
+
+          // Persist concern to localStorage
+          if (concern) {
+            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
+            try {
+              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
+              map[newChatId] = formattedConcern;
+              localStorage.setItem('chat_concern_map', JSON.stringify(map));
+            } catch (_) {}
+            // Update state with formatted concern
+            if (isCustomConcern) {
+              setConcern(formattedConcern);
+            }
+          }
 
           // Add the message manually
           if (data.data) {
@@ -493,6 +597,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         if (activeChat) {
           setChatId(activeChat.id);
+          // Restore concern from localStorage if not on the chat object
+          if (!activeChat.concern) {
+            try {
+              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
+              if (map[activeChat.id]) setConcern(map[activeChat.id]);
+            } catch (_) {}
+          } else {
+            setConcern(activeChat.concern);
+          }
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
           }
@@ -512,6 +625,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   };
 
   const handleStartNewChat = () => {
+    // Save the current concern so user can repeat or change it
+    const prevConcern = concern;
+    const prevIsCustom = isCustomConcern;
     setChatId(null);
     setMessages([]);
     setIsChatEnded(false);
@@ -520,6 +636,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setRatingHover(0);
     setRatingComment('');
     setRatingSubmitted(false);
+    // Pre-fill with last concern so user can reuse or change it.
+    // Always restore in "selected" (non-custom) mode so the user sees the
+    // dropdown arrow and can click to pick a different concern or just proceed.
+    setConcern(prevConcern);
+    setIsCustomConcern(false);
+    setLastConcern(prevConcern);
+    setLastIsCustomConcern(prevIsCustom);
   };
 
   const handleSubmitRating = async () => {
@@ -601,6 +724,29 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <span className="chat-status-text">
                     {isConnected ? 'Online — we’re here to help' : 'Offline'}
                   </span>
+                  {concern && (
+                    <span
+                      className="chat-concern-badge"
+                      style={!chatId ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' } : {}}
+                      title={!chatId ? 'Click to change concern' : ''}
+                    >
+                      {concern}
+                      {!chatId && (
+                        <button
+                          type="button"
+                          className="chat-concern-badge-clear"
+                          aria-label="Change concern"
+                          onClick={() => {
+                            setConcern('');
+                            setIsCustomConcern(false);
+                            setConcernDropdownOpen(true);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -648,7 +794,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           {isRegistered && (
             <>
               <div className="chat-widget-messages">
-                {messages.length === 0 && (
+                {messages.length === 0 && !chatId && !isChatEnded && (
                   <div className="chat-empty-state">
                     <div className="chat-empty-icon">💬</div>
                     <h5>How can we help you?</h5>
@@ -789,7 +935,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               )}
 
               {/* Quick Replies */}
-              {!isChatEnded && messages.length === 0 && (
+              {!isChatEnded && messages.length === 0 && concern.trim() && (
                 <div className="chat-quick-replies">
                   <span className="chat-quick-replies-label">Quick replies</span>
                   <div className="chat-quick-replies-list">
@@ -850,6 +996,52 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     }}
                     className="chat-widget-input"
                   >
+                    {!chatId && !isChatEnded && (
+                      <div
+                        className="chat-concern-inline"
+                        ref={concernRef}
+                        onClick={() => !isCustomConcern && setConcernDropdownOpen(true)}
+                        style={!isCustomConcern ? { cursor: 'pointer' } : {}}
+                      >
+                        <input
+                          type="text"
+                          placeholder={isCustomConcern ? "Type your concern…" : "Select a concern first…"}
+                          value={concern === 'Other' && !isCustomConcern ? '' : concern}
+                          onChange={handleConcernInput}
+                          onFocus={() => !isCustomConcern && setConcernDropdownOpen(true)}
+                          autoComplete="off"
+                          className="chat-concern-inline-input"
+                          readOnly={!isCustomConcern}
+                          style={!isCustomConcern ? { cursor: 'pointer' } : {}}
+                        />
+                        {!isCustomConcern && <span className="chat-concern-bar-chevron">▾</span>}
+                        {concernDropdownOpen && filteredConcernOptions.length > 0 && !isCustomConcern && (
+                          <ul className="chat-concern-dropdown">
+                            {filteredConcernOptions.map(opt => (
+                              <li
+                                key={opt.id}
+                                className={`chat-concern-option${concern === opt.name ? ' selected' : ''}`}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  if (opt.name === 'Other') {
+                                    setIsCustomConcern(true);
+                                    setConcern('');
+                                    setConcernDropdownOpen(false);
+                                  } else {
+                                    setConcern(opt.name);
+                                    setIsCustomConcern(false);
+                                    setConcernDropdownOpen(false);
+                                  }
+                                }}
+                              >
+                                {opt.name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                    <div className="chat-input-row" style={!chatId && !isChatEnded && !concern.trim() ? { display: 'none' } : {}}>
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -891,6 +1083,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                         </svg>
                       )}
                     </button>
+                    </div>
                   </form>
                 </>
               )}
