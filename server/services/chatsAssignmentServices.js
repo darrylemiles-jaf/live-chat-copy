@@ -43,7 +43,7 @@ const autoAssignChat = async (chat_id) => {
     console.log("👥 Available agents found:", availableAgents.length);
 
     if (availableAgents.length === 0) {
-      throw new Error("No available agents at the moment");
+      throw new Error("You must be available to open a chat");
     }
 
     const agent_id = availableAgents[0].id;
