@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Button, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Avatar, Badge, Box, Button, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { DotsHorizontal } from 'mdi-material-ui';
 import { withAlpha } from '../../utils/colorUtils';
 
@@ -147,10 +147,26 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                     {getInitials(item.name)}
                   </Avatar>
                 </Badge>
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {item.name}
-                  </Typography>
+                <Box sx={{ flex: 1 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {item.name}
+                    </Typography>
+                    {position === 1 && (
+                      <Chip
+                        label="Next"
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          backgroundColor: palette.success.main,
+                          color: '#fff',
+                          '& .MuiChip-label': { px: 1 }
+                        }}
+                      />
+                    )}
+                  </Stack>
                   <Typography variant="caption" sx={{ color: palette.text.secondary }}>
                     {item.lastMessage ?? item.email}
                   </Typography>

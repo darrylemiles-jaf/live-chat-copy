@@ -171,16 +171,34 @@ const useQueue = () => {
 
   const handleCloseQueueModal = () => setIsQueueModalOpen(false);
 
+  /**
+   * Open chat handler - ALWAYS opens the first chat in queue (FIFO)
+   * 
+   * Queue prioritization is enforced on both frontend and backend:
+   * - Frontend: Always sends the first chat in queue
+   * - Backend: Always assigns the first chat in queue regardless of request
+   * 
+   * This ensures queue order is always respected and prevents agents
+   * from cherry-picking chats out of order.
+   */
   const handleOpenChat = async () => {
-    if (!selected || !user?.id) return;
+    if (queue.length === 0 || !user?.id) return;
+
+    // ALWAYS open the first chat in queue (FIFO priority)
+    const firstInQueue = queue[0];
 
     try {
-      await autoAssignChat(selected.id);
-      setQueue((prev) => prev.filter((item) => item.id !== selected.id));
+      // Backend will validate and assign first in queue regardless of passed ID
+      const response = await autoAssignChat(firstInQueue.id);
+
+      // Use the chat_id returned from backend (ensures we navigate to correct chat)
+      const assignedChatId = response.data?.chat_id || firstInQueue.id;
+
+      setQueue((prev) => prev.filter((item) => item.id !== assignedChatId));
       setActiveChats((prev) => prev + 1);
 
       navigate('/portal/chats', {
-        state: { chatId: selected.id, from: 'queue', customer: selected },
+        state: { chatId: assignedChatId, from: 'queue', customer: firstInQueue },
       });
     } catch (error) {
       console.error('Error opening chat:', error);

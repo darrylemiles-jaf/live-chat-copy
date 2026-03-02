@@ -23,9 +23,39 @@ const notifyQueuePositionUpdates = async () => {
   }
 };
 
+/**
+ * Auto-assign the first chat in queue to an available agent
+ * 
+ * IMPORTANT: This function ALWAYS assigns the first chat in the queue (FIFO - First In, First Out)
+ * regardless of the chat_id parameter. This ensures queue order is always respected.
+ * 
+ * @param {number} chat_id - Optional chat ID (used for validation but first in queue is always prioritized)
+ * @returns {Object} Assignment result with assigned chat_id and agent_id
+ */
 const autoAssignChat = async (chat_id) => {
   try {
-    console.log("🔍 Looking for available agents for chat:", chat_id);
+    console.log("🔍 Auto-assign request for chat:", chat_id);
+
+    // ALWAYS get the first chat in queue (FIFO - First In, First Out)
+    const [firstInQueue] = await pool.query(
+      `SELECT id FROM chats 
+       WHERE agent_id IS NULL AND status = 'queued' 
+       ORDER BY created_at ASC 
+       LIMIT 1`
+    );
+
+    if (firstInQueue.length === 0) {
+      throw new Error("No chats available in queue");
+    }
+
+    const prioritizedChatId = firstInQueue[0].id;
+
+    // If a specific chat_id was requested, verify it's the first in queue
+    if (chat_id && chat_id !== prioritizedChatId) {
+      console.warn(`⚠️ Requested chat ${chat_id} is not first in queue. Prioritizing chat ${prioritizedChatId} instead.`);
+    }
+
+    console.log("🎯 Prioritizing first chat in queue:", prioritizedChatId);
 
     // Find available agents and their current active chat count (for load balancing)
     const [availableAgents] = await pool.query(
@@ -58,7 +88,7 @@ const autoAssignChat = async (chat_id) => {
 
     await pool.query(
       `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
-      [agent_id, chat_id],
+      [agent_id, prioritizedChatId],
     );
 
     await pool.query(`UPDATE users SET status = 'busy' WHERE id = ?`, [
@@ -78,12 +108,12 @@ const autoAssignChat = async (chat_id) => {
        FROM chats c 
        JOIN users u ON c.client_id = u.id 
        WHERE c.id = ?`,
-      [chat_id],
+      [prioritizedChatId],
     );
 
     emitChatAssigned(agent_id, chatDetails[0]);
 
-    emitChatStatusUpdate(chat_id, "active");
+    emitChatStatusUpdate(prioritizedChatId, "active");
 
     await notifyQueuePositionUpdates();
 
@@ -92,8 +122,8 @@ const autoAssignChat = async (chat_id) => {
         user_id: agent_id,
         type: "chat_assigned",
         message: `New chat assigned from ${chatDetails[0]?.client_name || "a client"}`,
-        chat_id: chat_id,
-        reference_id: chat_id,
+        chat_id: prioritizedChatId,
+        reference_id: prioritizedChatId,
       });
     } catch (e) {
       console.error("Failed to create auto-assign notification:", e.message);
@@ -101,9 +131,10 @@ const autoAssignChat = async (chat_id) => {
 
     return {
       success: true,
-      message: "Chat assigned to available agent",
+      message: "Chat assigned to available agent (first in queue)",
       agent_id: agent_id,
       agent_name: availableAgents[0].name,
+      chat_id: prioritizedChatId,
     };
   } catch (error) {
     console.error("❌ Error in autoAssignChat service:", error.message);
@@ -111,6 +142,18 @@ const autoAssignChat = async (chat_id) => {
   }
 };
 
+/**
+ * Manually assign a specific chat to a specific agent
+ * 
+ * This function bypasses queue order and assigns ANY queued chat to the specified agent.
+ * Use this for administrative actions where an admin needs to assign a specific chat.
+ * 
+ * For automatic queue-based assignment, use autoAssignChat instead.
+ * 
+ * @param {number} chat_id - The specific chat to assign
+ * @param {number} agent_id - The agent to assign the chat to
+ * @returns {Object} Assignment result
+ */
 const manualAssignChat = async (chat_id, agent_id) => {
   try {
     const [agent] = await pool.query(

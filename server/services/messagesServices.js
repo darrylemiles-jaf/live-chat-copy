@@ -63,12 +63,15 @@ const createMessage = async (payload) => {
         if (existingChat.length > 0) {
           usedChatId = existingChat[0].id;
         } else {
+          // Create new chat and add to queue
           const [chatResult] = await pool.query(
             `INSERT INTO chats (client_id, agent_id, status, concern) VALUES (?, NULL, 'queued', ?)`,
             [sender_id, concern]
           );
           usedChatId = chatResult.insertId;
           isNewChat = true;
+
+          console.log(`📝 New chat created: ${usedChatId} for client ${sender_id}`);
 
           // Find available agent with least active chats (load balancing)
           const [availableAgents] = await pool.query(
@@ -83,28 +86,67 @@ const createMessage = async (payload) => {
           );
 
           if (availableAgents.length > 0) {
-            const assignedAgentId = availableAgents[0].id;
-            newlyAssignedAgentId = assignedAgentId;
-
-            await pool.query(
-              `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
-              [assignedAgentId, usedChatId]
+            // ⚠️ CRITICAL: Assign the FIRST chat in queue, NOT the newly created one!
+            // This ensures FIFO (First In, First Out) queue order is always respected
+            const [firstInQueue] = await pool.query(
+              `SELECT id, client_id FROM chats 
+               WHERE agent_id IS NULL AND status = 'queued' 
+               ORDER BY created_at ASC 
+               LIMIT 1`
             );
 
-            await pool.query(
-              `UPDATE users SET status = 'busy' WHERE id = ?`,
-              [assignedAgentId]
-            );
+            if (firstInQueue.length > 0) {
+              const chatToAssign = firstInQueue[0].id;
+              const assignedAgentId = availableAgents[0].id;
 
-          } else {
-            // Count queue position for the response
-            const [queueRows] = await pool.query(
-              `SELECT COUNT(*) as position FROM chats
-               WHERE status = 'queued' AND agent_id IS NULL AND id <= ?`,
-              [usedChatId]
-            );
+              await pool.query(
+                `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
+                [assignedAgentId, chatToAssign]
+              );
+
+              await pool.query(
+                `UPDATE users SET status = 'busy' WHERE id = ?`,
+                [assignedAgentId]
+              );
+
+              console.log(`✅ Auto-assigned FIRST chat in queue (${chatToAssign}) to agent ${assignedAgentId}`);
+
+              // Only set newlyAssignedAgentId if THIS chat was assigned
+              if (chatToAssign === usedChatId) {
+                newlyAssignedAgentId = assignedAgentId;
+                console.log(`🎯 Newly created chat ${usedChatId} was first in queue and got assigned`);
+              } else {
+                console.log(`⏳ Newly created chat ${usedChatId} is queued (older chat ${chatToAssign} was assigned first)`);
+              }
+
+              // Emit assignment for the chat that was actually assigned
+              const [chatDetails] = await pool.query(
+                `SELECT c.*, u.name as client_name, u.email as client_email 
+                 FROM chats c 
+                 JOIN users u ON c.client_id = u.id 
+                 WHERE c.id = ?`,
+                [chatToAssign]
+              );
+              if (chatDetails.length > 0) {
+                emitChatAssigned(assignedAgentId, chatDetails[0]);
+                emitQueueUpdate({ action: 'chat_assigned', chatId: chatToAssign, agentId: assignedAgentId });
+              }
+            }
+          }
+
+          // Calculate queue position for the newly created chat
+          const [queueRows] = await pool.query(
+            `SELECT COUNT(*) as position FROM chats
+             WHERE status = 'queued' AND agent_id IS NULL AND id <= ?`,
+            [usedChatId]
+          );
+
+          const position = queueRows[0]?.position || 0;
+          if (position > 0) {
             isQueued = true;
-            queuePosition = queueRows[0]?.position || 1;
+            queuePosition = position;
+            // Emit queue update so UI refreshes with new chat
+            emitQueueUpdate({ action: 'new_chat', chatId: usedChatId, position: queuePosition });
           }
         }
       } else {
@@ -127,10 +169,17 @@ const createMessage = async (payload) => {
         }
       }
     } else {
+      // Agent is responding to a specific chat
       if (sender_role === 'support' || sender_role === 'admin') {
         const [chat] = await pool.query(`SELECT * FROM chats WHERE id = ?`, [chat_id]);
 
         if (chat.length > 0 && chat[0].agent_id === null) {
+          // ⚠️ IMPORTANT: Agent is trying to pick up an unassigned chat
+          // This should ONLY be allowed via manualAssignChat or autoAssignChat
+          // to ensure queue order is respected
+          console.warn(`⚠️ Agent ${sender_id} tried to pick up unassigned chat ${chat_id} via message - should use assignment endpoint`);
+
+          // Allow it but log a warning - in production you might want to block this
           await pool.query(
             `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
             [sender_id, chat_id]
