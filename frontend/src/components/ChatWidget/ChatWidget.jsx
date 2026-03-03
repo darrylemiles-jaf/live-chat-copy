@@ -265,13 +265,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setIsLoading(true);
 
     try {
-      // Create/login user
+      // Create/login user (only email needed)
       const response = await fetch(`${apiUrl}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
-          email: userEmail,
-          password: 'SecurePass123' // Default password for clients
+          email: userEmail
         })
       });
 
