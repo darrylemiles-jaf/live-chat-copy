@@ -124,12 +124,12 @@ export default function ProfileTab() {
           <ListItemText primary="View Profile" />
         </ListItemButton>
 
-        <ListItemButton onClick={handleLogout}>
+        {/* <ListItemButton onClick={handleLogout}>
           <ListItemIcon>
             <LogoutOutlined />
           </ListItemIcon>
           <ListItemText primary="Logout" />
-        </ListItemButton>
+        </ListItemButton> */}
       </List>
 
       <UserDetailsView
