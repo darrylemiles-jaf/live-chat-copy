@@ -35,7 +35,7 @@ const colours = {
 
 const PROJECT_NAME = 'Timora Live Chat';
 
-const API_VALIDATOR_URL = "https://api-staging-admin.timora.ph/api/users/all"
+const API_VALIDATOR_URL = process.env.NODE_ENV === 'production' ? process.env.API_VALIDATOR_URL_PROD : process.env.API_VALIDATOR_URL_LOCAL;
 
 export {
   colours,
