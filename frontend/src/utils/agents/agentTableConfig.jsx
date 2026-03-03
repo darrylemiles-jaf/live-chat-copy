@@ -47,6 +47,26 @@ export const agentColumns = [
         </Box>
       );
     }
+  },
+  {
+    id: 'avg_rating',
+    label: 'Avg Rating',
+    minWidth: 130,
+    align: 'left',
+    renderCell: (row) => {
+      const avg = parseFloat(row.avg_rating) || 0;
+      if (!avg) {
+        return <Typography variant="body2" color="text.disabled">—</Typography>;
+      }
+      const color = avg >= 4.5 ? '#f59e0b' : avg >= 3.5 ? '#f59e0b' : avg >= 2.5 ? '#f97316' : '#ef4444';
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box component="span" sx={{ fontSize: '0.9rem', color, lineHeight: 1 }}>&#9733;</Box>
+          <Typography variant="body2" fontWeight={700} sx={{ color }}>{avg.toFixed(1)}</Typography>
+          <Typography variant="caption" color="text.secondary">/ 5</Typography>
+        </Box>
+      );
+    }
   }
 ];
 

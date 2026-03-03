@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid, Box, Typography, Skeleton, LinearProgress,
-  Divider, Tooltip, IconButton, Popover
+  Divider, Tooltip, IconButton, Popover,
+  Dialog, DialogTitle, DialogContent
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { LineChart } from '@mui/x-charts/LineChart';
@@ -15,7 +16,8 @@ import PageHead from '../../components/PageHead';
 import MainCard from '../../components/MainCard';
 import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import { getChatStats, getDetailedStats } from '../../api/chatApi';
-import { getRatingsLeaderboard } from '../../api/ratingsApi';
+import { getRatingsLeaderboard, getAgentRatings } from '../../api/ratingsApi';
+import AgentRatingsTab from '../../components/AgentRatingsTab';
 import socketService from '../../services/socketService';
 
 const breadcrumbLinks = [
@@ -128,6 +130,23 @@ const Dashboard = () => {
   const [loadingDetailed, setLoadingDetailed] = useState(true);
   const [loadingRatings, setLoadingRatings] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Agent rating detail dialog
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [selectedRatingAgent, setSelectedRatingAgent] = useState(null);
+  const [agentRatingData, setAgentRatingData] = useState(null);
+  const [loadingAgentRating, setLoadingAgentRating] = useState(false);
+
+  const handleAgentCardClick = (agent) => {
+    setSelectedRatingAgent(agent);
+    setAgentRatingData(null);
+    setLoadingAgentRating(true);
+    setRatingDialogOpen(true);
+    getAgentRatings(agent.id)
+      .then((res) => { if (res) setAgentRatingData(res); })
+      .catch(() => {})
+      .finally(() => setLoadingAgentRating(false));
+  };
 
   const formatDuration = (totalSeconds) => {
     if (!totalSeconds || totalSeconds === 0) return '0s';
@@ -727,6 +746,7 @@ const Dashboard = () => {
                     return (
                       <Box
                         key={agent.id}
+                        onClick={() => handleAgentCardClick(agent)}
                         sx={{
                           p: 2,
                           border: '1px solid',
@@ -734,8 +754,9 @@ const Dashboard = () => {
                           borderRadius: 2,
                           bgcolor: i === 0 ? '#fffbeb' : 'background.paper',
                           position: 'relative',
+                          cursor: 'pointer',
                           transition: 'box-shadow .2s',
-                          '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }
+                          '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }
                         }}
                       >
                         {/* Rank badge */}
@@ -814,6 +835,26 @@ const Dashboard = () => {
 
         </Grid >
       </Box >
+
+      {/* ── Agent Rating Detail Dialog ── */}
+      <Dialog
+        open={ratingDialogOpen}
+        onClose={() => setRatingDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            {selectedRatingAgent?.name}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Satisfaction Ratings
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <AgentRatingsTab ratingData={agentRatingData} loading={loadingAgentRating} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

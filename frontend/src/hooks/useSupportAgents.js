@@ -3,7 +3,7 @@ import { useGetUsers } from '../api/users';
 import socketService from '../services/socketService';
 import { transformAgent, getStatusColor } from '../utils/agents/agentTransformers';
 import { agentColumns, agentViewConfig } from '../utils/agents/agentTableConfig';
-import { getAgentRatings } from '../api/ratingsApi';
+import { getAgentRatings, getRatingsLeaderboard } from '../api/ratingsApi';
 
 export const useSupportAgents = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
@@ -16,8 +16,22 @@ export const useSupportAgents = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [agentRatingData, setAgentRatingData] = useState(null);
   const [loadingAgentRating, setLoadingAgentRating] = useState(false);
+  const [ratingsMap, setRatingsMap] = useState({});
 
   const { users, usersLoading, usersError, usersMutate } = useGetUsers({ role: 'support' });
+
+  // Fetch leaderboard once to get avg ratings for all agents
+  useEffect(() => {
+    getRatingsLeaderboard(100)
+      .then((res) => {
+        if (res?.data) {
+          const map = {};
+          res.data.forEach((r) => { map[r.id] = parseFloat(r.average_rating) || 0; });
+          setRatingsMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Populate agents from API
   useEffect(() => {
@@ -153,8 +167,8 @@ export const useSupportAgents = () => {
       const wb = weight(b);
       if (wa !== wb) return wa - wb;
       return a.name.localeCompare(b.name);
-    });
-  }, [agents, filterRole, filterStatus]);
+    }).map((a) => ({ ...a, avg_rating: ratingsMap[a.id] || 0 }));
+  }, [agents, filterRole, filterStatus, ratingsMap]);
 
   const columns = agentColumns;
   const viewConfig = agentViewConfig;
