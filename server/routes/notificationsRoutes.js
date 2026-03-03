@@ -10,9 +10,6 @@ import express from 'express';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(protect);
-
 // GET /notifications - Get notifications (filter by user_id, is_read, etc.)
 router.get('/', getNotifications);
 

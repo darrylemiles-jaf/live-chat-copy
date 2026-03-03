@@ -11,9 +11,6 @@ import express from 'express'
 
 const router = express.Router()
 
-// All routes require authentication
-router.use(protect)
-
 // GET /messages - Get messages by chat_id or sender_id
 router.get('/', getMessages);
 

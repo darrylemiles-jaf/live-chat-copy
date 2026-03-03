@@ -8,7 +8,6 @@ import express from 'express'
 
 const router = express.Router()
 
-router.use(protect)
 router.get('/', getQueue);
 router.get('/available-agents', getAvailableAgents);
 

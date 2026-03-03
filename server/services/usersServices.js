@@ -179,6 +179,7 @@ const createUser = async (userData) => {
 };
 
 const authUser = async (email, password) => {
+  // Validate email is provided
   if (!email) {
     return {
       statusCode: 400,
@@ -187,127 +188,79 @@ const authUser = async (email, password) => {
     };
   }
 
-  if (!password) {
-    return {
-      statusCode: 400,
-      success: false,
-      message: "Password is required",
-    };
-  }
-
-  const existsInAPI = await validateIfExists(email);
-
-  if (!existsInAPI) {
-    return {
-      statusCode: 404,
-      success: false,
-      message: "User does not exist. Please contact your administrator.",
-    };
-  }
-
-  const existsInUsersDB = await validateIfUserExistsInUsersDB(email);
-
-  if (!existsInUsersDB) {
-    const response = await axios.get(
-      "https://api-staging-admin.timora.ph/api/users/all",
-    );
-
-    const DEFAULT_PASSWORD = "SecurePass123";
-
+  try {
+    // Fetch user from external API
+    const response = await axios.get(API_VALIDATOR_URL);
     const apiUser = response.data?.users?.find((u) => u.email === email);
 
-    if (apiUser) {
+    // If user doesn't exist in external API, deny access
+    if (!apiUser) {
+      return {
+        statusCode: 404,
+        success: false,
+        message: "User does not exist. Please contact your administrator.",
+      };
+    }
+
+    // Check if user exists in local database
+    const existsInUsersDB = await validateIfUserExistsInUsersDB(email);
+
+    let userId;
+
+    // Create or update user in local database
+    if (!existsInUsersDB) {
+      // Create new user in local DB
+      const DEFAULT_PASSWORD = "SecurePass123";
       const newUser = await createUser({
         name: apiUser.name,
         username: apiUser.username || apiUser.email.split("@")[0],
         email: apiUser.email,
         phone: apiUser.phone || null,
         role: apiUser.role || "support",
-        status: apiUser.status || "available",
+        status: "available",
         password: DEFAULT_PASSWORD,
       });
+      userId = newUser.data.id;
+    } else {
+      // Get existing user
+      const user = await getUserByEmail(email);
+      userId = user.data.id;
 
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        newUser.data.password,
-      );
-
-      if (!isPasswordValid) {
-        return {
-          statusCode: 401,
-          success: false,
-          message: "Invalid email or password",
-        };
-      }
-
+      // Update user status to available
       await pool.query("UPDATE users SET status = ? WHERE id = ?", [
         "available",
-        newUser.data.id,
+        userId,
       ]);
-      const [updatedNewUser] = await pool.query(
-        "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
-        [newUser.data.id],
-      );
-      const { emitUserStatusChange: emitNew } =
-        await import("../socket/socketHandler.js");
-      emitNew(updatedNewUser[0]);
-
-      const token = generateUserToken(updatedNewUser[0]);
-
-      const { password: _, ...userWithoutPassword } = updatedNewUser[0];
-
-      return {
-        statusCode: 201,
-        success: true,
-        message: "User created successfully",
-        data: userWithoutPassword,
-        token,
-      };
     }
-  }
 
-  const user = await getUserByEmail(email);
+    // Fetch updated user data
+    const [userData] = await pool.query(
+      "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
+      [userId],
+    );
 
-  if (!user.success) {
+    // Emit status change via socket
+    const { emitUserStatusChange } = await import("../socket/socketHandler.js");
+    emitUserStatusChange(userData[0]);
+
+    // Generate JWT token
+    const token = generateUserToken(userData[0]);
+
     return {
-      statusCode: 401,
+      statusCode: 200,
+      success: true,
+      message: "Login successful",
+      data: userData[0],
+      token,
+    };
+  } catch (error) {
+    console.error("Authentication error:", error.message);
+    return {
+      statusCode: 500,
       success: false,
-      message: "Invalid email or password",
+      message: "Authentication failed. Please try again.",
     };
   }
-
-  const isPasswordValid = await bcrypt.compare(password, user.data.password);
-
-  if (!isPasswordValid) {
-    return {
-      statusCode: 401,
-      success: false,
-      message: "Invalid email or password",
-    };
-  }
-
-  await pool.query("UPDATE users SET status = ? WHERE id = ?", [
-    "available",
-    user.data.id,
-  ]);
-  const [updatedUser] = await pool.query(
-    "SELECT id, name, username, email, phone, role, status FROM users WHERE id = ?",
-    [user.data.id],
-  );
-  const { emitUserStatusChange } = await import("../socket/socketHandler.js");
-  emitUserStatusChange(updatedUser[0]);
-
-  const token = generateUserToken(updatedUser[0]);
-
-  const { password: _, ...userWithoutPassword } = updatedUser[0];
-
-  return {
-    statusCode: 200,
-    success: true,
-    message: "Success login",
-    data: userWithoutPassword,
-    token,
-  };
 };
 
 const VALID_STATUSES = ["available", "busy", "away"];
