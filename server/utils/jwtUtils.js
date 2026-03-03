@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
+const JWT_SECRET = process.env.JWT_SECRET
+const JWT_EXPIRE = process.env.JWT_EXPIRE;
 
 /**
  * @param {Object} payload 
