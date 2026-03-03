@@ -82,9 +82,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     'Hi, I need help!',
     'I have an inquiry',
     'I want to follow up on something',
-    'Billing question',
     'Technical issue',
-    'Track my order',
   ];
 
   const socketRef = useRef(null);
@@ -239,7 +237,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         socketRef.current = null;
       }
     };
-  }, [isRegistered, userId, socketUrl]); 
+  }, [isRegistered, userId, socketUrl]);
 
   useEffect(() => {
     if (socketRef.current?.connected && chatId) {
@@ -815,14 +813,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   const uid = Number(userId);
                   const lastSeenSentIdx = lastSeenAt
                     ? messages.reduce((acc, msg, i) => {
-                        if (
-                          Number(msg.sender_id) === uid &&
-                          msg.sender_role !== 'bot' &&
-                          msg.created_at &&
-                          new Date(msg.created_at) <= new Date(lastSeenAt)
-                        ) return i;
-                        return acc;
-                      }, -1)
+                      if (
+                        Number(msg.sender_id) === uid &&
+                        msg.sender_role !== 'bot' &&
+                        msg.created_at &&
+                        new Date(msg.created_at) <= new Date(lastSeenAt)
+                      ) return i;
+                      return acc;
+                    }, -1)
                     : -1;
 
                   return messages.map((msg, index) => {
@@ -874,8 +872,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                         {showSeen && (
                           <div className="chat-message-seen">
                             <svg width="14" height="10" viewBox="0 0 16 11" fill="none" aria-hidden="true">
-                              <path d="M1 5.5L5.5 10L15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M6 5.5L10.5 10L20 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M1 5.5L5.5 10L15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M6 5.5L10.5 10L20 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             Seen {formatSeenTime(lastSeenAt)}
                           </div>
