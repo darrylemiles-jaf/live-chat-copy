@@ -5,16 +5,16 @@ import pool from '../config/db.js';
 export const protect = async (req, res, next) => {
   let token;
 
-  
+
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
-      
+
       token = req.headers.authorization.split(' ')[1];
 
-      
+
       const decoded = verifyToken(token);
 
-      
+
       const [users] = await pool.query(
         'SELECT id, username, email, name, role, status FROM users WHERE id = ?',
         [decoded.id]
@@ -27,7 +27,7 @@ export const protect = async (req, res, next) => {
         });
       }
 
-      
+
       req.user = users[0];
 
       next();
@@ -70,4 +70,24 @@ export const authorize = (...roles) => {
 
     next();
   };
+};
+
+export const allowedRoles = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authorized'
+    });
+  }
+
+  const ALLOWED = ['support', 'client', 'admin'];
+
+  if (!ALLOWED.includes(req.user.role)) {
+    return res.status(403).json({
+      success: false,
+      message: `Access denied. Role '${req.user.role}' is not permitted to perform this action.`
+    });
+  }
+
+  next();
 };
