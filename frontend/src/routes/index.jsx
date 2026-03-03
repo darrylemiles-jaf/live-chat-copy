@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 // project imports
 import MainRoutes from './MainRoutes';
 import NotFound from '../pages/not-found';
-import Unauthorized from '../pages/Unauthorized';
+import Unauthorized from '../components/maintenance/Unauthorized';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
@@ -13,7 +13,7 @@ const routes = [
     element: <Navigate to="/portal/dashboard" replace />
   },
   {
-    path: '/401',
+    path: '/unauthorized-access',
     element: <Unauthorized />
   },
   {

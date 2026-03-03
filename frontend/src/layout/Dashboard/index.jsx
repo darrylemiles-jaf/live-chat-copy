@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isAuthenticated } from 'utils/auth';
 import { Outlet } from 'react-router-dom';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 
-// project imports
 import Drawer from './Drawer';
 import Header from './Header';
 import Footer from './Footer';
 import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
+import LoadingPage from 'components/maintenance/LoadingPage';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import { getCurrentUser } from 'utils/auth';
@@ -20,24 +22,31 @@ import useStatusSync from 'hooks/useStatusSync';
 import useAutoLogout from 'hooks/useAutoLogout';
 import AutoLogoutModal from 'components/AutoLogoutModal';
 
-// ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
+  const navigate = useNavigate();
+  const [isReady, setIsReady] = useState(false);
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
 
-  // Automatically sync user status and handle logout
   useStatusSync();
 
-  // Auto-logout after 1 minute of inactivity
   const { modalOpen: autoLogoutOpen, countdown, handleStayLoggedIn } = useAutoLogout();
 
-  // set media wise responsive drawer
   useEffect(() => {
     handlerDrawerOpen(!downXL);
   }, [downXL]);
 
-  // Connect socket globally so it's available for notifications, queue, and chats
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/unauthorized-access', { replace: true });
+      return;
+    }
+
+    const timer = setTimeout(() => setIsReady(true), 1000);
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
   useEffect(() => {
     const user = getCurrentUser();
     if (user?.id && SOCKET_URL) {
@@ -45,7 +54,6 @@ export default function DashboardLayout() {
       const socket = socketService.connect(SOCKET_URL, user.id);
 
       if (socket) {
-        // Add connection status listeners for debugging
         socket.on('connect', () => {
           console.log('✅ DashboardLayout: Socket connected successfully');
         });
@@ -64,10 +72,11 @@ export default function DashboardLayout() {
         socketUrl: SOCKET_URL
       });
     }
-    // No disconnect on unmount — socket persists across page navigations
   }, []);
 
   if (menuMasterLoading) return <Loader />;
+
+  if (!isReady) return <LoadingPage />;
 
   return (
     <Box sx={{ display: 'flex', width: '100%' }}>

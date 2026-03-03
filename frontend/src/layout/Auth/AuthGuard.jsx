@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { isAuthenticated } from 'utils/auth';
 
-
 const AuthGuard = ({ children }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,19 +24,19 @@ const AuthGuard = ({ children }) => {
             setSearchParams(searchParams, { replace: true });
           } else {
             console.error('❌ Token from URL is expired');
-            navigate('/401', { replace: true });
+            navigate('/unauthorized-access', { replace: true });
             return;
           }
         }
       } catch (error) {
         console.error('❌ Invalid token in URL:', error);
-        navigate('/401', { replace: true });
+        navigate('/unauthorized-access', { replace: true });
         return;
       }
     }
 
     if (!isAuthenticated()) {
-      navigate('/401', { replace: true });
+      navigate('/unauthorized-access', { replace: true });
     }
   }, [navigate, searchParams, setSearchParams]);
 
