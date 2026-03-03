@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+import pool from '../config/db.js';
 
 let io;
 
@@ -14,31 +15,25 @@ export const initializeSocket = (server) => {
   io.on('connection', (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
 
-    // Join user to their personal room
     socket.on('join', (userId) => {
       const roomName = `user_${userId}`;
       socket.join(roomName);
       console.log(`👤 User ${userId} joined their personal room: ${roomName} (socket: ${socket.id})`);
-      // Log all rooms this socket is in
       console.log(`   📋 Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
     });
 
-    // Join chat room
     socket.on('join_chat', (chatId) => {
       const roomName = `chat_${chatId}`;
       socket.join(roomName);
       console.log(`💬 Socket ${socket.id} joined ${roomName}`);
-      // Log all rooms this socket is in
       console.log(`   📋 Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
     });
 
-    // Leave chat room
     socket.on('leave_chat', (chatId) => {
       socket.leave(`chat_${chatId}`);
       console.log(`👋 Socket ${socket.id} left chat_${chatId}`);
     });
 
-    // Typing indicator (agent or client)
     socket.on('typing', ({ chatId, userName, role }) => {
       console.log(`⌨️ Typing event: chatId=${chatId}, userName=${userName}, role=${role}`);
       const room = `chat_${chatId}`;
@@ -47,10 +42,48 @@ export const initializeSocket = (server) => {
       socket.to(room).emit('user_typing', { userName, role });
     });
 
-    // Stopped typing
     socket.on('stop_typing', ({ chatId }) => {
       console.log(`⌨️ Stop typing: chatId=${chatId}`);
       socket.to(`chat_${chatId}`).emit('user_stop_typing');
+    });
+
+    socket.on('mark_messages_read', async ({ chatId, readerRole }) => {
+      try {
+        const role = readerRole || 'agent';
+        const seenAt = new Date().toISOString();
+
+        if (role === 'agent') {
+          await pool.query(
+            `UPDATE messages SET is_seen = 1 WHERE chat_id = ? AND sender_role = 'client' AND is_seen = 0`,
+            [chatId]
+          );
+          const [latestClientMsg] = await pool.query(
+            `SELECT created_at FROM messages WHERE chat_id = ? AND sender_role = 'client' AND is_seen = 1 ORDER BY created_at DESC LIMIT 1`,
+            [chatId]
+          );
+          const resolvedSeenAt = latestClientMsg[0]?.created_at
+            ? new Date(latestClientMsg[0].created_at).toISOString()
+            : seenAt;
+          console.log(`\uD83D\uDC41\uFE0F Agent read client msgs in chat ${chatId}`);
+          io.to(`chat_${chatId}`).emit('messages_seen', { chatId, seenAt: resolvedSeenAt });
+        } else {
+          await pool.query(
+            `UPDATE messages SET is_seen = 1 WHERE chat_id = ? AND sender_role IN ('support','admin') AND is_seen = 0`,
+            [chatId]
+          );
+          const [latestAgentMsg] = await pool.query(
+            `SELECT created_at FROM messages WHERE chat_id = ? AND sender_role IN ('support','admin') AND is_seen = 1 ORDER BY created_at DESC LIMIT 1`,
+            [chatId]
+          );
+          const resolvedSeenAt = latestAgentMsg[0]?.created_at
+            ? new Date(latestAgentMsg[0].created_at).toISOString()
+            : seenAt;
+          console.log(`\uD83D\uDC41\uFE0F Client read agent msgs in chat ${chatId}`);
+          io.to(`chat_${chatId}`).emit('messages_seen_by_client', { chatId, seenAt: resolvedSeenAt });
+        }
+      } catch (err) {
+        console.error('Error marking messages as read:', err.message);
+      }
     });
 
     socket.on('disconnect', () => {
@@ -68,19 +101,15 @@ export const getIO = () => {
   return io;
 };
 
-// Emit stats_update to all portal users (triggers dashboard refresh)
 export const emitStatsUpdate = () => {
   if (!io) return;
   io.emit('stats_update', { ts: Date.now() });
 };
 
-// Emit new message to chat room AND the agent's personal room (fallback for when portal hasn't joined the chat room yet)
 export const emitNewMessage = (chatId, message, agentId = null) => {
   if (io) {
-    // Add chat_id to the message if not present (ensure consistency)
     const messageWithChatId = { ...message, chat_id: message.chat_id || chatId };
 
-    // Get room sizes for debugging
     const chatRoom = io.sockets.adapter.rooms.get(`chat_${chatId}`);
     const agentRoom = agentId ? io.sockets.adapter.rooms.get(`user_${agentId}`) : null;
 
@@ -94,11 +123,8 @@ export const emitNewMessage = (chatId, message, agentId = null) => {
       senderRole: message.sender_role
     });
 
-    // Emit to chat room (for anyone who has the chat open)
     io.to(`chat_${chatId}`).emit('new_message', messageWithChatId);
 
-    // Also notify the assigned agent directly via their personal room
-    // This ensures they receive the message even if they haven't opened the chat yet
     if (agentId) {
       console.log(`📤 Also emitting to agent's personal room: user_${agentId}`);
       io.to(`user_${agentId}`).emit('new_message', messageWithChatId);
@@ -106,24 +132,20 @@ export const emitNewMessage = (chatId, message, agentId = null) => {
   }
 };
 
-// Emit chat assignment notification to agent
 export const emitChatAssigned = (agentId, chatData) => {
   if (io) {
     console.log(`📤 Emitting chat assigned to agent ${agentId}`);
     io.to(`user_${agentId}`).emit('chat_assigned', chatData);
-    // Also broadcast queue update to all connected clients
     emitQueueUpdate({ action: 'chat_assigned', chatId: chatData.id, agentId });
   }
 };
 
-// Emit chat status update
 export const emitChatStatusUpdate = (chatId, status) => {
   if (io) {
     io.to(`chat_${chatId}`).emit('chat_status_update', { chatId, status });
   }
 };
 
-// Emit queue update to all agents
 export const emitQueueUpdate = (queueData) => {
   if (io) {
     console.log(`📤 Broadcasting queue update to all clients:`, queueData);
@@ -131,7 +153,6 @@ export const emitQueueUpdate = (queueData) => {
   }
 };
 
-// Emit queue position update to a specific queued client
 export const emitQueuePositionUpdate = (clientId, newPosition) => {
   if (io) {
     console.log(`📤 Emitting queue position update to client ${clientId}: now position ${newPosition}`);
@@ -139,7 +160,6 @@ export const emitQueuePositionUpdate = (clientId, newPosition) => {
   }
 };
 
-// Emit notification to a specific user
 export const emitNotification = (userId, notification) => {
   if (io) {
     console.log(`🔔 Emitting notification to user_${userId}:`, notification.type, notification.message);
@@ -147,7 +167,6 @@ export const emitNotification = (userId, notification) => {
   }
 };
 
-// Emit user status change to all connected clients
 export const emitUserStatusChange = (userData) => {
   if (io) {
     console.log(`👤 Broadcasting user status change: user ${userData.id} is now ${userData.status}`);

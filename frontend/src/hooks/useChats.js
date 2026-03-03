@@ -31,6 +31,7 @@ const useChats = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, loading: false });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [lastSeenAt, setLastSeenAt] = useState(null);
 
   // ── Refs ───────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef(null);
@@ -114,10 +115,22 @@ const useChats = () => {
       try {
         if (!silent) setLoadingMessages(true);
         const response = await getChatMessages(chatId);
-        const transformedMessages = response.data.map((msg) =>
+        const rawMsgs = response.data;
+        const transformedMessages = rawMsgs.map((msg) =>
           transformMessageData(msg, user.id)
         );
         setCurrentMessages(transformedMessages);
+
+        // Initialise lastSeenAt from history: find the latest message sent by
+        // this agent that the client has already read (is_seen = 1).
+        const seenAgentMsgs = rawMsgs.filter(
+          (m) => m.sender_id === user.id && m.is_seen === 1
+        );
+        if (seenAgentMsgs.length > 0) {
+          const latest = seenAgentMsgs[seenAgentMsgs.length - 1];
+          setLastSeenAt(latest.created_at);
+        }
+
         setTimeout(scrollToBottom, 100);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -183,6 +196,11 @@ const useChats = () => {
 
           if (prev.some((m) => m.id === transformed.id)) return prev;
 
+          if (!transformed.isSender) {
+            const socket = socketService.socket;
+            if (socket) socket.emit('mark_messages_read', { chatId: msgChatId, readerRole: 'agent' });
+          }
+
           setTimeout(scrollToBottom, 100);
           return [...prev, transformed];
         }
@@ -224,6 +242,14 @@ const useChats = () => {
     socket.on('user_typing', handleUserTyping);
     socket.on('user_stop_typing', handleUserStopTyping);
 
+    const handleMessagesSeen = ({ chatId: seenChatId, seenAt }) => {
+      const cid = selectedChatRef.current?.id;
+      if (cid && Number(seenChatId) === Number(cid)) {
+        setLastSeenAt(seenAt);
+      }
+    };
+    socket.on('messages_seen_by_client', handleMessagesSeen);
+
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
@@ -233,6 +259,7 @@ const useChats = () => {
       socket.off('queue_update', handleQueueUpdate);
       socket.off('user_typing', handleUserTyping);
       socket.off('user_stop_typing', handleUserStopTyping);
+      socket.off('messages_seen_by_client', handleMessagesSeen);
     };
   }, [user?.id]);
 
@@ -276,8 +303,10 @@ const useChats = () => {
 
     if (socket) {
       socket.emit('join_chat', chat.id);
+      socket.emit('mark_messages_read', { chatId: chat.id, readerRole: 'agent' });
     }
 
+    setLastSeenAt(null); 
     await fetchMessages(chat.id);
   };
 
@@ -420,6 +449,7 @@ const useChats = () => {
     isUploading,
     confirmDialog,
     snackbar,
+    lastSeenAt,
     // Refs
     messagesEndRef,
     // Setters

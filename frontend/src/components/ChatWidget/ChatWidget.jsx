@@ -33,13 +33,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [concernOptions, setConcernOptions] = useState([]);
   const [concernDropdownOpen, setConcernDropdownOpen] = useState(false);
   const [isCustomConcern, setIsCustomConcern] = useState(false);
+  const [lastSeenAt, setLastSeenAt] = useState(null);
 
-  // Title-case transformer: "general inquiry" → "General Inquiry"
   const toTitleCase = (str) => {
     if (!str) return '';
     return str
       .trim()
-      .split(/\s+/) // Split by whitespace
+      .split(/\s+/)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   };
@@ -47,13 +47,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const handleConcernInput = (e) => {
     const value = e.target.value;
     if (isCustomConcern) {
-      // Apply title case transformation while typing for custom concerns
-      // Split by space, capitalize each word, preserve trailing space
       const hasTrailingSpace = value.endsWith(' ');
       const transformed = toTitleCase(value);
       setConcern(hasTrailingSpace && value.trim() ? transformed + ' ' : transformed);
     } else {
-      // Regular autocomplete behavior
       setConcern(toTitleCase(value));
       setConcernDropdownOpen(true);
     }
@@ -64,7 +61,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     { id: 's2', name: 'Technical Issue' },
   ];
 
-  // Merge static + DB options, deduplicate, and add "Other" at the end
   const allConcernOptions = [
     ...STATIC_CONCERNS,
     ...concernOptions.filter(
@@ -74,8 +70,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   ];
 
   const filteredConcernOptions = allConcernOptions.filter(opt =>
-    // In dropdown mode (non-custom), always show all options so user can change selection
-    // In custom mode, filter as user types
     !isCustomConcern || concern === '' || opt.name.toLowerCase().includes(concern.toLowerCase())
   );
 
@@ -100,12 +94,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const fileInputRef = useRef(null);
   const concernRef = useRef(null);
 
-  // Keep chatIdRef in sync
   useEffect(() => {
     chatIdRef.current = chatId;
   }, [chatId]);
 
-  // Fetch concern types from server
   useEffect(() => {
     fetch(`${apiUrl}/concern-types`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(r => r.json())
@@ -113,7 +105,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       .catch(() => { });
   }, [apiUrl]);
 
-  // Close concern dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (concernRef.current && !concernRef.current.contains(e.target)) {
@@ -124,7 +115,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Initialize socket connection (only when registered)
   useEffect(() => {
     if (!isRegistered) return;
 
@@ -142,7 +132,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         socketRef.current.emit('join', userId);
         console.log(`👤 Widget joined user room: user_${userId}`);
       }
-      // Join chat room if we have an active chat
       if (chatIdRef.current) {
         socketRef.current.emit('join_chat', chatIdRef.current);
         console.log(`💬 Widget joined chat room: chat_${chatIdRef.current}`);
@@ -166,10 +155,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         senderRole: message.sender_role
       });
 
-      // Only add messages for our current chat (or any message if no chatId yet)
       if (msgChatId === currentChatId || !currentChatId) {
         setMessages(prev => {
-          // Prevent duplicates by checking if message with this ID already exists
           if (prev.some(msg => msg.id === message.id)) {
             console.log('⚠️ Widget: Duplicate message, skipping');
             return prev;
@@ -178,13 +165,19 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           return [...prev, message];
         });
         scrollToBottom();
+
+        if (message.sender_role !== 'client' && message.sender_role !== 'bot' && chatIdRef.current) {
+          socketRef.current?.emit('mark_messages_read', {
+            chatId: chatIdRef.current,
+            readerRole: 'client'
+          });
+        }
       } else {
         console.log('⏭️ Widget: Message for different chat, skipping');
       }
     });
 
     socketRef.current.on('user_typing', ({ userName, role }) => {
-      // Only show typing indicator when the agent/support is typing (not the customer themselves)
       console.log('📝 Widget received user_typing event:', { userName, role, chatId: chatIdRef.current });
       if (role === 'client') {
         console.log('⏭️ Ignoring client typing (self)');
@@ -200,6 +193,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       setIsTyping(false);
     });
 
+    socketRef.current.on('messages_seen', ({ chatId: seenChatId, seenAt }) => {
+      const cid = chatIdRef.current;
+      console.log('👁️ Widget messages_seen event:', { seenChatId, seenAt, cid });
+      if (!cid || Number(seenChatId) === Number(cid)) {
+        setLastSeenAt(seenAt);
+      }
+    });
+
     socketRef.current.on('chat_status_update', ({ chatId: updatedChatId, status }) => {
       console.log('🔄 Widget received chat status update:', { chatId: updatedChatId, status });
       if (updatedChatId === chatIdRef.current) {
@@ -207,7 +208,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setIsChatEnded(true);
           setEndedChatId(updatedChatId);
         } else if (status === 'active') {
-          // Chat was assigned to an agent — clear queue position
           setQueuePosition(null);
         }
       }
@@ -216,7 +216,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     socketRef.current.on('queue_position_update', ({ position }) => {
       console.log('🔢 Widget received queue position update:', position);
       setQueuePosition(prev => {
-        // Only show update message when position actually changed (not on initial set)
         if (prev !== null && prev !== position) {
           const posLabel = position === 1 ? '1st' : position === 2 ? '2nd' : position === 3 ? '3rd' : `${position}th`;
           setMessages(msgs => [
@@ -240,9 +239,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         socketRef.current = null;
       }
     };
-  }, [isRegistered, userId, socketUrl]); // Note: chatId removed from deps - we use ref instead
+  }, [isRegistered, userId, socketUrl]); 
 
-  // Join chat room when chatId changes (after first message creates chat)
   useEffect(() => {
     if (socketRef.current?.connected && chatId) {
       socketRef.current.emit('join_chat', chatId);
@@ -250,7 +248,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   }, [chatId]);
 
-  // Auto-scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -259,13 +256,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Register user
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Create/login user (only email needed)
       const response = await fetch(`${apiUrl}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -278,7 +273,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       let userIdToStore;
 
       if (!data.success && response.status === 404) {
-        // User doesn't exist, create new client
         const createResponse = await fetch(`${apiUrl}/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -310,7 +304,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
       setIsRegistered(true);
 
-      // Store in localStorage with the actual user ID
       localStorage.setItem('chat_widget_user', JSON.stringify({
         id: userIdToStore,
         name: userName,
@@ -327,7 +320,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Send message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() || !userId) {
@@ -343,7 +335,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     if (chatId) {
       messagePayload.chat_id = chatId;
     } else if (concern) {
-      // Apply title case transformation for custom concerns before sending and trim
       messagePayload.concern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
     }
 
@@ -360,13 +351,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       console.log('Message response:', data);
 
       if (data.success) {
-        // Set chatId if this is the first message
         if (!chatId && data.chat_id) {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
 
-          // Persist concern to localStorage so it survives refreshes
           if (concern) {
             const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
             try {
@@ -380,7 +369,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             }
           }
 
-          // Add the first message manually since we just joined the room
           if (data.data) {
             setMessages(prev => {
               if (prev.some(msg => msg.id === data.data.id)) return prev;
@@ -388,7 +376,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             });
           }
 
-          // Inject a frontend-only auto-reply (not stored in DB)
           const autoReplyText = data.is_queued
             ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible. Please hold on!\n\n— This is an automated message`
             : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
@@ -412,7 +399,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           }, 600);
         }
 
-        // Clear input
         setInputMessage('');
       }
     } catch (error) {
@@ -420,7 +406,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Handle typing indicator
   const handleTyping = () => {
     if (chatId && socketRef.current) {
       socketRef.current.emit('typing', { chatId, userName, role: 'client' });
@@ -432,12 +417,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Handle file selection
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
       showToast('File size must be less than 10MB');
       return;
@@ -445,7 +428,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     setSelectedFile(file);
 
-    // Create preview for images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => setFilePreview(e.target.result);
@@ -455,7 +437,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Clear selected file
   const clearSelectedFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
@@ -464,7 +445,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Send message with file
   const handleSendWithFile = async () => {
     if (!selectedFile || !userId) return;
 
@@ -477,7 +457,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       if (chatId) {
         formData.append('chat_id', chatId);
       } else if (concern) {
-        // Apply title case transformation for custom concerns before sending and trim
         formData.append('concern', isCustomConcern ? toTitleCase(concern.trim()) : concern);
       }
       if (inputMessage.trim()) {
@@ -494,13 +473,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       console.log('Upload response:', data);
 
       if (data.success) {
-        // Set chatId if this is the first message
         if (!chatId && data.chat_id) {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
 
-          // Persist concern to localStorage
           if (concern) {
             const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
             try {
@@ -508,13 +485,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               map[newChatId] = formattedConcern;
               localStorage.setItem('chat_concern_map', JSON.stringify(map));
             } catch (_) { }
-            // Update state with formatted concern
             if (isCustomConcern) {
               setConcern(formattedConcern);
             }
           }
 
-          // Add the message manually
           if (data.data) {
             setMessages(prev => {
               if (prev.some(msg => msg.id === data.data.id)) return prev;
@@ -522,7 +497,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             });
           }
 
-          // Auto reply for new chat
           const autoReplyText = data.is_queued
             ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible.\n\n— This is an automated message`
             : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
@@ -556,7 +530,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
-  // Auto-load user info from localStorage (from main app login)
   useEffect(() => {
     const savedUser = localStorage.getItem('chat_widget_user');
     if (savedUser) {
@@ -576,14 +549,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   }, []);
 
-  // Load chat history when userId is set
   useEffect(() => {
     if (userId && isRegistered) {
       loadChatHistory();
     }
   }, [userId, isRegistered]);
 
-  // Check if rating already exists when chat ends
   useEffect(() => {
     const checkExistingRating = async () => {
       const activeChatId = chatId || endedChatId;
@@ -594,7 +565,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           });
           const data = await response.json();
           if (data.success && data.data) {
-            // Rating already exists for this chat
             setRatingSubmitted(true);
             setRatingValue(data.data.rating);
             setRatingComment(data.data.comment || '');
@@ -623,7 +593,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         if (activeChat) {
           setChatId(activeChat.id);
-          // Restore concern from localStorage if not on the chat object
           if (!activeChat.concern) {
             try {
               const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
@@ -634,9 +603,20 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           }
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
+            const seenMsgs = activeChat.messages.filter(m => m.sender_role === 'client' && m.is_seen);
+            if (seenMsgs.length > 0) {
+              const latestSeen = seenMsgs[seenMsgs.length - 1];
+              setLastSeenAt(latestSeen.created_at);
+            }
+
+            if (socketRef.current?.connected) {
+              socketRef.current.emit('mark_messages_read', {
+                chatId: activeChat.id,
+                readerRole: 'client'
+              });
+            }
           }
         } else if (latestChat) {
-          // Show previous conversation but mark as ended — no chatId so next message starts fresh
           if (latestChat.messages && latestChat.messages.length > 0) {
             setMessages(latestChat.messages);
           }
@@ -652,7 +632,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   };
 
   const handleStartNewChat = () => {
-    // Save the current concern so user can repeat or change it
     const prevConcern = concern;
     const prevIsCustom = isCustomConcern;
     setChatId(null);
@@ -660,13 +639,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setIsChatEnded(false);
     setEndedChatId(null);
     setQueuePosition(null);
+    setLastSeenAt(null);
     setRatingValue(0);
     setRatingHover(0);
     setRatingComment('');
     setRatingSubmitted(false);
-    // Pre-fill with last concern so user can reuse or change it.
-    // Always restore in "selected" (non-custom) mode so the user sees the
-    // dropdown arrow and can click to pick a different concern or just proceed.
     setConcern(prevConcern);
     setIsCustomConcern(false);
     setLastConcern(prevConcern);
@@ -709,9 +686,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     });
   };
 
+  const formatSeenTime = (timestamp) => {
+    const seenDate = new Date(timestamp);
+    const diffMs = Date.now() - seenDate.getTime();
+    if (diffMs < 60000) return 'just now';
+    return seenDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="chat-widget-container">
-      {/* Toast Notification */}
       {toast.show && (
         <div className="chat-widget-toast">
           <span>{toast.message}</span>
@@ -719,7 +702,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         </div>
       )}
 
-      {/* Chat Button */}
       <button
         className="chat-widget-button"
         onClick={() => setIsOpen(!isOpen)}
@@ -739,7 +721,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         )}
       </button>
 
-      {/* Chat Window */}
       {isOpen && (
         <div className="chat-widget-window">
           {/* Header */}
@@ -788,7 +769,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             </button>
           </div>
 
-          {/* Registration Form */}
           {!isRegistered && (
             <div className="chat-widget-register">
               <div className="chat-register-welcome">
@@ -831,53 +811,79 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   </div>
                 )}
 
-                {messages.map((msg, index) => {
-                  const isSent = msg.sender_id === userId;
-                  const isBot = msg.sender_role === 'bot';
-                  const hasAttachment = msg.attachment_url;
-                  return (
-                    <div
-                      key={index}
-                      className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}
-                    >
-                      {isBot && (
-                        <div className="chat-bot-label">
-                          <span className="chat-bot-icon">⚡</span> Automated Reply
-                        </div>
-                      )}
-                      <div className="chat-message-content">
-                        {hasAttachment && (
-                          <div className="chat-attachment">
-                            {msg.attachment_type === 'image' ? (
-                              <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
-                                <img
-                                  src={msg.attachment_url}
-                                  alt={msg.attachment_name || 'Attachment'}
-                                  className="chat-attachment-image"
-                                />
-                              </a>
-                            ) : (
-                              <a
-                                href={msg.attachment_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="chat-attachment-file"
-                              >
-                                <span className="chat-file-icon">
-                                  {msg.attachment_type === 'video' ? '🎬' :
-                                    msg.attachment_type === 'audio' ? '🎵' :
-                                      msg.attachment_type === 'archive' ? '📦' : '📄'}
-                                </span>
-                                <span className="chat-file-name">{msg.attachment_name || 'Download file'}</span>
-                              </a>
+                {(() => {
+                  const uid = Number(userId);
+                  const lastSeenSentIdx = lastSeenAt
+                    ? messages.reduce((acc, msg, i) => {
+                        if (
+                          Number(msg.sender_id) === uid &&
+                          msg.sender_role !== 'bot' &&
+                          msg.created_at &&
+                          new Date(msg.created_at) <= new Date(lastSeenAt)
+                        ) return i;
+                        return acc;
+                      }, -1)
+                    : -1;
+
+                  return messages.map((msg, index) => {
+                    const isSent = Number(msg.sender_id) === uid;
+                    const isBot = msg.sender_role === 'bot';
+                    const hasAttachment = msg.attachment_url;
+                    const showSeen = Boolean(lastSeenAt) && index === lastSeenSentIdx && isSent;
+                    return (
+                      <React.Fragment key={index}>
+                        <div
+                          className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}
+                        >
+                          {isBot && (
+                            <div className="chat-bot-label">
+                              <span className="chat-bot-icon">⚡</span> Automated Reply
+                            </div>
+                          )}
+                          <div className="chat-message-content">
+                            {hasAttachment && (
+                              <div className="chat-attachment">
+                                {msg.attachment_type === 'image' ? (
+                                  <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                      src={msg.attachment_url}
+                                      alt={msg.attachment_name || 'Attachment'}
+                                      className="chat-attachment-image"
+                                    />
+                                  </a>
+                                ) : (
+                                  <a
+                                    href={msg.attachment_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="chat-attachment-file"
+                                  >
+                                    <span className="chat-file-icon">
+                                      {msg.attachment_type === 'video' ? '🎬' :
+                                        msg.attachment_type === 'audio' ? '🎵' :
+                                          msg.attachment_type === 'archive' ? '📦' : '📄'}
+                                    </span>
+                                    <span className="chat-file-name">{msg.attachment_name || 'Download file'}</span>
+                                  </a>
+                                )}
+                              </div>
                             )}
+                            {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
+                          </div>
+                        </div>
+                        {showSeen && (
+                          <div className="chat-message-seen">
+                            <svg width="14" height="10" viewBox="0 0 16 11" fill="none" aria-hidden="true">
+                              <path d="M1 5.5L5.5 10L15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M6 5.5L10.5 10L20 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Seen {formatSeenTime(lastSeenAt)}
                           </div>
                         )}
-                        {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
-                      </div>
-                    </div>
-                  );
-                })}
+                      </React.Fragment>
+                    );
+                  });
+                })()}
 
                 {isTyping && (
                   <div className="chat-typing-indicator">

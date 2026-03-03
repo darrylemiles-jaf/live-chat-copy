@@ -45,6 +45,7 @@ export const transformMessageData = (message, agentId) => ({
       : message.sender_name || `User ${message.sender_id}`,
   message: message.message,
   timestamp: formatTimestamp(message.created_at),
+  created_at: message.created_at,
   isSender: message.sender_id === agentId,
   isBot: message.sender_role === 'bot',
   attachment_url: message.attachment_url,

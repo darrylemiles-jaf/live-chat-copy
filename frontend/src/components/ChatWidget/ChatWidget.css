@@ -634,6 +634,26 @@
   }
 }
 
+/* ── Seen indicator ── */
+.chat-message-seen {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--cw-primary);
+  margin-top: -4px;
+  margin-bottom: 6px;
+  padding-right: 14px;
+  opacity: 0.85;
+  animation: cwFadeIn 0.25s ease-out;
+}
+
+.chat-message-seen svg {
+  flex-shrink: 0;
+  color: var(--cw-primary);
+}
+
 /* ── Input bar ── */
 .chat-widget-input {
   padding: 8px 13px;
