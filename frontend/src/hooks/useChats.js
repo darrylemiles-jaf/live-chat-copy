@@ -62,7 +62,7 @@ const useChats = () => {
   useEffect(() => {
     if (!isLoggedIn) {
       console.warn('User not logged in, redirecting to unauthorized page');
-      navigate('/401');
+      navigate('/unauthorized-access', { replace: true });
     }
   }, [isLoggedIn, navigate]);
 
