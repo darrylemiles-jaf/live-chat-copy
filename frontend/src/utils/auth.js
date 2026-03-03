@@ -62,7 +62,7 @@ export const logout = async () => {
     localStorage.removeItem('serviceToken');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    window.location.href = '/401';
+    window.location.href = '/unauthorized-access';
   }
 };
 
