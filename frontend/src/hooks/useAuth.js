@@ -18,7 +18,8 @@ export function useAuth() {
   });
 
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return user !== null && localStorage.getItem(TOKEN_STORAGE_KEY) !== null;
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(TOKEN_STORAGE_KEY) !== null;
   });
 
   const login = useCallback((userData, token = null) => {
@@ -143,7 +144,8 @@ export function useAuth() {
         console.warn('Invalid stored user data, clearing:', err);
         logout();
       }
-    } else if (!storedUser || !storedToken) {
+    } else if (!storedToken) {
+      // Only clear session when the token itself is gone
       setUser(null);
       setIsLoggedIn(false);
     }
