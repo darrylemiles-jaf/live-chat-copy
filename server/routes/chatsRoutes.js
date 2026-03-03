@@ -10,6 +10,7 @@ import {
   getChatStats,
   getDetailedStats
 } from '../controllers/chatStatsControllers.js'
+import { protect } from '../middlewares/authMiddleware.js'
 
 import express from 'express'
 

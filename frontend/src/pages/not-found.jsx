@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid';
 
 // assets
 import error404 from 'assets/images/maintenance/404.png';
+import { COMPANY_URL } from '../constants/constants';
 
 // ================================|| 404 - PAGE NOT FOUND ||================================ //
 
@@ -48,7 +49,7 @@ export default function NotFound() {
                 <Button
                   variant="contained"
                   size="large"
-                  onClick={() => window.open('https://www.timora.com', '_blank')}
+                  onClick={() => window.open(COMPANY_URL, '_blank')}
                   sx={{
                     bgcolor: '#008E86',
                     '&:hover': {
@@ -72,21 +73,6 @@ export default function NotFound() {
                   }}
                 >
                   Go to Dashboard
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  onClick={() => navigate('/login')}
-                  sx={{
-                    color: '#008E86',
-                    borderColor: '#008E86',
-                    '&:hover': {
-                      borderColor: '#007670',
-                      bgcolor: 'rgba(0, 142, 134, 0.04)'
-                    }
-                  }}
-                >
-                  Go to Login
                 </Button>
               </Stack>
             </Stack>

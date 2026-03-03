@@ -27,8 +27,8 @@ const getSingleUser = expressAsync(async (req, res) => {
 
 const authUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await usersServices.authUser(email, password);
+    const { email } = req.body;
+    const result = await usersServices.authUser(email);
     const { statusCode, ...responseData } = result;
     return res.status(statusCode).json(responseData);
   } catch (error) {

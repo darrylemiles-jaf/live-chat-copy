@@ -4,6 +4,7 @@ import {
   markAllAsRead,
   markAsRead
 } from '../controllers/notificationsControllers.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 import express from 'express';
 

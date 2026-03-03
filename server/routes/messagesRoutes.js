@@ -4,6 +4,7 @@ import {
   createMessageWithAttachment
 } from '../controllers/messagesControllers.js'
 import { messagesValidators } from '../middlewares/validations/messagesValidator.js'
+import { protect } from '../middlewares/authMiddleware.js'
 import upload from '../config/cloudinary.js'
 
 import express from 'express'

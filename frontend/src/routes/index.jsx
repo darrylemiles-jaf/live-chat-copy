@@ -2,22 +2,25 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // project imports
 import MainRoutes from './MainRoutes';
-import LoginRoutes from './LoginRoutes';
 import NotFound from '../pages/not-found';
+import Unauthorized from '../pages/Unauthorized';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
 const routes = [
   {
     path: '/',
-    element: <Navigate to="/login" replace />
+    element: <Navigate to="/portal/dashboard" replace />
+  },
+  {
+    path: '/401',
+    element: <Unauthorized />
   },
   {
     path: '*',
     element: <NotFound />,
   },
-  MainRoutes,
-  LoginRoutes
+  MainRoutes
 ];
 
 const router = createBrowserRouter(routes, { basename: import.meta.env.VITE_APP_BASE_NAME });
