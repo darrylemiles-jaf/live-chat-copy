@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { API_URL } from '../constants/constants';
 
 const AUTH_STORAGE_KEY = 'user';
-const TOKEN_STORAGE_KEY = 'authToken';
+const TOKEN_STORAGE_KEY = 'serviceToken';
 
 export function useAuth() {
   const [user, setUser] = useState(() => {
@@ -42,7 +42,7 @@ export function useAuth() {
   const logout = useCallback(async () => {
     try {
       // Set user status to 'away' before clearing session
-      const token = localStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem('serviceToken');
+      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
       const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
       const parsedUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = parsedUser?.id;
@@ -67,7 +67,7 @@ export function useAuth() {
 
       localStorage.removeItem(AUTH_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem('serviceToken');
+      localStorage.removeItem('authToken'); // Legacy token key
       setUser(null);
       setIsLoggedIn(false);
 

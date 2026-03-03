@@ -63,8 +63,8 @@ const useQueue = () => {
   // ── Auth guard ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isLoggedIn) {
-      console.warn('User not logged in, redirecting to login');
-      navigate('/login');
+      console.warn('User not logged in, redirecting to unauthorized page');
+      navigate('/401');
     }
   }, [isLoggedIn, navigate]);
 
