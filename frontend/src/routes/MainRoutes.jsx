@@ -4,7 +4,6 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 import AuthGuard from 'layout/Auth/AuthGuard';
-import UnderConstruction from '../components/maintenance/UnderConstruction';
 
 const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
 const Queue = Loadable(lazy(() => import('../pages/portal/queue')));
