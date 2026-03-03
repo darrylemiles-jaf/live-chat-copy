@@ -157,7 +157,14 @@ const AgentTypingIndicator = () => (
   </Fade>
 );
 
-const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTyping = false, typingUser = '', isAgentTyping = false }) => {
+const formatSeenTime = (timestamp) => {
+  const seenDate = new Date(timestamp);
+  const diffMs = Date.now() - seenDate.getTime();
+  if (diffMs < 60000) return 'just now';
+  return seenDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+};
+
+const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTyping = false, typingUser = '', isAgentTyping = false, lastSeenAt = null }) => {
   if (isLoading) {
     return (
       <Box
@@ -231,11 +238,20 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
         </Box>
       )}
 
-      {messages.map((msg, index) => {
-        const showAvatar = index === 0 || messages[index - 1]?.isSender !== msg.isSender;
+      {(() => {
+        const lastSeenSentIdx = lastSeenAt
+          ? messages.reduce((acc, m, i) => {
+              if (m.isSender && m.created_at && new Date(m.created_at) <= new Date(lastSeenAt)) return i;
+              return acc;
+            }, -1)
+          : -1;
 
-        return (
-          <Fade in key={msg.id} timeout={300}>
+        return messages.map((msg, index) => {
+          const showAvatar = index === 0 || messages[index - 1]?.isSender !== msg.isSender;
+          const showSeen = Boolean(lastSeenAt) && msg.isSender && index === lastSeenSentIdx;
+
+          return (
+            <Fade in key={msg.id} timeout={300}>
             <Box
               sx={{
                 display: 'flex',
@@ -426,14 +442,36 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                 >
                   {msg.timestamp}
                 </Typography>
+
+                {showSeen && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      px: 1,
+                      color: 'primary.main',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      mt: 0.25
+                    }}
+                  >
+                    <svg width="14" height="10" viewBox="0 0 16 11" fill="none" style={{ verticalAlign: 'middle' }}>
+                      <path d="M1 5.5L5.5 10L15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 5.5L10.5 10L20 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Seen {formatSeenTime(lastSeenAt)}
+                  </Typography>
+                )}
               </Box>
 
-              {/* Avatar placeholder for sent messages (for alignment) */}
               {msg.isSender && <Box sx={{ width: 32, flexShrink: 0 }} />}
             </Box>
           </Fade>
-        );
-      })}
+          );
+        });
+      })()}
 
       {/* Typing indicator — client is typing */}
       {isTyping && <TypingIndicator userName={typingUser} />}

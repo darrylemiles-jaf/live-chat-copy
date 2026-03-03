@@ -37,6 +37,7 @@ const Chats = () => {
     isUploading,
     confirmDialog,
     snackbar,
+    lastSeenAt,
     messagesEndRef,
     setMessage,
     setSearchQuery,
@@ -126,6 +127,7 @@ const Chats = () => {
                   isLoading={loadingMessages}
                   isTyping={isTyping}
                   typingUser={typingUser}
+                  lastSeenAt={lastSeenAt}
                 />
                 {selectedChat.status !== 'ended' ? (
                   <MessageInputSection
