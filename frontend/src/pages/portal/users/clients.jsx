@@ -1,11 +1,8 @@
 import React from 'react';
-import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
 import { useClients } from '../../../hooks/useClients';
-
-const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Clients' }];
 
 const Clients = () => {
   const {
@@ -22,8 +19,6 @@ const Clients = () => {
   return (
     <React.Fragment>
       <PageHead title="Clients" description="Timora Live Chat, Clients Overview" />
-      <Breadcrumbs heading="Clients" links={breadcrumbLinks} subheading="View and manage your clients here." />
-
       <ReusableTable
         columns={columns}
         rows={rows}

@@ -75,13 +75,21 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
               pl: drawerOpen ? `${level * 28}px` : 1.5,
               py: !drawerOpen && level === 1 ? 1.25 : 1,
               ...(drawerOpen && {
-                '&:hover': { bgcolor: 'primary.lighter' },
+                '&:hover': {
+                  bgcolor: 'primary.lighter',
+                  ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.12)' })
+                },
                 '&.Mui-selected': {
                   bgcolor: 'primary.lighter',
+                  ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.18)' }),
                   borderRight: '2px solid',
                   borderColor: 'primary.main',
                   color: iconSelectedColor,
-                  '&:hover': { color: iconSelectedColor, bgcolor: 'primary.lighter' }
+                  '&:hover': {
+                    color: iconSelectedColor,
+                    bgcolor: 'primary.lighter',
+                    ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.22)' })
+                  }
                 }
               }),
               ...(!drawerOpen && {
@@ -102,12 +110,19 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                     height: 36,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    '&:hover': { bgcolor: 'secondary.lighter' }
+                    '&:hover': {
+                      bgcolor: 'secondary.lighter',
+                      ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.12)' })
+                    }
                   }),
                   ...(!drawerOpen &&
                     isSelected && {
                       bgcolor: 'primary.lighter',
-                      '&:hover': { bgcolor: 'primary.lighter' }
+                      ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.18)' }),
+                      '&:hover': {
+                        bgcolor: 'primary.lighter',
+                        ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.22)' })
+                      }
                     })
                 })}
               >

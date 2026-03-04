@@ -4,7 +4,6 @@ import {
   Snackbar, Alert, Drawer
 } from '@mui/material';
 
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import ChatListSection from '../../sections/chats/ChatListSection';
 import ChatHeaderSection from '../../sections/chats/ChatHeaderSection';
 import MessagesAreaSection from '../../sections/chats/MessagesAreaSection';
@@ -14,11 +13,6 @@ import ClientDetailSection from '../../sections/chats/ClientDetailSection';
 import EndChatDialog from '../../sections/chats/EndChatDialog';
 import useChats from '../../hooks/useChats';
 import PageHead from '../../components/PageHead';
-
-const breadcrumbLinks = [
-  { title: 'Home', to: '/' },
-  { title: 'Chats' },
-];
 
 const Chats = () => {
   const [clientDetailOpen, setClientDetailOpen] = useState(false);
@@ -58,11 +52,6 @@ const Chats = () => {
   if (loading) {
     return (
       <React.Fragment>
-        <Breadcrumbs
-          heading="Chats"
-          links={breadcrumbLinks}
-          subheading="View and manage your chats here."
-        />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
           <CircularProgress />
         </Box>
@@ -73,12 +62,6 @@ const Chats = () => {
   return (
     <React.Fragment>
       <PageHead title='Chats' description='Timora Live Chat, Chats Overview' />
-
-      <Breadcrumbs
-        heading="Chats"
-        links={breadcrumbLinks}
-        subheading="View and manage your chats here."
-      />
 
       <Paper sx={{ height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' }, overflow: 'hidden', mt: 2 }}>
         <Grid container sx={{ height: '100%' }}>

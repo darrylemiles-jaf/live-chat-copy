@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Grid, Paper, CircularProgress, Snackbar, Alert } from '@mui/material';
 
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import PageHead from '../../components/PageHead';
 import QueueDialog from '../../sections/queue/QueueDialog';
 import QueueHeader from '../../sections/queue/QueueHeader';
@@ -11,8 +10,6 @@ import CurrentStatusSection from '../../sections/queue/CurrentStatusSection';
 import useQueue from '../../hooks/useQueue';
 import { withAlpha } from '../../utils/colorUtils';
 import { getAvatarBg, getInitials } from '../../utils/queue/queueTransformers';
-
-const breadcrumbLinks = [{ title: 'Home', to: '/' }, { title: 'Queue' }];
 
 const Queue = () => {
   const {
@@ -38,7 +35,6 @@ const Queue = () => {
   if (loading) {
     return (
       <React.Fragment>
-        <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
           <CircularProgress />
         </Box>
@@ -49,8 +45,6 @@ const Queue = () => {
   return (
     <React.Fragment>
       <PageHead title="Queue" description="Timora Live Chat Queue Overview" />
-      <Breadcrumbs heading="Queue" links={breadcrumbLinks} subheading="View and manage your chat queue here." />
-
       <Box sx={{ mt: 2, borderRadius: 1, border: `1px solid ${palette.divider}` }}>
         <Paper elevation={0} sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1, p: { xs: 2, md: 3 }, boxShadow: 'none' }}>
           <QueueHeader palette={palette} availableAgents={availableAgents} />

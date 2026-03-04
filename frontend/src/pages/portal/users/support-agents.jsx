@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem, DialogActions, DialogContent, DialogTitle, Dialog, TextField } from '@mui/material';
 
-import Breadcrumbs from '../../../components/@extended/Breadcrumbs';
 import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
 import UserDetailsView from '../../../components/UserDetailsView';
@@ -13,10 +12,6 @@ import { agentViewConfig } from '../../../utils/agents/agentTableConfig';
 import { PlusOutlined } from '@ant-design/icons';
 
 
-const breadcrumbLinks = [
-  { title: 'Home', to: '/' },
-  { title: 'Support Agents' }
-];
 
 const SupportAgents = () => {
   const {
@@ -67,8 +62,6 @@ const SupportAgents = () => {
   if (usersLoading) {
     return (
       <React.Fragment>
-
-        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress />
         </Box>
@@ -79,7 +72,6 @@ const SupportAgents = () => {
   if (usersError) {
     return (
       <React.Fragment>
-        <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
         <Alert severity="error" sx={{ mt: 2 }}>
           Error loading support agents: {usersError.message || 'Please try again later.'}
         </Alert>
@@ -90,8 +82,6 @@ const SupportAgents = () => {
   return (
     <React.Fragment>
       <PageHead title='Support Agents' description='Timora Live Chat, Support Agents Overview' />
-      <Breadcrumbs heading="Support Agents" links={breadcrumbLinks} subheading="View and manage your support agents here." />
-
       <ReusableTable
         columns={columns}
         rows={filteredRowsForTable}
@@ -129,7 +119,7 @@ const SupportAgents = () => {
               <Button
                 variant="outlined"
                 onClick={() => { setFilterRole(''); setFilterStatus(''); }}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                sx={{ width: { xs: '100%', sm: 'auto' }, color: 'text.primary', borderColor: 'divider' }}
                 size='small'
               >
                 Clear

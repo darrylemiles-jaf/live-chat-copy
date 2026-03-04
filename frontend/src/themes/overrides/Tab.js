@@ -1,6 +1,3 @@
-// project imports
-import { withAlpha } from 'utils/colorUtils';
-
 // ==============================|| OVERRIDES - TAB ||============================== //
 
 export default function Tab(theme) {
@@ -12,7 +9,7 @@ export default function Tab(theme) {
           color: theme.vars.palette.text.primary,
           borderRadius: 4,
           '&:hover': {
-            backgroundColor: withAlpha(theme.vars.palette.primary.lighter, 0.6),
+            backgroundColor: 'rgba(var(--palette-primary-mainChannel) / 0.10)',
             color: theme.vars.palette.primary.main
           },
           '&:focus-visible': {

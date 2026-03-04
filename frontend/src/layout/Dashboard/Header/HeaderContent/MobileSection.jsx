@@ -49,7 +49,11 @@ export default function MobileSection() {
         <IconButton
           sx={(theme) => ({
             color: 'text.primary',
-            bgcolor: open ? 'grey.300' : 'grey.100',
+            bgcolor: open
+              ? (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'grey.300')
+              : (theme.palette.mode === 'dark' ? 'transparent' : 'grey.100'),
+            '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'grey.200' },
+            '&::after': { background: 'transparent !important', boxShadow: 'none !important' },
           })}
           aria-label="open more menu"
           ref={anchorRef}
@@ -57,7 +61,7 @@ export default function MobileSection() {
           aria-haspopup="true"
           onClick={handleToggle}
           color="secondary"
-          variant="light"
+          variant="text"
         >
           <MoreOutlined />
         </IconButton>

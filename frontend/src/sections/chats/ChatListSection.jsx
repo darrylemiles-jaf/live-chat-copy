@@ -209,7 +209,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                       <Box component="span" sx={{
                         fontSize: '0.65rem', fontWeight: 700,
                         px: 0.6, py: 0.1, borderRadius: 0.75,
-                        bgcolor: 'primary.lighter', color: 'primary.dark',
+                        bgcolor: 'primary.main', color: 'primary.contrastText',
                       }}>{count}</Box>
                     </Box>
                   </MenuItem>
@@ -360,10 +360,10 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                         display: 'inline-block',
                         fontSize: '10px',
                         fontWeight: 600,
-                        color: 'primary.dark',
-                        bgcolor: 'primary.lighter',
-                        border: '1px solid',
-                        borderColor: 'primary.light',
+                        color: 'primary.contrastText',
+                        bgcolor: 'primary.main',
+                        border: 'none',
+                        borderColor: 'transparent',
                         borderRadius: '20px',
                         px: '6px',
                         py: '1px',
