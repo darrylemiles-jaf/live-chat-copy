@@ -82,30 +82,20 @@ const modules = [
     access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
     children: [
       {
-        id: 'users',
-        title: 'Users',
-        type: 'collapse',
-        icon: icons.AccountGroup,
+        id: 'clients',
+        title: 'Clients',
+        type: 'item',
+        url: '/portal/users/clients',
+        icon: icons.UsergroupAddOutlined,
         breadcrumbs: false,
-        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
-        children: [
-          {
-            id: 'clients',
-            title: 'Clients',
-            type: 'item',
-            url: '/portal/users/clients',
-            icon: icons.UsergroupAddOutlined,
-            breadcrumbs: false,
-          },
-          {
-            id: 'supports',
-            title: 'Support Agents',
-            type: 'item',
-            url: '/portal/users/supports',
-            icon: icons.FaceAgent,
-            breadcrumbs: false,
-          }
-        ]
+      },
+      {
+        id: 'supports',
+        title: 'Support Agents',
+        type: 'item',
+        url: '/portal/users/supports',
+        icon: icons.FaceAgent,
+        breadcrumbs: false,
       }
     ]
   },
