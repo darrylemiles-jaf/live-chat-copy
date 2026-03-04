@@ -49,7 +49,7 @@ const StatCard = ({ label, value, icon, color, loading }) => (
       <Box
         sx={{
           width: 48, height: 48, borderRadius: '50%',
-          bgcolor: `${color}18`, display: 'flex',
+          bgcolor: `color-mix(in srgb, ${color} 9%, transparent)`, display: 'flex',
           alignItems: 'center', justifyContent: 'center', color,
           flexShrink: 0
         }}
@@ -65,8 +65,8 @@ const RankedRow = ({ rank, name, subtext, value, percent, color }) => (
     <Box
       sx={{
         width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-        bgcolor: rank <= 3 ? '#008E86' : 'action.selected',
-        color: rank <= 3 ? 'white' : 'text.secondary',
+        bgcolor: rank <= 3 ? 'primary.main' : 'action.selected',
+        color: rank <= 3 ? 'primary.contrastText' : 'text.secondary',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '0.7rem', fontWeight: 700
       }}
@@ -86,7 +86,7 @@ const RankedRow = ({ rank, name, subtext, value, percent, color }) => (
           value={percent}
           sx={{
             mt: 0.5, height: 4, borderRadius: 2, bgcolor: 'action.hover',
-            '& .MuiLinearProgress-bar': { bgcolor: color || '#008E86', borderRadius: 2 }
+            '& .MuiLinearProgress-bar': { bgcolor: color || 'primary.main', borderRadius: 2 }
           }}
         />
       )}
@@ -241,14 +241,14 @@ const Dashboard = () => {
 
   const loading = loadingBase || loadingDetailed;
   const { topAgents, topClients, agentAvailability } = detailedStats;
-  const dividerColor = theme.vars?.palette?.divider ?? theme.palette.divider;
+  const dividerColor = theme.vars.palette.divider;
 
   const statusChips = [
-    { label: 'Active', value: orgStats.activeChats, dotColor: '#22c55e', bg: '#f0fdf4' },
-    { label: 'Queued', value: orgStats.queuedChats, dotColor: '#f59e0b', bg: '#fffbeb' },
-    { label: 'New this week', value: orgStats.weeklyTotal.new, dotColor: '#3b82f6', bg: '#eff6ff' },
-    { label: 'Resolved this week', value: orgStats.weeklyTotal.closed, dotColor: '#008E86', bg: '#f0fdfa' },
-    { label: 'Total Resolved', value: orgStats.totalResolved, dotColor: '#64748b', bg: '#f8fafc' },
+    { label: 'Active',             value: orgStats.activeChats,          dotColor: 'var(--palette-success-main)',    bg: 'rgba(var(--palette-success-mainChannel) / 0.08)' },
+    { label: 'Queued',             value: orgStats.queuedChats,          dotColor: 'var(--palette-warning-main)',    bg: 'rgba(var(--palette-warning-mainChannel) / 0.08)' },
+    { label: 'New this week',      value: orgStats.weeklyTotal.new,      dotColor: 'var(--palette-info-main)',       bg: 'rgba(var(--palette-info-mainChannel) / 0.08)' },
+    { label: 'Resolved this week', value: orgStats.weeklyTotal.closed,   dotColor: 'var(--palette-primary-main)',    bg: 'rgba(var(--palette-primary-mainChannel) / 0.08)' },
+    { label: 'Total Resolved',     value: orgStats.totalResolved,        dotColor: 'var(--palette-text-secondary)',  bg: 'rgba(var(--palette-text-secondaryChannel) / 0.08)' },
   ];
 
   return (
@@ -269,7 +269,7 @@ const Dashboard = () => {
               label="Active Chats"
               value={orgStats.activeChats}
               icon={<MessageOutlined style={{ fontSize: 22 }} />}
-              color="#008E86"
+              color="var(--palette-primary-main)"
               loading={loading}
             />
           </Grid>
@@ -278,7 +278,7 @@ const Dashboard = () => {
               label="In Queue"
               value={orgStats.queuedChats}
               icon={<TeamOutlined style={{ fontSize: 22 }} />}
-              color="#f59e0b"
+              color="var(--palette-warning-main)"
               loading={loading}
             />
           </Grid>
@@ -287,7 +287,7 @@ const Dashboard = () => {
               label="Avg Response Time"
               value={formatDuration(orgStats.avgResponseTime)}
               icon={<ClockCircleOutlined style={{ fontSize: 22 }} />}
-              color="#3b82f6"
+              color="var(--palette-info-main)"
               loading={loading}
             />
           </Grid>
@@ -359,11 +359,11 @@ const Dashboard = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#008E86' }} />
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'primary.main' }} />
                     <Typography variant="caption">New</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f59e0b' }} />
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'warning.main' }} />
                     <Typography variant="caption">Resolved</Typography>
                   </Box>
                 </Box>
@@ -382,11 +382,11 @@ const Dashboard = () => {
                   series={[
                     {
                       type: 'line', data: orgStats.newChats, label: 'New', id: 'new',
-                      color: '#008E86', strokeWidth: 2.5, showMark: true, area: true
+                      color: 'var(--palette-primary-main)', strokeWidth: 2.5, showMark: true, area: true
                     },
                     {
                       type: 'line', data: orgStats.closedChats, label: 'Resolved', id: 'resolved',
-                      color: '#f59e0b', strokeWidth: 2, showMark: true
+                      color: 'var(--palette-warning-main)', strokeWidth: 2, showMark: true
                     }
                   ]}
                   sx={{
@@ -435,9 +435,9 @@ const Dashboard = () => {
                     startAngle={-110}
                     endAngle={110}
                     sx={{
-                      '& .MuiGauge-valueText text': { fontSize: '1.4rem', fontWeight: 700, fill: '#008E86' },
-                      '& .MuiGauge-referenceArc': { fill: '#e2e8f0' },
-                      '& .MuiGauge-valueArc': { fill: '#008E86' }
+                      '& .MuiGauge-valueText text': { fontSize: '1.4rem', fontWeight: 700, fill: 'var(--palette-primary-main)' },
+                      '& .MuiGauge-referenceArc': { fill: 'var(--palette-action-disabledBackground)' },
+                      '& .MuiGauge-valueArc': { fill: 'var(--palette-primary-main)' }
                     }}
                     text={({ value }) => `${value}%`}
                   />
@@ -448,9 +448,9 @@ const Dashboard = () => {
 
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
                   {[
-                    { label: 'Available', count: agentAvailability.available, color: '#22c55e' },
-                    { label: 'Busy', count: agentAvailability.busy, color: '#f44336' },
-                    { label: 'Away', count: agentAvailability.away, color: '#f59e0b' },
+                    { label: 'Available', count: agentAvailability.available, color: 'var(--palette-success-main)' },
+                    { label: 'Busy', count: agentAvailability.busy, color: 'var(--palette-error-main)' },
+                    { label: 'Away', count: agentAvailability.away, color: 'var(--palette-warning-main)' },
                   ].map((item) => (
                     <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -502,10 +502,10 @@ const Dashboard = () => {
                       value={`${agent.percent}%`}
                       percent={agent.percent}
                       color={
-                        i === 0 ? '#008E86'
-                          : i === 1 ? '#3b82f6'
+                        i === 0 ? 'var(--palette-primary-main)'
+                          : i === 1 ? 'var(--palette-info-main)'
                             : i === 2 ? '#8b5cf6'
-                              : '#94a3b8'
+                              : 'var(--palette-text-disabled)'
                       }
                     />
                   ))}
@@ -555,7 +555,7 @@ const Dashboard = () => {
                     sx={{ p: 0.25 }}
                     onClick={(e) => setScoreGuideAnchor(e.currentTarget)}
                   >
-                    <InfoCircleOutlined style={{ fontSize: 15, color: scoreGuideOpen ? '#008E86' : '#94a3b8' }} />
+                    <InfoCircleOutlined style={{ fontSize: 15, color: scoreGuideOpen ? theme.vars.palette.primary.main : theme.vars.palette.text.disabled }} />
                   </IconButton>
                 </Tooltip>
 
@@ -591,8 +591,8 @@ const Dashboard = () => {
                   {/* Excellent */}
                   <Box sx={{ px: 2, pt: 0.75, pb: 0.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.6 }}>
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: 0.5 }}>Excellent</Typography>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'var(--palette-success-main)', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--palette-success-main)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Excellent</Typography>
                     </Box>
                     {[
                       { range: 'Less than or equal to 30 sec', score: 100 },
@@ -602,7 +602,7 @@ const Dashboard = () => {
                     ].map((row) => (
                       <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.35, pl: 1.75 }}>
                         <Typography sx={{ fontSize: '0.69rem', color: 'rgba(255,255,255,0.6)' }}>{row.range}</Typography>
-                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: '#22c55e', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
+                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: 'var(--palette-success-main)', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
                       </Box>
                     ))}
                   </Box>
@@ -612,15 +612,15 @@ const Dashboard = () => {
                   {/* Acceptable */}
                   <Box sx={{ px: 2, pt: 0.75, pb: 0.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.6 }}>
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Acceptable</Typography>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'var(--palette-warning-main)', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--palette-warning-main)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Acceptable</Typography>
                     </Box>
                     {[
                       { range: 'Less than or equal to 5 min', score: 70 },
                     ].map((row) => (
                       <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.35, pl: 1.75 }}>
                         <Typography sx={{ fontSize: '0.69rem', color: 'rgba(255,255,255,0.6)' }}>{row.range}</Typography>
-                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: '#f59e0b', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
+                        <Typography sx={{ fontSize: '0.69rem', fontWeight: 700, color: 'var(--palette-warning-main)', ml: 1.5, flexShrink: 0 }}>{row.score}</Typography>
                       </Box>
                     ))}
                   </Box>
@@ -630,8 +630,8 @@ const Dashboard = () => {
                   {/* Red group */}
                   <Box sx={{ px: 2, pt: 0.75, pb: 1.25 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f44336', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: '#f44336', textTransform: 'uppercase', letterSpacing: 0.5 }}>Needs Improvement</Typography>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'var(--palette-error-main)', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--palette-error-main)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Needs Improvement</Typography>
                     </Box>
                     {[
                       { range: 'Less than or equal to 10 min', score: 45 },
@@ -641,7 +641,7 @@ const Dashboard = () => {
                     ].map((row) => (
                       <Box key={row.range} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, pl: 1.75 }}>
                         <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{row.range}</Typography>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#f44336' }}>{row.score}</Typography>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--palette-error-main)' }}>{row.score}</Typography>
                       </Box>
                     ))}
                   </Box>
@@ -669,14 +669,14 @@ const Dashboard = () => {
                                   : r <= 1200 ? 30   // ≤ 20min→ 30  🔴
                                     : r <= 1800 ? 20   // ≤ 30min→ 20  🔴
                                       : 10;              // >30min → 10  🔴
-                    const scoreColor = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#f44336';
+                    const scoreColor = score >= 80 ? 'var(--palette-success-main)' : score >= 60 ? 'var(--palette-warning-main)' : 'var(--palette-error-main)';
                     return (
                       <Box key={agent.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box
                           sx={{
                             width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                            bgcolor: i < 3 ? '#008E86' : 'action.selected',
-                            color: i < 3 ? 'white' : 'text.secondary',
+                            bgcolor: i < 3 ? 'primary.main' : 'action.selected',
+                            color: i < 3 ? 'primary.contrastText' : 'text.secondary',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: '0.7rem', fontWeight: 700
                           }}
@@ -741,7 +741,7 @@ const Dashboard = () => {
                     const avg = parseFloat(agent.average_rating) || 0;
                     const total = parseInt(agent.total_ratings) || 0;
                     const pct5 = total ? Math.round((agent.five_star / total) * 100) : 0;
-                    const starColor = avg >= 4.5 ? '#f59e0b' : avg >= 3.5 ? '#f59e0b' : avg >= 2.5 ? '#f97316' : '#ef4444';
+                    const starColor = avg >= 2.5 ? 'var(--palette-warning-main)' : 'var(--palette-error-main)';
                     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
                     return (
                       <Box
@@ -750,9 +750,9 @@ const Dashboard = () => {
                         sx={{
                           p: 2,
                           border: '1px solid',
-                          borderColor: i === 0 ? '#f59e0b44' : 'divider',
+                          borderColor: i === 0 ? 'rgba(var(--palette-warning-mainChannel) / 0.27)' : 'divider',
                           borderRadius: 2,
-                          bgcolor: i === 0 ? '#fffbeb' : 'background.paper',
+                          bgcolor: i === 0 ? 'rgba(var(--palette-warning-mainChannel) / 0.08)' : 'background.paper',
                           position: 'relative',
                           cursor: 'pointer',
                           transition: 'box-shadow .2s',
@@ -764,8 +764,8 @@ const Dashboard = () => {
                           <Box
                             sx={{
                               width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                              bgcolor: i < 3 ? '#008E86' : 'action.selected',
-                              color: i < 3 ? 'white' : 'text.secondary',
+                              bgcolor: i < 3 ? 'primary.main' : 'action.selected',
+                              color: i < 3 ? 'primary.contrastText' : 'text.secondary',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: '0.7rem', fontWeight: 700
                             }}
@@ -796,7 +796,7 @@ const Dashboard = () => {
                               component="span"
                               sx={{
                                 fontSize: '0.9rem',
-                                color: s <= Math.round(avg) ? starColor : '#d1d5db',
+                                color: s <= Math.round(avg) ? starColor : 'var(--palette-action-disabled)',
                                 lineHeight: 1
                               }}
                             >
@@ -820,7 +820,7 @@ const Dashboard = () => {
                             variant="determinate"
                             value={pct5}
                             sx={{
-                              height: 5, borderRadius: 3, bgcolor: '#f1f5f9',
+                              height: 5, borderRadius: 3, bgcolor: 'action.hover',
                               '& .MuiLinearProgress-bar': { bgcolor: starColor, borderRadius: 3 }
                             }}
                           />

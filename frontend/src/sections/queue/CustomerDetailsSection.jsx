@@ -22,7 +22,7 @@ function getAvatarBg(palette, item) {
   return palette.primary.main;
 }
 
-const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, handleOpenChat, handleResolve, isFirst }) => {
+const CustomerDetailsSection = ({ palette, isDark, selected, detailsTab, setDetailsTab, handleOpenChat, handleResolve, isFirst }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleConfirm = () => {
@@ -36,7 +36,8 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
       sx={{
         height: '100%',
         borderRadius: 1,
-        border: `1px solid rgba(6, 72, 86, 0.15)`,
+      border: '1px solid',
+      borderColor: 'divider',
         backgroundColor: palette.background.paper,
         boxShadow: 'none',
         display: 'flex',
@@ -54,10 +55,10 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
           borderRadius: 1
         }}
       >
-        <Typography variant="subtitle1" color="#000">
+        <Typography variant="subtitle1" color="text.primary">
           Customer Details
         </Typography>
-        <IconButton size="small" sx={{ color: '#000000' }}>
+        <IconButton size="small" sx={{ color: 'text.secondary' }}>
           <DotsHorizontal />
         </IconButton>
       </Box>
@@ -161,9 +162,9 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                     label={selected?.status ?? '—'}
                     size="small"
                     sx={{
-                      backgroundColor: palette.warning.lighter,
+                      backgroundColor: 'rgba(var(--palette-warning-mainChannel) / 0.15)',
                       fontWeight: 700,
-                      color: palette.text.primary
+                      color: palette.warning.dark || palette.warning.main
                     }}
                   />
                 </Stack>
@@ -199,7 +200,7 @@ const CustomerDetailsSection = ({ palette, selected, detailsTab, setDetailsTab, 
                 size="small"
                 sx={{
                   mb: 1,
-                  backgroundColor: palette.success.lighter,
+                  backgroundColor: 'rgba(34,197,94,0.12)',
                   color: palette.success.dark,
                   fontWeight: 700,
                   borderRadius: 1

@@ -34,7 +34,7 @@ export default function LoadingPage() {
                   size={100}
                   thickness={3.5}
                   sx={{
-                    color: '#008E86'
+                    color: 'var(--palette-primary-main)'
                   }}
                 />
               </Box>

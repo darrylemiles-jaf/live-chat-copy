@@ -12,13 +12,7 @@ import {
   TableRow
 } from '@mui/material';
 import MainCard from '../../components/MainCard';
-
-const statusDotColor = (status) => {
-  if (status === 'available') return '#4caf50';
-  if (status === 'busy') return '#f44336';
-  if (status === 'away') return '#ffb300';
-  return '#f44336';
-};
+import { useTheme } from '@mui/material/styles';
 
 /**
  * Compact agent-status table card on the dashboard.
@@ -29,13 +23,21 @@ const statusDotColor = (status) => {
  *  - usersError        {any}
  *  - onViewMore        {function}  open agent drawer
  */
-const AgentStatusTableSection = ({ sortedAgentStatus, usersLoading, usersError, onViewMore }) => (
-  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
+const AgentStatusTableSection = ({ sortedAgentStatus, usersLoading, usersError, onViewMore }) => {
+  const theme = useTheme();
+  const statusDotColor = (status) => {
+    if (status === 'available') return theme.vars.palette.success.main;
+    if (status === 'busy') return theme.vars.palette.error.main;
+    if (status === 'away') return theme.vars.palette.warning.main;
+    return theme.vars.palette.error.main;
+  };
+  return (
+  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'primary.main' }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
       <Typography variant="subtitle2" color="text.secondary">
         Agent status
       </Typography>
-      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: '#008E86' }}>
+      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: 'primary.main' }}>
         See more
       </Button>
     </Box>
@@ -86,6 +88,7 @@ const AgentStatusTableSection = ({ sortedAgentStatus, usersLoading, usersError, 
       </Table>
     </TableContainer>
   </MainCard>
-);
+  );
+};
 
 export default AgentStatusTableSection;

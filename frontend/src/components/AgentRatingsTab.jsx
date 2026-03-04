@@ -1,20 +1,26 @@
 import React from 'react';
 import { Box, Typography, LinearProgress, Skeleton, Divider } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 /* ── Reusable star row ─────────────────────────────────────────── */
-export const Stars = ({ value, size = '1.1rem', color = '#f59e0b' }) => (
+export const Stars = ({ value, size = '1.1rem', color }) => {
+  const theme = useTheme();
+  const starColor = color || theme.vars.palette.warning.main;
+  const emptyColor = theme.vars.palette.action.disabled;
+  return (
   <Box sx={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
     {[1, 2, 3, 4, 5].map((s) => (
       <Box
         key={s}
         component="span"
-        sx={{ fontSize: size, color: s <= Math.round(value) ? color : '#d1d5db', lineHeight: 1 }}
+        sx={{ fontSize: size, color: s <= Math.round(value) ? starColor : emptyColor, lineHeight: 1 }}
       >
         &#9733;
       </Box>
     ))}
   </Box>
-);
+  );
+};
 
 /* ── Single bar row in the breakdown ──────────────────────────── */
 const BarRow = ({ star, count, total, color }) => {
@@ -29,7 +35,7 @@ const BarRow = ({ star, count, total, color }) => {
         variant="determinate"
         value={pct}
         sx={{
-          flex: 1, height: 7, borderRadius: 4, bgcolor: '#f1f5f9',
+          flex: 1, height: 7, borderRadius: 4, bgcolor: 'action.disabledBackground',
           '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 4 }
         }}
       />
@@ -42,6 +48,7 @@ const BarRow = ({ star, count, total, color }) => {
 
 /* ── Main tab panel ────────────────────────────────────────────── */
 const AgentRatingsTab = ({ ratingData, loading }) => {
+  const theme = useTheme();
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -56,7 +63,7 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
   const avg = parseFloat(stats?.average_rating) || 0;
   const total = parseInt(stats?.total_ratings) || 0;
 
-  const starColor = avg >= 4.5 ? '#f59e0b' : avg >= 3.5 ? '#f59e0b' : avg >= 2.5 ? '#f97316' : '#ef4444';
+  const starColor = avg >= 4.5 ? theme.vars.palette.warning.main : avg >= 3.5 ? theme.vars.palette.warning.main : avg >= 2.5 ? theme.vars.palette.warning.light : theme.vars.palette.error.main;
   const label = avg >= 4.5 ? 'Excellent' : avg >= 3.5 ? 'Great' : avg >= 2.5 ? 'Good' : avg >= 1.5 ? 'Fair' : 'Poor';
 
   if (total === 0) {
@@ -78,8 +85,9 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
         sx={{
           display: 'flex', gap: 3, alignItems: 'center',
           p: 2, borderRadius: 2,
-          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-          border: '1px solid #fde68a'
+          bgcolor: 'warning.lighter',
+          border: '1px solid',
+          borderColor: 'warning.light'
         }}
       >
         <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
@@ -99,7 +107,7 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
           {[5, 4, 3, 2, 1].map((s) => {
             const keyMap = { 5: 'five_star', 4: 'four_star', 3: 'three_star', 2: 'two_star', 1: 'one_star' };
             const count = parseInt(stats?.[keyMap[s]]) || 0;
-            const barColor = s >= 4 ? '#22c55e' : s === 3 ? '#f59e0b' : '#ef4444';
+            const barColor = s >= 4 ? theme.vars.palette.success.main : s === 3 ? theme.vars.palette.warning.main : theme.vars.palette.error.main;
             return <BarRow key={s} star={s} count={count} total={total} color={barColor} />;
           })}
         </Box>
@@ -127,7 +135,7 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
               .filter((r) => r.comment)
               .slice(0, 8)
               .map((r) => {
-                const rColor = r.rating >= 4 ? '#22c55e' : r.rating === 3 ? '#f59e0b' : '#ef4444';
+                const rColor = r.rating >= 4 ? theme.vars.palette.success.main : r.rating === 3 ? theme.vars.palette.warning.main : theme.vars.palette.error.main;
                 return (
                   <Box
                     key={r.id}

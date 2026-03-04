@@ -7,7 +7,8 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid rgba(6, 72, 86, 0.15)`,
+      border: '1px solid',
+      borderColor: 'divider',
       boxShadow: 'none',
       display: 'flex',
       flexDirection: 'column'
@@ -23,7 +24,7 @@ const CurrentStatusSection = ({ palette, statusCards }) => (
         borderRadius: 1
       }}
     >
-      <Typography variant="subtitle1" color='#000' sx={{ fontWeight: 600 }}>
+      <Typography variant="subtitle1" color='text.primary' sx={{ fontWeight: 600 }}>
         Current Status
       </Typography>
     </Box>

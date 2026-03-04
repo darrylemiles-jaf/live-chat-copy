@@ -44,11 +44,11 @@ export const formatTimeAgo = (dateStr) => {
 export const getTypeInfo = (type) => {
   switch (type) {
     case 'new_message':
-      return { label: 'New Message', avatar: 'M', backgroundColor: '#008E86' };
+      return { label: 'New Message', avatar: 'M', backgroundColor: 'var(--palette-primary-main)' };
     case 'chat_assigned':
-      return { label: 'Chat Assigned', avatar: 'A', backgroundColor: '#5B8A96' };
+      return { label: 'Chat Assigned', avatar: 'A', backgroundColor: 'var(--palette-primary-dark)' };
     default:
-      return { label: 'Notification', avatar: 'N', backgroundColor: '#9FBCBF' };
+      return { label: 'Notification', avatar: 'N', backgroundColor: 'var(--palette-text-disabled)' };
   }
 };
 

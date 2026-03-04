@@ -44,7 +44,11 @@ export default function ThemeCustomization({ children }) {
       colorSchemes: {
         light: {
           palette: palette.light,
-          customShadows: CustomShadows(palette.light, 'light')
+          customShadows: CustomShadows(palette.light)
+        },
+        dark: {
+          palette: palette.dark,
+          customShadows: CustomShadows(palette.light)
         }
       },
       cssVariables: {
@@ -60,7 +64,7 @@ export default function ThemeCustomization({ children }) {
 
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider disableTransitionOnChange theme={themes} modeStorageKey="theme-mode" defaultMode='light'>
+      <ThemeProvider disableTransitionOnChange theme={themes} modeStorageKey="theme-mode" defaultMode='dark'>
         <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>

@@ -16,13 +16,7 @@ import {
   Pagination
 } from '@mui/material';
 import { Close } from 'mdi-material-ui';
-
-const statusDotColor = (status) => {
-  if (status === 'available') return '#4caf50';
-  if (status === 'busy') return '#f44336';
-  if (status === 'away') return '#ffb300';
-  return '#f44336';
-};
+import { useTheme } from '@mui/material/styles';
 
 /**
  * Sliding drawer that shows the full paginated/filtered agent list.
@@ -54,10 +48,18 @@ const AgentDrawerSection = ({
   onSearchChange,
   onStatusChange,
   onPageChange
-}) => (
+}) => {
+  const theme = useTheme();
+  const statusDotColor = (status) => {
+    if (status === 'available') return theme.vars.palette.success.main;
+    if (status === 'busy') return theme.vars.palette.error.main;
+    if (status === 'away') return theme.vars.palette.warning.main;
+    return theme.vars.palette.error.main;
+  };
+  return (
   <Drawer anchor="right" open={open} onClose={onClose}>
     <Box sx={{ width: { xs: '100vw', sm: 400 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ p: 2.5, bgcolor: '#064856', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ p: 2.5, bgcolor: 'primary.dark', color: 'primary.contrastText', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="h2" color="inherit">Agent Status</Typography>
         <IconButton onClick={onClose} size="small" sx={{ color: 'white' }}>
           <Close />
@@ -104,7 +106,7 @@ const AgentDrawerSection = ({
         ) : (
           displayedAgents.map((agent, index) => (
             <ListItem key={index} sx={{ px: 0, py: 1.5 }}>
-              <Avatar sx={{ bgcolor: '#008E86', width: 40, height: 40, mr: 2, flexShrink: 0 }}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40, mr: 2, flexShrink: 0 }}>
                 {agent.avatar}
               </Avatar>
               <ListItemText
@@ -141,6 +143,7 @@ const AgentDrawerSection = ({
       </Box>
     </Box>
   </Drawer>
-);
+  );
+};
 
 export default AgentDrawerSection;

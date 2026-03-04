@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 const NotificationFiltersSection = ({
   dateFilter,
@@ -9,7 +10,16 @@ const NotificationFiltersSection = ({
   selectedTab,
   onTabChange,
   unreadCount,
-}) => (
+}) => {
+  const theme = useTheme();
+
+  const bg = theme.vars.palette.background.paper;
+  const border = `1px solid ${theme.vars.palette.divider}`;
+  const textPrimary = theme.vars.palette.text.primary;
+  const textSecondary = theme.vars.palette.text.secondary;
+  const dividerBorder = theme.vars.palette.divider;
+
+  return (
   <Box
     component="aside"
     sx={{
@@ -22,31 +32,31 @@ const NotificationFiltersSection = ({
     {/* Filters card */}
     <Box
       sx={{
-        backgroundColor: '#fff',
-        border: '1px solid #E2E8F0',
+        backgroundColor: bg,
+        border,
         borderRadius: '4px',
         padding: { xs: 1.5, sm: 1.5 },
         marginBottom: 1.5,
       }}
     >
-      <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: '#2C3E50', fontWeight: 600 }}>
+      <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: textPrimary, fontWeight: 600 }}>
         Filters
       </h4>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* Date filter */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-          <label style={{ fontSize: '13px', color: '#718096', fontWeight: 500 }}>Date</label>
+          <label style={{ fontSize: '13px', color: textSecondary, fontWeight: 500 }}>Date</label>
           <select
             value={dateFilter}
             onChange={(e) => onDateFilterChange(e.target.value)}
             style={{
               padding: '7px 10px',
-              backgroundColor: '#fff',
-              border: '1px solid #E2E8F0',
+              backgroundColor: bg,
+              border: `1px solid ${dividerBorder}`,
               borderRadius: '4px',
               fontSize: '13px',
-              color: '#2C3E50',
+              color: textPrimary,
               cursor: 'pointer',
               outline: 'none',
               width: '100%',
@@ -60,7 +70,7 @@ const NotificationFiltersSection = ({
 
         {/* Type filter */}
         <Box>
-          <label style={{ fontSize: '13px', color: '#718096', fontWeight: 500, display: 'block', marginBottom: '6px' }}>
+          <label style={{ fontSize: '13px', color: textSecondary, fontWeight: 500, display: 'block', marginBottom: '6px' }}>
             Type
           </label>
           <Box sx={{ display: 'flex', gap: 0.75 }}>
@@ -73,9 +83,9 @@ const NotificationFiltersSection = ({
                 onClick={() => onToggleTypeFilter(key)}
                 style={{
                   padding: '7px 8px',
-                  backgroundColor: typeFilters[key] ? '#008E86' : 'transparent',
-                  color: typeFilters[key] ? '#fff' : '#718096',
-                  border: '1px solid #E2E8F0',
+                  backgroundColor: typeFilters[key] ? theme.vars.palette.primary.main : 'transparent',
+                  color: typeFilters[key] ? theme.vars.palette.primary.contrastText : textSecondary,
+                  border: `1px solid ${dividerBorder}`,
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontSize: '12px',
@@ -96,13 +106,13 @@ const NotificationFiltersSection = ({
     {/* View card */}
     <Box
       sx={{
-        backgroundColor: '#fff',
-        border: '1px solid #E2E8F0',
+        backgroundColor: bg,
+        border,
         borderRadius: '4px',
         padding: { xs: 1.5, sm: 1.5 },
       }}
     >
-      <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: '#2C3E50', fontWeight: 600 }}>
+      <h4 style={{ margin: 0, marginBottom: '10px', fontSize: '15px', color: textPrimary, fontWeight: 600 }}>
         View
       </h4>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -112,8 +122,8 @@ const NotificationFiltersSection = ({
             onClick={() => onTabChange(tab)}
             style={{
               padding: '7px 12px',
-              backgroundColor: selectedTab === tab ? '#008E86' : 'transparent',
-              color: selectedTab === tab ? '#fff' : '#718096',
+              backgroundColor: selectedTab === tab ? theme.vars.palette.primary.main : 'transparent',
+              color: selectedTab === tab ? theme.vars.palette.primary.contrastText : textSecondary,
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
@@ -128,8 +138,8 @@ const NotificationFiltersSection = ({
                 style={{
                   marginLeft: '6px',
                   padding: '1px 6px',
-                  backgroundColor: selectedTab === tab ? 'rgba(255,255,255,0.3)' : '#008E86',
-                  color: '#fff',
+                  backgroundColor: selectedTab === tab ? 'rgba(var(--palette-common-whiteChannel) / 0.3)' : theme.vars.palette.primary.main,
+                  color: theme.vars.palette.primary.contrastText,
                   borderRadius: '10px',
                   fontSize: '11px',
                   fontWeight: 600,
@@ -143,6 +153,7 @@ const NotificationFiltersSection = ({
       </Box>
     </Box>
   </Box>
-);
+  );
+};
 
 export default NotificationFiltersSection;

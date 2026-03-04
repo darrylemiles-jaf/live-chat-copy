@@ -221,7 +221,7 @@ export default function Notification() {
         variant="light"
         sx={(theme) => ({
           color: 'text.primary',
-          bgcolor: open ? 'grey.100' : 'transparent',
+          bgcolor: open ? 'action.hover' : 'transparent',
         })}
         aria-label="open notifications"
         ref={anchorRef}
@@ -272,7 +272,7 @@ export default function Notification() {
                       '& .MuiListItemButton-root': {
                         py: 0.5,
                         px: 2,
-                        '&.Mui-selected': { bgcolor: 'grey.50', color: 'text.primary' },
+                        '&.Mui-selected': { bgcolor: 'action.hover', color: 'text.primary' },
                         '& .MuiAvatar-root': avatarSX,
                         '& .MuiListItemSecondaryAction-root': { ...actionSX, position: 'relative' }
                       }
@@ -280,7 +280,7 @@ export default function Notification() {
                   >
                     {notifications.length === 0 && !loading && (
                       <Box sx={{ py: 4, textAlign: 'center' }}>
-                        <BellOutlined style={{ fontSize: 32, color: '#ccc' }} />
+                        <BellOutlined style={{ fontSize: 32, color: 'var(--palette-text-disabled)' }} />
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                           No notifications yet
                         </Typography>

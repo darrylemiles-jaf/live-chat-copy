@@ -161,7 +161,7 @@ const Chats = () => {
                 height: '100%',
                 borderLeft: 1,
                 borderColor: 'divider',
-                bgcolor: '#fafbfc',
+                bgcolor: 'background.paper',
                 overflow: 'auto',
               }}
             >

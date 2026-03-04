@@ -1,5 +1,4 @@
 import { Box, Typography } from '@mui/material';
-import { customGreen } from '../../themes/palette';
 import { getStatusColor } from './agentTransformers';
 
 export const agentColumns = [
@@ -15,12 +14,12 @@ export const agentColumns = [
             width: 40,
             height: 40,
             borderRadius: '50%',
-            backgroundColor: customGreen[0],
+            backgroundColor: 'var(--palette-primary-lighter)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: 'bold',
-            color: customGreen[7],
+            color: 'var(--palette-primary-dark)',
             fontSize: '16px'
           }}
         >
@@ -58,7 +57,7 @@ export const agentColumns = [
       if (!avg) {
         return <Typography variant="body2" color="text.disabled">—</Typography>;
       }
-      const color = avg >= 4.5 ? '#f59e0b' : avg >= 3.5 ? '#f59e0b' : avg >= 2.5 ? '#f97316' : '#ef4444';
+      const color = avg >= 2.5 ? 'var(--palette-warning-main)' : 'var(--palette-error-main)';
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Box component="span" sx={{ fontSize: '0.9rem', color, lineHeight: 1 }}>&#9733;</Box>
@@ -73,7 +72,7 @@ export const agentColumns = [
 export const agentViewConfig = {
   avatar: { nameField: 'name', emailField: 'email' },
   badges: [
-    { field: 'role', color: customGreen[6] },
+    { field: 'role', color: 'var(--palette-primary-main)' },
     {
       render: (data) => {
         const info = getStatusColor(data.status);
@@ -93,7 +92,7 @@ export const agentViewConfig = {
       title: 'Personal Information',
       columns: '1fr 1fr',
       fields: [
-        { label: 'Member ID', field: 'id', valueStyle: { color: customGreen[5] } },
+        { label: 'Member ID', field: 'id', valueStyle: { color: 'var(--palette-primary-light)' } },
         { label: 'Email', field: 'email' },
         { label: 'Role', field: 'role' },
         {
@@ -103,7 +102,7 @@ export const agentViewConfig = {
             return (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: info.color }} />
-                <Typography variant="body2" sx={{ color: customGreen[5] }}>{info.label}</Typography>
+                <Typography variant="body2" sx={{ color: 'var(--palette-primary-light)' }}>{info.label}</Typography>
               </Box>
             );
           }

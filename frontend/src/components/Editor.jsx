@@ -119,8 +119,8 @@ const Editor = ({ value = '', onChange, editable = true, minHeight = 200, showTo
       <Paper
         variant="outlined"
         sx={{
-          borderColor: theme.palette.divider,
-          bgcolor: theme.palette.background.paper
+          borderColor: theme.vars.palette.divider,
+          bgcolor: theme.vars.palette.background.paper
         }}
       >
         {showToolbar && (
@@ -130,7 +130,7 @@ const Editor = ({ value = '', onChange, editable = true, minHeight = 200, showTo
               flexWrap: 'wrap',
               gap: 1,
               p: 1,
-              bgcolor: theme.palette.background.default
+              bgcolor: theme.vars.palette.background.default
             }}
           >
             {actions.map((action) => (
@@ -142,9 +142,9 @@ const Editor = ({ value = '', onChange, editable = true, minHeight = 200, showTo
                     disabled={action.isDisabled || !editable}
                     sx={{
                       borderRadius: 1,
-                      bgcolor: action.isActive ? theme.palette.action.selected : 'transparent',
+                      bgcolor: action.isActive ? theme.vars.palette.action.selected : 'transparent',
                       '&:hover': {
-                        bgcolor: action.isActive ? theme.palette.action.selected : theme.palette.action.hover
+                        bgcolor: action.isActive ? theme.vars.palette.action.selected : theme.vars.palette.action.hover
                       }
                     }}
                   >
@@ -175,7 +175,7 @@ const Editor = ({ value = '', onChange, editable = true, minHeight = 200, showTo
               marginBottom: 0
             },
             '& .tiptap p.is-editor-empty:first-of-type::before': {
-              color: theme.palette.text.disabled,
+              color: theme.vars.palette.text.disabled,
               content: 'attr(data-placeholder)',
               float: 'left',
               height: 0,

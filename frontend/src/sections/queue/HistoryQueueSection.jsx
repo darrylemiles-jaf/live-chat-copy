@@ -17,7 +17,8 @@ const HistoryQueueSection = ({ palette, history = [] }) => (
     elevation={0}
     sx={{
       borderRadius: 1,
-      border: `1px solid rgba(6, 72, 86, 0.15)`,
+      border: '1px solid',
+      borderColor: 'divider',
       boxShadow: 'none'
     }}
   >
@@ -31,7 +32,7 @@ const HistoryQueueSection = ({ palette, history = [] }) => (
         py: 1.5
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#000' }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
         History
       </Typography>
     </Box>
@@ -77,11 +78,11 @@ const HistoryQueueSection = ({ palette, history = [] }) => (
         >
           {/* Customer */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar sx={{ width: 30, height: 30, fontSize: 12, bgcolor: palette?.primary?.main || '#064856' }}>
+            <Avatar sx={{ width: 30, height: 30, fontSize: 12, bgcolor: palette?.primary?.main }}>
               {getInitials(item.name)}
             </Avatar>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: '#000', lineHeight: 1.2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', lineHeight: 1.2 }}>
                 {item.name}
               </Typography>
               <Typography variant="caption" sx={{ color: palette?.text?.secondary || '#666' }}>
@@ -116,8 +117,8 @@ const HistoryQueueSection = ({ palette, history = [] }) => (
             sx={{
               fontSize: 11,
               height: 22,
-              bgcolor: palette?.success?.lighter || '#e6f4f1',
-              color: palette?.success?.main || '#008E86',
+              bgcolor: palette?.success?.lighter,
+              color: palette?.success?.main,
               fontWeight: 600,
               width: 'fit-content'
             }}

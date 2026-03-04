@@ -1,7 +1,8 @@
 import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Stack, Box, Badge, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { withAlpha } from '../../utils/colorUtils';
 
-const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette, withAlpha, getAvatarBg, getInitials }) => {
+const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette, getAvatarBg, getInitials }) => {
   const navigate = useNavigate();
   return (
     <Dialog
@@ -13,7 +14,9 @@ const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette,
         sx: {
           boxShadow: 'none',
           border: `1px solid ${palette.divider}`,
-          borderRadius: 1
+          borderRadius: 1,
+          backgroundColor: palette.background.paper,
+          color: palette.text.primary
         }
       }}
     >
@@ -21,7 +24,10 @@ const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette,
         sx={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          backgroundColor: palette.background.paper,
+          color: palette.text.primary,
+          borderBottom: `1px solid ${palette.divider}`
         }}
       >
         <Typography variant="h6">All Queue</Typography>
@@ -29,7 +35,7 @@ const QueueDialog = ({ open, onClose, queue = [], selectedId, onSelect, palette,
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ p: 2 }}>
+      <DialogContent dividers sx={{ p: 2, borderColor: palette.divider, backgroundColor: palette.background.paper }}>
         <Stack spacing={1.25}>
           {queue.length === 0 ? (
             <Typography variant="body2" sx={{ color: palette.text.secondary }}>

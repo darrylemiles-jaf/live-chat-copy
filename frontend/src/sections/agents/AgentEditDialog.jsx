@@ -12,11 +12,10 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { customGold } from '../../themes/palette';
 
 const AgentEditDialog = ({ open, formData, onClose, onSave, onFormChange }) => (
   <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-    <DialogTitle sx={{ color: customGold[7], fontWeight: 700 }}>Update Agent</DialogTitle>
+    <DialogTitle sx={{ color: 'warning.dark', fontWeight: 700 }}>Update Agent</DialogTitle>
     <DialogContent sx={{ pt: 2 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
         <TextField label="Agent ID" value={formData.id || ''} placeholder="AGT-0000" disabled fullWidth />
@@ -59,7 +58,7 @@ const AgentEditDialog = ({ open, formData, onClose, onSave, onFormChange }) => (
       <Button
         onClick={onSave}
         variant="contained"
-        sx={{ bgcolor: customGold[5], color: '#000', fontWeight: 600, '&:hover': { bgcolor: customGold[6] } }}
+        sx={{ bgcolor: 'warning.main', color: 'warning.contrastText', fontWeight: 600, '&:hover': { bgcolor: 'warning.dark' } }}
       >
         Save Changes
       </Button>

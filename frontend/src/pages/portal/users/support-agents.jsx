@@ -43,11 +43,11 @@ const SupportAgents = () => {
           ? [{
             render: () => (
               <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                <Box component="span" sx={{ color: '#fbbf24', fontSize: '0.85rem' }}>&#9733;</Box>
+                <Box component="span" sx={{ color: 'var(--palette-warning-main)', fontSize: '0.85rem' }}>&#9733;</Box>
                 <Box component="span" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{avg.toFixed(1)}</Box>
               </Box>
             ),
-            sx: { bgcolor: '#92400e', color: 'white' }
+            sx: { bgcolor: 'var(--palette-warning-darker)', color: 'white' }
           }]
           : [])
       ],

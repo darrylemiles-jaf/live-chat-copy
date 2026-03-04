@@ -11,7 +11,9 @@ import { transformQueueData } from '../utils/queue/queueTransformers';
 
 const useQueue = () => {
   const theme = useTheme();
-  const palette = theme.vars?.palette ?? theme.palette;
+
+  // Use CSS variable references — they auto-adapt between light and dark modes
+  const palette = theme.vars.palette;
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoggedIn } = useAuth();
@@ -52,7 +54,7 @@ const useQueue = () => {
         id: 3,
         label: 'Resolved Today',
         value: resolvedToday,
-        bg: withAlpha(palette.warning.lighter, 0.55),
+        bg: withAlpha(palette.warning.lighter, 0.5),
         accent: palette.warning.main,
         border: withAlpha(palette.warning.main, 0.18),
       },

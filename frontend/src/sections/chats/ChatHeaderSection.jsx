@@ -10,15 +10,17 @@ import {
   Tooltip,
   Chip
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { ArrowLeftOutlined, StopOutlined, PhoneOutlined, VideoCameraOutlined } from '@ant-design/icons';
 
 const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) => {
+  const theme = useTheme();
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return '#22c55e';
-      case 'queued': return '#f59e0b';
-      case 'ended': return '#94a3b8';
-      default: return '#94a3b8';
+      case 'active': return theme.vars.palette.success.main;
+      case 'queued': return theme.vars.palette.warning.main;
+      case 'ended': return theme.vars.palette.text.disabled;
+      default: return theme.vars.palette.text.disabled;
     }
   };
 
@@ -35,7 +37,7 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) =
     <Box
       sx={{
         p: 2,
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+        background: theme.vars.palette.background.paper,
         borderBottom: '1px solid',
         borderColor: 'divider',
         display: 'flex',
@@ -72,7 +74,7 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) =
                 width: 14,
                 height: 14,
                 borderRadius: '50%',
-                border: '2.5px solid white',
+                border: `2.5px solid ${theme.vars.palette.background.paper}`,
                 boxShadow: `0 0 0 2px ${getStatusColor(selectedChat.status)}33`
               }
             }}
@@ -120,9 +122,10 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) =
                   height: 20,
                   fontSize: '10px',
                   fontWeight: 600,
-                  bgcolor: '#e0f2fe',
-                  color: '#0369a1',
-                  border: '1px solid #bae6fd',
+                  bgcolor: 'info.lighter',
+                  color: 'info.dark',
+                  border: '1px solid',
+                  borderColor: 'info.light',
                   '& .MuiChip-label': { px: 1 }
                 }}
               />
@@ -131,7 +134,7 @@ const ChatHeaderSection = ({ selectedChat, onBack, onEndChat, onAvatarClick }) =
           <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {selectedChat.online ? (
               <>
-                <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e', display: 'inline-block' }} />
+                <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'success.main', display: 'inline-block' }} />
                 Online now
               </>
             ) : (

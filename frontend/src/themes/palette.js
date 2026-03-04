@@ -103,22 +103,51 @@ export function buildPalette(presetColor) {
   const extendedLight = extendPaletteWithChannels(lightPaletteColor);
   const extendedCommon = extendPaletteWithChannels(commonColor);
 
-  return {
-    light: {
-      mode: 'light',
-      ...extendedCommon,
-      ...extendedLight,
-      text: {
-        primary: extendedLight.grey[700],
-        secondary: extendedLight.grey[500],
-        disabled: extendedLight.grey[400]
-      },
-      action: { disabled: extendedLight.grey[300] },
-      divider: extendedLight.grey[200],
-      background: {
-        paper: extendedLight.grey[0],
-        default: extendedLight.grey.A50
-      }
+  const lightPalette = {
+    mode: 'light',
+    ...extendedCommon,
+    ...extendedLight,
+    text: {
+      primary: extendedLight.grey[700],
+      secondary: extendedLight.grey[500],
+      disabled: extendedLight.grey[400]
+    },
+    action: { disabled: extendedLight.grey[300] },
+    divider: extendedLight.grey[200],
+    background: {
+      paper: extendedLight.grey[0],
+      default: extendedLight.grey.A50
     }
+  };
+
+  const darkPalette = {
+    mode: 'dark',
+    ...extendedCommon,
+    ...extendedLight,
+    grey: {
+      ...extendedLight.grey,
+      A800: 'transparent'
+    },
+    text: {
+      primary: '#e8eaed',
+      secondary: '#9aa0a6',
+      disabled: '#5f6368'
+    },
+    action: {
+      disabled: '#5f6368',
+      hover: 'rgba(255,255,255,0.06)',
+      selected: 'rgba(255,255,255,0.12)',
+      disabledBackground: 'rgba(255,255,255,0.08)'
+    },
+    divider: 'transparent',
+    background: {
+      paper: '#1e1e2e',
+      default: '#13131f'
+    }
+  };
+
+  return {
+    light: lightPalette,
+    dark: darkPalette
   };
 }
