@@ -11,7 +11,8 @@ import {
   HumanQueue,
   Ticket,
   FaceAgent,
-  AccountGroup
+  AccountGroup,
+  MessageAlertOutline
 } from 'mdi-material-ui'
 
 import {
@@ -27,7 +28,8 @@ const icons = {
   Ticket,
   FaceAgent,
   AccountGroup,
-  BellOutlined
+  BellOutlined,
+  MessageAlertOutline
 }
 
 const modules = [
@@ -111,6 +113,23 @@ const modules = [
         type: 'item',
         url: '/portal/notifications',
         icon: icons.BellOutlined,
+        breadcrumbs: false,
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
+      }
+    ]
+  },
+  {
+    id: 'content-hub',
+    title: 'Content Hub',
+    type: 'group',
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
+    children: [
+      {
+        id: 'content-hub',
+        title: 'Quick Replies',
+        type: 'item',
+        url: '/portal/content-hub/quick-replies',
+        icon: icons.MessageAlertOutline,
         breadcrumbs: false,
         access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }
