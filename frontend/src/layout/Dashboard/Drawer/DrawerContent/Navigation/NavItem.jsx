@@ -58,12 +58,12 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
 
   const textColor = 'text.primary';
   const iconSelectedColor = 'primary.main';
-  const tooltipTitle = item?.title || '';
+  const tooltipTitle = !drawerOpen ? (item?.title || '') : '';
 
   return (
     <>
       <Box sx={{ position: 'relative' }}>
-        <Tooltip title={tooltipTitle} placement="right">
+        <Tooltip title={tooltipTitle} placement="right" arrow>
           <ListItemButton
             component={Link}
             to={item.url}

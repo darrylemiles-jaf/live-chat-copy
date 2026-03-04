@@ -38,9 +38,7 @@ import {
 const PRESET_COLORS = [
   { key: 'default', label: 'Teal',      color: '#008E86' },
   { key: 'theme1',  label: 'Dark Teal', color: '#3B7080' },
-  { key: 'theme2',  label: 'Red',       color: '#B53654' },
   { key: 'theme3',  label: 'Gold',      color: '#FFB400' },
-  { key: 'theme4',  label: 'Orange',    color: '#ED7464' },
 ];
 
 // ==============================|| HEADER - CONTENT ||============================== //
