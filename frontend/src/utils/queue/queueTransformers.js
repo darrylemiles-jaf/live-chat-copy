@@ -1,3 +1,9 @@
+const stripHtml = (html) => {
+  if (!html) return '';
+  if (!html.startsWith('<')) return html;
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
 export function getInitials(name) {
   if (!name) return '?';
   return name
@@ -35,13 +41,13 @@ export function transformQueueData(item) {
     name: item.client?.name || 'Unknown',
     wait: formatWaitTime(item.created_at),
     email: item.client?.email || 'N/A',
-    lastMessage: item.messages?.[item.messages.length - 1]?.message || 'No messages',
+    lastMessage: stripHtml(item.messages?.[item.messages.length - 1]?.message) || 'No messages',
     priority: item.waiting_time > 600000 ? 'High' : item.waiting_time > 300000 ? 'Medium' : 'Low',
     avatar: `/src/assets/images/users/avatar-${(item.id % 8) + 1}.png`,
     online: true,
     orderId: `#${item.id}`,
     status: 'In Queue',
-    issue: item.messages?.[0]?.message || 'No issue description',
+    issue: stripHtml(item.messages?.[0]?.message) || 'No issue description',
     notes: `Customer has been waiting ${formatWaitTime(item.created_at)}`,
     client_id: item.client_id,
     agent_id: item.agent_id,

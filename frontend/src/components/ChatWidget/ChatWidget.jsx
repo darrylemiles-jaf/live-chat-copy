@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import WidgetEditor from './WidgetEditor';
 import './ChatWidget.css';
 
 const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
@@ -85,12 +86,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     'Technical issue',
   ];
 
+  const [isEditorEmpty, setIsEditorEmpty] = useState(true);
+
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
   const fileInputRef = useRef(null);
   const concernRef = useRef(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
@@ -320,7 +324,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !userId) {
+    if ((isEditorEmpty && !selectedFile) || !userId) {
       console.warn('Cannot send message:', { inputMessage, userId });
       return;
     }
@@ -398,6 +402,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         }
 
         setInputMessage('');
+        editorRef.current?.clear();
+        setIsEditorEmpty(true);
       }
     } catch (error) {
       console.error('Send message error:', error);
@@ -457,7 +463,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       } else if (concern) {
         formData.append('concern', isCustomConcern ? toTitleCase(concern.trim()) : concern);
       }
-      if (inputMessage.trim()) {
+      if (inputMessage.trim() && !isEditorEmpty) {
         formData.append('message', inputMessage.trim());
       }
 
@@ -519,6 +525,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         clearSelectedFile();
         setInputMessage('');
+        editorRef.current?.clear();
+        setIsEditorEmpty(true);
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -866,7 +874,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                                 )}
                               </div>
                             )}
-                            {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
+                            {msg.message && (
+                              msg.message.startsWith('<')
+                                ? <div className="cw-rich-msg" dangerouslySetInnerHTML={{ __html: msg.message }} />
+                                : <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                            )}
                           </div>
                         </div>
                         {showSeen && (
@@ -976,7 +988,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                       <button
                         key={text}
                         className="chat-quick-reply-btn"
-                        onClick={() => setInputMessage(text)}
+                        onClick={() => {
+                          const html = `<p>${text}</p>`;
+                          editorRef.current?.setContent(html);
+                          setInputMessage(html);
+                          setIsEditorEmpty(false);
+                          editorRef.current?.focus();
+                        }}
                         type="button"
                       >
                         {text}
@@ -1092,19 +1110,19 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                           <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                         </svg>
                       </button>
-                      <input
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => {
-                          setInputMessage(e.target.value);
-                          handleTyping();
+                      <WidgetEditor
+                        ref={editorRef}
+                        onChange={(html, empty) => {
+                          setInputMessage(html);
+                          setIsEditorEmpty(empty);
                         }}
-                        placeholder={selectedFile ? 'Add a message (optional)...' : 'Type a message…'}
-                        className="chat-message-input"
+                        onTyping={handleTyping}
+                        placeholder={selectedFile ? 'Add a message (optional)…' : 'Type a message…'}
+                        disabled={false}
                       />
                       <button
                         type="submit"
-                        disabled={(!inputMessage.trim() && !selectedFile) || isUploading}
+                        disabled={(isEditorEmpty && !selectedFile) || isUploading}
                         className="chat-send-button"
                         aria-label="Send message"
                       >
