@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { isAuthenticated } from 'utils/auth';
 import { Outlet } from 'react-router-dom';
 
@@ -24,6 +24,7 @@ import AutoLogoutModal from 'components/AutoLogoutModal';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isReady, setIsReady] = useState(false);
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
@@ -33,8 +34,9 @@ export default function DashboardLayout() {
   const { modalOpen: autoLogoutOpen, countdown, handleStayLoggedIn } = useAutoLogout();
 
   useEffect(() => {
-    handlerDrawerOpen(!downXL);
-  }, [downXL]);
+    const isDashboard = location.pathname === '/portal/dashboard';
+    handlerDrawerOpen(isDashboard && !downXL);
+  }, [location.pathname, downXL]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
