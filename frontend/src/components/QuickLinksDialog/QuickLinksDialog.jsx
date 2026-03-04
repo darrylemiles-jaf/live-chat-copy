@@ -11,6 +11,7 @@ import {
   Chip,
   Badge
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import {
   MessageOutlined,
@@ -30,6 +31,7 @@ export default function QuickLinksDialog({
   unreadNotificationsCount = 0
 }) {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const quickActionGroups = [
     {
@@ -42,7 +44,7 @@ export default function QuickLinksDialog({
           description: 'View and manage your active conversations',
           path: '/portal/chats',
           badge: activeChatsCount,
-          color: '#008E86',
+          color: theme.vars.palette.primary.main,
           highlight: activeChatsCount > 0
         },
         {
@@ -52,7 +54,7 @@ export default function QuickLinksDialog({
           description: 'Check chats waiting for assignment',
           path: '/portal/queue',
           badge: pendingChatsCount,
-          color: '#B53654',
+          color: theme.vars.palette.error.main,
           highlight: pendingChatsCount > 0
         }
       ]
@@ -66,7 +68,7 @@ export default function QuickLinksDialog({
           title: 'Dashboard',
           description: 'View analytics and performance metrics',
           path: '/portal/dashboard',
-          color: '#008E86',
+          color: theme.vars.palette.primary.main,
           highlight: false
         },
         {
@@ -76,7 +78,7 @@ export default function QuickLinksDialog({
           description: 'View your latest notifications',
           path: '/portal/notifications',
           badge: unreadNotificationsCount,
-          color: '#0066CC',
+          color: theme.vars.palette.info.main,
           highlight: unreadNotificationsCount > 0
         },
         {
@@ -85,7 +87,7 @@ export default function QuickLinksDialog({
           title: 'Profile',
           description: 'Manage your account and preferences',
           path: '/portal/profile',
-          color: '#556270',
+          color: theme.vars.palette.text.secondary,
           highlight: false
         }
       ]
@@ -99,7 +101,7 @@ export default function QuickLinksDialog({
           title: 'Support Agents',
           description: 'View all support team members',
           path: '/portal/users/supports',
-          color: '#2E7D32',
+          color: theme.vars.palette.success.dark,
           highlight: false
         },
         {
@@ -108,7 +110,7 @@ export default function QuickLinksDialog({
           title: 'Clients',
           description: 'Browse and manage all clients',
           path: '/portal/users/clients',
-          color: '#6C4C93',
+          color: theme.vars.palette.secondary.main,
           highlight: false
         }
       ]
@@ -135,7 +137,7 @@ export default function QuickLinksDialog({
       }}
     >
       <DialogTitle sx={{ pb: 1, pt: { xs: 2, sm: 2.5 }, px: { xs: 2, sm: 2.5 } }}>
-        <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: '#064856', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+        <Typography variant="h5" component="div" sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Quick Actions
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
@@ -151,7 +153,7 @@ export default function QuickLinksDialog({
                 variant="subtitle2"
                 sx={{
                   fontWeight: 700,
-                  color: '#064856',
+                  color: 'primary.dark',
                   fontSize: '0.85rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
@@ -181,10 +183,12 @@ export default function QuickLinksDialog({
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                       border: '2px solid',
-                      borderColor: action.highlight ? action.color : '#E0E0E0',
+                      borderColor: action.highlight ? action.color : 'divider',
                       borderRadius: 2,
                       transition: 'all 0.25s ease',
-                      background: action.highlight ? `rgba(${parseInt(action.color.slice(1, 3), 16)}, ${parseInt(action.color.slice(3, 5), 16)}, ${parseInt(action.color.slice(5, 7), 16)}, 0.04)` : 'transparent',
+                      background: action.highlight
+                        ? `color-mix(in srgb, ${action.color} 10%, transparent)`
+                        : 'transparent',
                       minHeight: '140px',
                       position: 'relative',
                       overflow: 'hidden',
@@ -200,11 +204,9 @@ export default function QuickLinksDialog({
                       },
                       '&:hover': {
                         borderColor: action.color,
-                        bgcolor: action.highlight
-                          ? `rgba(${parseInt(action.color.slice(1, 3), 16)}, ${parseInt(action.color.slice(3, 5), 16)}, ${parseInt(action.color.slice(5, 7), 16)}, 0.08)`
-                          : 'rgba(0, 142, 134, 0.08)',
+                        bgcolor: `color-mix(in srgb, ${action.color} 12%, transparent)`,
                         transform: 'translateY(-3px)',
-                        boxShadow: `0 8px 24px rgba(${parseInt(action.color.slice(1, 3), 16)}, ${parseInt(action.color.slice(3, 5), 16)}, ${parseInt(action.color.slice(5, 7), 16)}, 0.15)`
+                        boxShadow: `0 8px 24px color-mix(in srgb, ${action.color} 20%, transparent)`
                       }
                     }}
                   >
@@ -234,7 +236,7 @@ export default function QuickLinksDialog({
                         variant="subtitle2"
                         sx={{
                           fontWeight: 700,
-                          color: '#064856',
+                          color: 'text.primary',
                           fontSize: { xs: '0.9rem', sm: '1rem' },
                           mb: 0.5
                         }}
@@ -279,17 +281,12 @@ export default function QuickLinksDialog({
         <Button
           onClick={onClose}
           variant="outlined"
+          color="primary"
           sx={{
             minWidth: { xs: '100%', sm: 80 },
             textTransform: 'none',
             fontWeight: 600,
-            fontSize: { xs: '0.8rem', sm: '0.85rem' },
-            borderColor: '#008E86',
-            color: '#008E86',
-            '&:hover': {
-              borderColor: '#064856',
-              bgcolor: 'rgba(6, 72, 86, 0.04)'
-            }
+            fontSize: { xs: '0.8rem', sm: '0.85rem' }
           }}
         >
           Close

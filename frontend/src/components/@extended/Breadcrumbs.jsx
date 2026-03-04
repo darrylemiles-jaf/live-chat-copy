@@ -16,7 +16,7 @@ const Breadcrumbs = ({ heading, links = [], subheading, sx }) => {
       <Stack spacing={1}>
         {/* Breadcrumb Navigation */}
         <MuiBreadcrumbs
-          separator={<RightOutlined style={{ fontSize: '0.625rem', color: '#8c8c8c' }} />}
+          separator={<RightOutlined style={{ fontSize: '0.625rem', color: 'var(--palette-text-disabled)' }} />}
           aria-label="breadcrumb"
           sx={{
             '& .MuiBreadcrumbs-separator': {

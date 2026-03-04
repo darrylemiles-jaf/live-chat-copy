@@ -7,9 +7,12 @@ import {
   Fade,
   CircularProgress
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { RobotOutlined, UserOutlined } from '@ant-design/icons';
 
-const TypingIndicator = ({ userName }) => (
+const TypingIndicator = ({ userName }) => {
+  const theme = useTheme();
+  return (
   <Fade in timeout={300}>
     <Box
       sx={{
@@ -55,9 +58,9 @@ const TypingIndicator = ({ userName }) => (
           sx={{
             py: 1.5,
             px: 2.5,
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            background: theme.vars.palette.background.paper,
             borderRadius: '20px 20px 20px 4px',
-            border: '1px solid rgba(0, 142, 134, 0.15)',
+            border: `1px solid ${theme.vars.palette.divider}`,
             display: 'flex',
             alignItems: 'center',
             gap: 0.5,
@@ -72,10 +75,10 @@ const TypingIndicator = ({ userName }) => (
                   width: 10,
                   height: 10,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #008E86 0%, #3B7080 100%)',
+                  background: 'linear-gradient(135deg, var(--palette-primary-main) 0%, var(--palette-primary-light) 100%)',
                   animation: 'typingBounce 1.4s infinite ease-in-out',
                   animationDelay: `${i * 0.16}s`,
-                  boxShadow: '0 2px 4px rgba(0, 142, 134, 0.3)'
+                  boxShadow: '0 2px 4px rgba(var(--palette-primary-mainChannel) / 0.3)'
                 }}
               />
             ))}
@@ -108,7 +111,8 @@ const TypingIndicator = ({ userName }) => (
       </style>
     </Box>
   </Fade>
-);
+  );
+};
 
 const AgentTypingIndicator = () => (
   <Fade in timeout={200}>
@@ -127,7 +131,7 @@ const AgentTypingIndicator = () => (
         sx={{
           py: 1,
           px: 2,
-          background: 'linear-gradient(135deg, #008E86 0%, #006e68 100%)',
+          background: 'linear-gradient(135deg, var(--palette-primary-main) 0%, var(--palette-primary-dark) 100%)',
           borderRadius: '20px 20px 4px 20px',
           display: 'flex',
           alignItems: 'center',
@@ -165,6 +169,10 @@ const formatSeenTime = (timestamp) => {
 };
 
 const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTyping = false, typingUser = '', isAgentTyping = false, lastSeenAt = null }) => {
+  const theme = useTheme();
+
+  const areaBg = theme.vars.palette.background.default;
+
   if (isLoading) {
     return (
       <Box
@@ -173,7 +181,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+          background: areaBg
         }}
       >
         <CircularProgress size={40} />
@@ -187,7 +195,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
         flex: 1,
         overflow: 'auto',
         p: { xs: 2, sm: 3 },
-        background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+        background: areaBg,
         display: 'flex',
         flexDirection: 'column',
         gap: 1.5,
@@ -198,11 +206,11 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
           background: 'transparent',
         },
         '&::-webkit-scrollbar-thumb': {
-          background: '#cbd5e1',
+          background: theme.vars.palette.action.selected,
           borderRadius: '3px',
         },
         '&::-webkit-scrollbar-thumb:hover': {
-          background: '#94a3b8',
+          background: theme.vars.palette.text.disabled,
         },
       }}
     >
@@ -223,7 +231,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
               width: 80,
               height: 80,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
+              background: theme.vars.palette.action.hover,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -269,7 +277,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                       sx={{
                         width: 32,
                         height: 32,
-                        bgcolor: msg.isBot ? '#3B7080' : '#64748b',
+                        bgcolor: msg.isBot ? 'secondary.main' : 'text.secondary',
                         fontSize: '0.875rem'
                       }}
                     >
@@ -290,11 +298,11 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                 {/* Bot label */}
                 {msg.isBot && showAvatar && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5, px: 1 }}>
-                    <RobotOutlined style={{ fontSize: 11, color: '#3B7080' }} />
+                    <RobotOutlined style={{ fontSize: 11, color: theme.vars.palette.text.secondary }} />
                     <Typography
                       variant="caption"
                       sx={{
-                        color: '#3B7080',
+                        color: theme.vars.palette.text.secondary,
                         fontWeight: 600,
                         fontSize: '10px',
                         textTransform: 'uppercase',
@@ -331,17 +339,17 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                     bgcolor: msg.isSender
                       ? 'primary.main'
                       : msg.isBot
-                        ? 'rgba(59, 112, 128, 0.08)'
-                        : '#ffffff',
+                        ? 'rgba(var(--palette-text-secondaryChannel) / 0.08)'
+                        : 'background.paper',
                     color: msg.isSender ? 'white' : 'text.primary',
                     borderRadius: msg.isSender
                       ? '18px 18px 4px 18px'
                       : '18px 18px 18px 4px',
                     border: msg.isBot
-                      ? '1px dashed rgba(59, 112, 128, 0.3)'
+                      ? '1px dashed rgba(var(--palette-text-secondaryChannel) / 0.3)'
                       : msg.isSender
                         ? 'none'
-                        : '1px solid #e2e8f0',
+                        : `1px solid ${theme.vars.palette.divider}`,
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
                     boxShadow: msg.isSender

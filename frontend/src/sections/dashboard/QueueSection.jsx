@@ -13,12 +13,12 @@ import MainCard from '../../components/MainCard';
  *  - onQueueClick  {function(chat)}  navigate to queue page with id
  */
 const QueueSection = ({ queueLoading, queueData, onViewMore, onQueueClick }) => (
-  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
+  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'primary.main' }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
       <Typography variant="subtitle2" color="text.secondary">
         Queue
       </Typography>
-      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: '#008E86' }}>
+      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: 'primary.main' }}>
         See more
       </Button>
     </Box>
@@ -66,7 +66,7 @@ const QueueSection = ({ queueLoading, queueData, onViewMore, onQueueClick }) => 
               sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
             >
               <ListItemAvatar>
-                <Avatar sx={{ bgcolor: '#008E86' }}>{initials}</Avatar>
+                <Avatar sx={{ bgcolor: 'primary.main' }}>{initials}</Avatar>
               </ListItemAvatar>
               <ListItemText
                 primary={chat.name || 'Unknown Client'}

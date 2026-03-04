@@ -22,12 +22,12 @@ export const transformAgent = (user) => ({
 export const getStatusColor = (status) => {
   switch (status) {
     case 'Available':
-      return { label: 'Available', color: '#4caf50' };
+      return { label: 'Available', color: 'var(--palette-success-main)' };
     case 'Away':
-      return { label: 'Away', color: '#ffb300' };
+      return { label: 'Away', color: 'var(--palette-warning-main)' };
     case 'Busy':
-      return { label: 'Busy', color: '#f44336' };
+      return { label: 'Busy', color: 'var(--palette-error-main)' };
     default:
-      return { label: status || 'Unknown', color: '#9e9e9e' };
+      return { label: status || 'Unknown', color: 'var(--palette-text-disabled)' };
   }
 };

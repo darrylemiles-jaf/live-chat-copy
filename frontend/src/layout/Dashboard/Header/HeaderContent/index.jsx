@@ -1,5 +1,7 @@
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useColorScheme, useTheme } from '@mui/material/styles';
+import Switch from '@mui/material/Switch';
 import { mutate } from 'swr';
 
 // project import
@@ -26,14 +28,27 @@ import { getCurrentUser, logout } from 'utils/auth';
 import Users from 'api/users';
 import { getChats } from 'api/chatApi';
 import socketService from 'services/socketService';
+import useConfig from 'hooks/useConfig';
 import {
   SettingOutlined
 } from '@ant-design/icons';
+
+// ==============================|| THEME PRESET COLORS ||============================== //
+
+const PRESET_COLORS = [
+  { key: 'default', label: 'Teal',   color: '#008E86' },
+  { key: 'theme1',  label: 'Blue',   color: '#1677FF' },
+  { key: 'theme2',  label: 'Purple', color: '#722ED1' },
+  { key: 'theme3',  label: 'Rose',   color: '#B53654' },
+  { key: 'theme4',  label: 'Amber',  color: '#D46B08' },
+  { key: 'theme5',  label: 'Cyan',   color: '#08979C' },
+];
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
 export default function HeaderContent() {
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
+  const theme = useTheme();
   const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
@@ -45,7 +60,15 @@ export default function HeaderContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', color: null });
 
-  const STATUS_COLORS = { available: '#008E86', busy: '#B53654', away: '#CC9000' };
+  const { mode: colorSchemeMode, setMode } = useColorScheme();
+  const { state: configState, setField } = useConfig();
+  const isDark = colorSchemeMode === 'dark';
+
+  const STATUS_COLORS = {
+    available: theme.vars.palette.primary.main,
+    busy: theme.vars.palette.error.main,
+    away: theme.vars.palette.warning.main
+  };
 
   useEffect(() => {
     let attached = false;
@@ -234,7 +257,7 @@ export default function HeaderContent() {
             borderColor: 'divider'
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#064856' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
             Settings
           </Typography>
           <IconButton size="small" onClick={() => setOpenSettings(false)} sx={{ color: 'text.secondary' }}>
@@ -265,12 +288,12 @@ export default function HeaderContent() {
             sx={{
               borderRadius: 2,
               fontWeight: 600,
-              color: status === 'available' ? '#008E86' : status === 'busy' ? '#B53654' : '#CC9000',
+              color: STATUS_COLORS[status],
               '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: status === 'available' ? '#008E86' : status === 'busy' ? '#B53654' : '#CC9000'
+                borderColor: STATUS_COLORS[status]
               },
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: status === 'available' ? '#064856' : status === 'busy' ? '#82273B' : '#B37E00'
+                borderColor: STATUS_COLORS[status]
               }
             }}
             renderValue={(val) => (
@@ -281,7 +304,7 @@ export default function HeaderContent() {
                     height: 8,
                     borderRadius: '50%',
                     flexShrink: 0,
-                    bgcolor: val === 'available' ? '#008E86' : val === 'busy' ? '#B53654' : '#CC9000'
+                    bgcolor: val === 'available' ? STATUS_COLORS.available : val === 'busy' ? STATUS_COLORS.busy : STATUS_COLORS.away
                   }}
                 />
                 <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
@@ -292,7 +315,7 @@ export default function HeaderContent() {
           >
             <MenuItem value="available">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#008E86' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.available }} />
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   Available
                 </Typography>
@@ -300,7 +323,7 @@ export default function HeaderContent() {
             </MenuItem>
             <MenuItem value="away">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#CC9000' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.away }} />
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   Away
                 </Typography>
@@ -308,10 +331,98 @@ export default function HeaderContent() {
             </MenuItem>
           </Select>
           {activeChatsCount > 0 && (
-            <Typography variant="caption" sx={{ mt: 1.25, display: 'block', color: '#B53654', fontWeight: 500 }}>
+            <Typography variant="caption" sx={{ mt: 1.25, display: 'block', color: 'error.main', fontWeight: 500 }}>
               Status is locked while you have {activeChatsCount} active chat{activeChatsCount > 1 ? 's' : ''}.
             </Typography>
           )}
+        </Box>
+
+        {/* ── Dark Mode ── */}
+        <Box sx={{ px: 2.5, pt: 3 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              fontSize: '0.7rem',
+              letterSpacing: '0.08em',
+              mb: 1.5
+            }}
+          >
+            Appearance
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              py: 1,
+              px: 1.5,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>{isDark ? '🌙' : '☀️'}</Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {isDark ? 'Dark Mode' : 'Light Mode'}
+              </Typography>
+            </Box>
+            <Switch
+              checked={isDark}
+              onChange={(e) => setMode(e.target.checked ? 'dark' : 'light')}
+              size="small"
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': { color: 'primary.main' },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: 'primary.main' }
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* ── Theme Color ── */}
+        <Box sx={{ px: 2.5, pt: 3, pb: 2 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              fontSize: '0.7rem',
+              letterSpacing: '0.08em',
+              mb: 1.5
+            }}
+          >
+            Theme Color
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {PRESET_COLORS.map((preset) => {
+              const isActive = (configState.presetColor || 'default') === preset.key;
+              return (
+                <Tooltip key={preset.key} title={preset.label} disableInteractive>
+                  <Box
+                    onClick={() => setField('presetColor', preset.key)}
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 2,
+                      bgcolor: preset.color,
+                      cursor: 'pointer',
+                      border: isActive ? '3px solid' : '3px solid transparent',
+                      borderColor: isActive ? 'text.primary' : 'transparent',
+                      outline: isActive ? `2px solid ${preset.color}` : 'none',
+                      outlineOffset: 2,
+                      transition: 'all 0.15s',
+                      '&:hover': { transform: 'scale(1.12)' }
+                    }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </Box>
         </Box>
       </Drawer>
 

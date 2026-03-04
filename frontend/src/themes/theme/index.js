@@ -1,7 +1,19 @@
+// ==============================|| PRESET THEME - COLOR MAP ||============================== //
+
+const presetPrimaryMap = {
+  default: { lighter: '#E6F7F6', light: '#4DC7BC', main: '#008E86', dark: '#064856', darker: '#0A3A44' },
+  theme1:  { lighter: '#E6F4FF', light: '#69B1FF', main: '#1677FF', dark: '#0958D9', darker: '#003EB3' },
+  theme2:  { lighter: '#F9F0FF', light: '#B37FEB', main: '#722ED1', dark: '#531DAB', darker: '#391085' },
+  theme3:  { lighter: '#FCE8ED', light: '#EE96B3', main: '#B53654', dark: '#82273B', darker: '#4F1823' },
+  theme4:  { lighter: '#FFF7E6', light: '#FFD591', main: '#D46B08', dark: '#AD4E00', darker: '#612500' },
+  theme5:  { lighter: '#E6FFFB', light: '#5CDBD3', main: '#08979C', dark: '#006D75', darker: '#00474F' },
+};
+
 // ==============================|| PRESET THEME - DEFAULT ||============================== //
 
-export default function Default(colors) {
+export default function Default(colors, presetColor) {
   const { blue, red, gold, cyan, green, grey, orange } = colors;
+  const preset = presetPrimaryMap[presetColor] || presetPrimaryMap.default;
   const greyColors = {
     0: grey[0],
     50: grey[1],
@@ -25,15 +37,15 @@ export default function Default(colors) {
 
   return {
     primary: {
-      lighter: '#E0F0F1',
+      lighter: preset.lighter,
       100: blue[1],
       200: blue[2],
-      light: blue[3],
+      light: preset.light,
       400: blue[4],
-      main: '#245665',
-      dark: blue[6],
+      main: preset.main,
+      dark: preset.dark,
       700: blue[7],
-      darker: blue[8],
+      darker: preset.darker,
       900: blue[9],
       contrastText
     },

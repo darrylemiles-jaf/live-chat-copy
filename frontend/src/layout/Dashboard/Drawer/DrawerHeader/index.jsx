@@ -9,21 +9,24 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 
 import DrawerHeaderStyled from './DrawerHeaderStyled';
 import Logo from 'components/logo';
 import Users from 'api/users';
 import socketService from 'services/socketService';
-
-const STATUS_OPTIONS = [
-  { value: 'available', label: 'Available', color: '#008E86' },
-  { value: 'busy', label: 'Busy', color: '#B53654' },
-  { value: 'away', label: 'Away', color: '#CC9000' }
-];
+import { withAlpha } from 'utils/colorUtils';
 
 // ==============================|| DRAWER HEADER ||============================== //
 
 export default function DrawerHeader({ open }) {
+  const theme = useTheme();
+  const STATUS_OPTIONS = [
+    { value: 'available', label: 'Available', color: theme.vars.palette.primary.main },
+    { value: 'busy', label: 'Busy', color: theme.vars.palette.error.main },
+    { value: 'away', label: 'Away', color: theme.vars.palette.warning.main }
+  ];
+
   const [status, setStatus] = useState('available');
 
   useEffect(() => {
@@ -122,7 +125,7 @@ export default function DrawerHeader({ open }) {
             </Stack>
           }
           sx={{
-            bgcolor: `${currentOpt.color}18`,
+            bgcolor: withAlpha(currentOpt.color, 0.1),
             border: `1.5px solid ${currentOpt.color}`,
             height: 26,
             '& .MuiChip-label': { px: 1 }
@@ -136,7 +139,8 @@ export default function DrawerHeader({ open }) {
               height: 10,
               borderRadius: '50%',
               bgcolor: currentOpt.color,
-              border: '2px solid white',
+              border: '2px solid',
+              borderColor: 'background.default',
               boxShadow: `0 0 0 1.5px ${currentOpt.color}`
             }}
           />

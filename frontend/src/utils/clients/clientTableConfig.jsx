@@ -1,5 +1,4 @@
 import { Box, Typography } from '@mui/material';
-import { customGreen } from '../../themes/palette';
 
 export const clientColumns = [
   {
@@ -14,12 +13,12 @@ export const clientColumns = [
             width: 40,
             height: 40,
             borderRadius: '50%',
-            backgroundColor: customGreen[0],
+            backgroundColor: 'var(--palette-primary-lighter)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: 'bold',
-            color: customGreen[5],
+            color: 'var(--palette-primary-light)',
             fontSize: '16px'
           }}
         >
@@ -37,13 +36,13 @@ export const clientColumns = [
 
 export const clientViewConfig = {
   avatar: { nameField: 'name', emailField: 'email' },
-  badges: [{ field: 'id', color: customGreen[5] }],
+  badges: [{ field: 'id', color: 'var(--palette-primary-light)' }],
   infoSections: [
     {
       title: 'Personal Information',
       columns: '1fr 1fr',
       fields: [
-        { label: 'Customer ID', field: 'id', valueStyle: { color: customGreen[5] } },
+        { label: 'Customer ID', field: 'id', valueStyle: { color: 'var(--palette-primary-light)' } },
         { label: 'Email', field: 'email' },
         { label: 'Name', field: 'name' },
         { label: 'Phone', field: 'phone', defaultValue: 'N/A' }

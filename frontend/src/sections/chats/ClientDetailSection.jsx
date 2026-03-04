@@ -2,9 +2,9 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 
 const statusStyles = {
-  active: { bgcolor: '#dcfce7', color: '#16a34a' },
-  queued: { bgcolor: '#fef3c7', color: '#d97706' },
-  default: { bgcolor: '#f1f5f9', color: '#64748b' },
+  active: { bgcolor: 'rgba(var(--palette-success-mainChannel) / 0.12)', color: 'success.dark' },
+  queued: { bgcolor: 'rgba(var(--palette-warning-mainChannel) / 0.12)', color: 'warning.dark' },
+  default: { bgcolor: 'rgba(var(--palette-text-secondaryChannel) / 0.12)', color: 'text.secondary' },
 };
 
 const ClientDetailSection = ({ selectedChat, messageCount }) => {
@@ -17,7 +17,7 @@ const ClientDetailSection = ({ selectedChat, messageCount }) => {
   return (
     <>
       {/* Header */}
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Typography variant="subtitle2" fontWeight={700} color="text.primary">
           Client Details
         </Typography>

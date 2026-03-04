@@ -13,7 +13,7 @@ const NotificationIcon = ({ type }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#fff',
+        color: 'var(--palette-primary-contrastText)',
         fontSize: '10px',
         fontWeight: 600,
         flexShrink: 0,

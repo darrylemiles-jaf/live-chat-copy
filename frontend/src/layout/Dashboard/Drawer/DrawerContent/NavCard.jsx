@@ -16,7 +16,7 @@ import AnimateButton from 'components/@extended/AnimateButton';
 
 export default function NavCard() {
   return (
-    <MainCard sx={{ bgcolor: 'white', m: 3 }}>
+    <MainCard sx={{ bgcolor: 'background.paper', m: 3 }}>
       <Stack alignItems="center" spacing={2.5}>
         <CardMedia component="img" image={avatar} sx={{ width: 112 }} />
         <Stack alignItems="center">
@@ -31,7 +31,7 @@ export default function NavCard() {
             href="https://staging-admin.timora.ph/support/dashboard"
             variant="contained"
             size="small"
-            sx={{ bgcolor: '#008E86', '&:hover': { bgcolor: '#007570' } }}
+            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
           >
             Go to Central Admin
           </Button>

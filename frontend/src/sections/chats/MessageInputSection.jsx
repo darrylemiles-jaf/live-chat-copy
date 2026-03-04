@@ -105,8 +105,8 @@ const MessageInputSection = ({
         p: { xs: 1.5, sm: 2 },
         borderTop: '1px solid',
         borderColor: 'divider',
-        bgcolor: 'white',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.03)'
+        bgcolor: 'background.paper',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.06)'
       }}
     >
       {/* File Preview */}
@@ -115,7 +115,7 @@ const MessageInputSection = ({
           sx={{
             mb: 1.5,
             p: 1.5,
-            bgcolor: '#f8fafc',
+            bgcolor: 'action.hover',
             borderRadius: 2,
             border: '1px solid',
             borderColor: 'divider',
@@ -172,9 +172,9 @@ const MessageInputSection = ({
             size="small"
             onClick={clearFile}
             sx={{
-              bgcolor: '#fee2e2',
-              color: '#dc2626',
-              '&:hover': { bgcolor: '#fecaca' }
+              bgcolor: 'error.lighter',
+              color: 'error.main',
+              '&:hover': { bgcolor: 'error.light' }
             }}
           >
             <CloseOutlined style={{ fontSize: 14 }} />
@@ -189,12 +189,12 @@ const MessageInputSection = ({
         sx={{
           p: 1,
           borderRadius: 3,
-          bgcolor: isFocused ? '#f8fafc' : '#f1f5f9',
+          bgcolor: isFocused ? 'action.selected' : 'action.hover',
           border: '1px solid',
           borderColor: isFocused ? 'primary.light' : 'transparent',
           transition: 'all 0.2s ease',
           '&:hover': {
-            bgcolor: '#f8fafc'
+            bgcolor: 'action.selected'
           }
         }}
       >
@@ -212,7 +212,7 @@ const MessageInputSection = ({
             size="small"
             onClick={handleOpenQuickReplies}
             sx={{
-              color: quickRepliesAnchor ? 'primary.main' : '#64748b',
+              color: quickRepliesAnchor ? 'primary.main' : 'text.secondary',
               '&:hover': { color: 'primary.main', bgcolor: 'primary.lighter' }
             }}
           >
@@ -283,7 +283,7 @@ const MessageInputSection = ({
             size="small"
             onClick={() => fileInputRef.current?.click()}
             sx={{
-              color: selectedFile ? 'primary.main' : '#64748b',
+              color: selectedFile ? 'primary.main' : 'text.secondary',
               '&:hover': {
                 color: 'primary.main',
                 bgcolor: 'primary.lighter'
@@ -337,8 +337,8 @@ const MessageInputSection = ({
                 transform: 'scale(1.05)'
               },
               '&.Mui-disabled': {
-                bgcolor: '#e2e8f0',
-                color: '#94a3b8'
+                bgcolor: 'action.disabledBackground',
+                color: 'text.disabled'
               }
             }}
           >
@@ -356,8 +356,8 @@ const MessageInputSection = ({
             sx={{
               width: 40,
               height: 40,
-              bgcolor: '#e2e8f0',
-              color: '#94a3b8'
+              bgcolor: 'action.disabledBackground',
+              color: 'text.disabled'
             }}
           >
             <SendOutlined style={{ fontSize: 18 }} />

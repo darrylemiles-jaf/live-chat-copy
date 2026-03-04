@@ -28,7 +28,7 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
       <Box
         onClick={(e) => e.stopPropagation()}
         sx={{
-          backgroundColor: '#fff',
+          backgroundColor: 'background.paper',
           borderRadius: { xs: 1, sm: '4px' },
           padding: { xs: 2, sm: 2.5 },
           maxWidth: '600px',
@@ -63,7 +63,7 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
               border: 'none',
               fontSize: '28px',
               cursor: 'pointer',
-              color: '#666',
+              color: 'inherit',
               padding: '0',
               width: '28px',
               height: '28px',
@@ -80,19 +80,19 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
 
         {/* Body */}
         <div style={{ marginBottom: '14px' }}>
-          <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px', lineHeight: '1.5' }}>
+          <p style={{ fontSize: '13px', color: 'inherit', marginBottom: '10px', lineHeight: '1.5' }}>
             {notification.message}
           </p>
 
-          <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.6' }}>
+          <div style={{ fontSize: '12px', color: 'inherit', lineHeight: '1.6' }}>
             {notification.chat_id && (
               <p style={{ margin: '6px 0' }}>
                 <strong>Chat:</strong>{' '}
                 <span
                   style={{
                     padding: '2px 7px',
-                    backgroundColor: '#E0F0F1',
-                    color: '#008E86',
+                    backgroundColor: 'rgba(var(--palette-primary-mainChannel) / 0.12)',
+                    color: 'var(--palette-primary-main)',
                     borderRadius: '3px',
                     fontSize: '11px',
                     fontWeight: 500,
@@ -110,7 +110,7 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
             </p>
             <p style={{ margin: '6px 0' }}>
               <strong>Status:</strong>{' '}
-              <span style={{ color: notification.is_read ? '#A0AEC0' : '#008E86', fontWeight: 500 }}>
+              <span style={{ color: notification.is_read ? 'var(--palette-text-disabled)' : 'var(--palette-primary-main)', fontWeight: 500 }}>
                 {notification.is_read ? 'Read' : 'Unread'}
               </span>
             </p>
@@ -125,7 +125,8 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
             gap: 1,
             marginTop: 2,
             paddingTop: 2,
-            borderTop: '1px solid #E6EBEE',
+            borderTop: '1px solid',
+            borderColor: 'divider',
           }}
         >
           {notification.chat_id && (
@@ -133,8 +134,8 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
               onClick={() => onGoToChat(notification)}
               style={{
                 padding: '9px 20px',
-                backgroundColor: '#008E86',
-                color: '#fff',
+                backgroundColor: 'var(--palette-primary-main)',
+                color: 'var(--palette-primary-contrastText)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -149,9 +150,9 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
             onClick={onClose}
             style={{
               padding: '9px 20px',
-              backgroundColor: '#F7FAFC',
-              color: '#2C3E50',
-              border: '1px solid #E2E8F0',
+              backgroundColor: 'var(--palette-action-hover)',
+              color: 'var(--palette-text-primary)',
+              border: '1px solid var(--palette-divider)',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '13px',

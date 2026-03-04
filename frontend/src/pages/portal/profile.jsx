@@ -4,7 +4,6 @@ import { Box } from '@mui/material';
 import UserDetailsView from '../../components/UserDetailsView';
 import AgentRatingsTab from '../../components/AgentRatingsTab';
 import { getCurrentUser } from '../../utils/auth';
-import { customGreen, customGold } from '../../themes/palette';
 import { getAgentRatings } from '../../api/ratingsApi';
 
 /* ── Main page ──────────────────────────────────────────────────── */
@@ -49,19 +48,19 @@ const Profile = () => {
   const viewConfig = {
     avatar: { nameField: 'name', emailField: 'email' },
     badges: [
-      { field: 'role', color: customGreen[6] },
-      { field: 'status', color: customGold[5] },
+      { field: 'role', color: 'var(--palette-primary-main)' },
+      { field: 'status', color: 'var(--palette-warning-main)' },
       ...(isAgent && avgRating > 0
         ? [{
           render: () => (
             <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-              <Box component="span" sx={{ color: '#fbbf24', fontSize: '0.85rem' }}>&#9733;</Box>
+              <Box component="span" sx={{ color: 'var(--palette-warning-main)', fontSize: '0.85rem' }}>&#9733;</Box>
               <Box component="span" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
                 {avgRating.toFixed(1)}
               </Box>
             </Box>
           ),
-          sx: { bgcolor: '#92400e', color: 'white' }
+          sx: { bgcolor: 'var(--palette-warning-darker)', color: 'white' }
         }]
         : [])
     ],

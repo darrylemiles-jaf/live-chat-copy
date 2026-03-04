@@ -14,10 +14,10 @@ const QueueHeader = ({ palette, availableAgents = 0 }) => (
     }}
   >
     <Stack direction="row" spacing={1.5} alignItems="center">
-      <Typography variant="subtitle1" sx={{ color: '#000000' }}>
+      <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
         Available Agents: {availableAgents}
       </Typography>
-      <CheckCircle sx={{ color: availableAgents > 0 ? '#00A99D' : '#9E9E9E' }} />
+      <CheckCircle sx={{ color: availableAgents > 0 ? 'primary.main' : 'text.disabled' }} />
     </Stack>
   </Box>
 );

@@ -13,8 +13,6 @@ import ListItemText from '@mui/material/ListItemText';
 
 import UserDetailsView from 'components/UserDetailsView';
 
-import { customGreen, customGold } from 'themes/palette';
-
 
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
@@ -61,11 +59,11 @@ export default function ProfileTab() {
     badges: [
       {
         field: 'role',
-        color: customGreen[6]
+        color: 'var(--palette-primary-main)'
       },
       {
         field: 'status',
-        color: customGold[5]
+        color: 'var(--palette-warning-main)'
       }
     ],
     infoSections: [

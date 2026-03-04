@@ -13,12 +13,12 @@ import MainCard from '../../components/MainCard';
  *  - onChatClick   {function(chat)}  navigate with chatId
  */
 const RecentChatsSection = ({ chatsLoading, recentChats, onViewMore, onChatClick }) => (
-  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
+  <MainCard sx={{ p: 2.5, height: 500, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'primary.main' }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
       <Typography variant="subtitle2" color="text.secondary">
         Recent Chats
       </Typography>
-      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: '#008E86' }}>
+      <Button size="small" onClick={onViewMore} sx={{ textTransform: 'none', color: 'primary.main' }}>
         See more
       </Button>
     </Box>
@@ -56,7 +56,7 @@ const RecentChatsSection = ({ chatsLoading, recentChats, onViewMore, onChatClick
             sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
           >
             <ListItemAvatar>
-              <Avatar sx={{ bgcolor: '#008E86' }}>{chat.avatar || '?'}</Avatar>
+              <Avatar sx={{ bgcolor: 'primary.main' }}>{chat.avatar || '?'}</Avatar>
             </ListItemAvatar>
             <ListItemText
               primary={chat.name || 'Unknown Client'}

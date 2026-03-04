@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { customGreen } from 'themes/palette';
 import { useSnackbar } from 'contexts/SnackbarContext';
 import { Formik } from 'formik';
 
@@ -118,7 +117,7 @@ export default function AuthLogin({ isDemo = false }) {
                   <InputLabel
                     htmlFor="email-login"
                     sx={{
-                      color: customGreen[7],
+                      color: 'primary.main',
                       fontWeight: 600,
                       fontSize: '0.95rem'
                     }}
@@ -138,14 +137,14 @@ export default function AuthLogin({ isDemo = false }) {
                     sx={{
                       borderRadius: 2,
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[2],
+                        borderColor: 'primary.lighter',
                         borderWidth: '2px',
                       },
                       '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[5],
+                        borderColor: 'primary.light',
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[7],
+                        borderColor: 'primary.main',
                         borderWidth: '2px',
                       },
                       '& input': {
@@ -165,7 +164,7 @@ export default function AuthLogin({ isDemo = false }) {
                   <InputLabel
                     htmlFor="password-login"
                     sx={{
-                      color: customGreen[7],
+                      color: 'primary.main',
                       fontWeight: 600,
                       fontSize: '0.95rem'
                     }}
@@ -189,10 +188,10 @@ export default function AuthLogin({ isDemo = false }) {
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
                           sx={{
-                            color: customGreen[6],
-                            '&:hover': {
-                              color: customGreen[7],
-                              backgroundColor: customGreen[0],
+                              color: 'primary.main',
+                              '&:hover': {
+                                color: 'primary.dark',
+                                backgroundColor: 'primary.lighter',
                             }
                           }}
                         >
@@ -204,14 +203,14 @@ export default function AuthLogin({ isDemo = false }) {
                     sx={{
                       borderRadius: 2,
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[2],
+                        borderColor: 'primary.lighter',
                         borderWidth: '2px',
                       },
                       '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[5],
+                        borderColor: 'primary.light',
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: customGreen[7],
+                        borderColor: 'primary.main',
                         borderWidth: '2px',
                       },
                       '& input': {
@@ -242,8 +241,8 @@ export default function AuthLogin({ isDemo = false }) {
                     variant="contained"
                     disabled={isSubmitting}
                     sx={{
-                      backgroundColor: customGreen[7],
-                      color: '#fff',
+                      backgroundColor: 'primary.main',
+                      color: 'primary.contrastText',
                       py: 1.75,
                       fontSize: '1rem',
                       fontWeight: 600,
@@ -251,20 +250,20 @@ export default function AuthLogin({ isDemo = false }) {
                       textTransform: 'none',
                       boxShadow: 'none',
                       '&:hover': {
-                        backgroundColor: customGreen[8],
-                        boxShadow: `0 4px 12px ${customGreen[3]}`,
+                        backgroundColor: 'primary.dark',
+                        boxShadow: '0 4px 12px rgba(var(--palette-primary-mainChannel) / 0.3)',
                       },
                       '&:active': {
-                        backgroundColor: customGreen[9],
+                        backgroundColor: 'primary.darker',
                       },
-                      '&:disabled': {
-                        backgroundColor: customGreen[3],
-                        color: '#fff',
+                      '&.Mui-disabled': {
+                        backgroundColor: 'primary.lighter',
+                        color: 'primary.contrastText',
                       }
                     }}
                   >
                     {isSubmitting ? (
-                      <CircularProgress size={24} sx={{ color: '#fff' }} />
+                      <CircularProgress size={24} sx={{ color: 'primary.contrastText' }} />
                     ) : (
                       'Sign In'
                     )}

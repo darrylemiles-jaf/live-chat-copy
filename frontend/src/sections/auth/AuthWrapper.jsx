@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { customGreen } from 'themes/palette';
 
 // material-ui
 import Grid from '@mui/material/Grid';
@@ -20,7 +19,7 @@ export default function AuthWrapper({ children }) {
         item
         size={{ xs: 12, md: 6 }}
         sx={{
-          background: `linear-gradient(135deg, ${customGreen[7]} 0%, ${customGreen[6]} 100%)`,
+          background: 'linear-gradient(135deg, var(--palette-primary-dark) 0%, var(--palette-primary-main) 100%)',
           position: 'relative',
           display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
@@ -63,7 +62,7 @@ export default function AuthWrapper({ children }) {
             width: '400px',
             height: '400px',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${customGreen[5]} 0%, transparent 70%)`,
+            background: 'radial-gradient(circle, var(--palette-primary-light) 0%, transparent 70%)',
             opacity: 0.3,
             filter: 'blur(60px)'
           }}
@@ -76,7 +75,7 @@ export default function AuthWrapper({ children }) {
             width: '500px',
             height: '500px',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${customGreen[8]} 0%, transparent 70%)`,
+            background: 'radial-gradient(circle, var(--palette-primary-darker) 0%, transparent 70%)',
             opacity: 0.2,
             filter: 'blur(80px)'
           }}
@@ -87,7 +86,7 @@ export default function AuthWrapper({ children }) {
         item
         size={{ xs: 12, md: 6 }}
         sx={{
-          backgroundColor: 'white',
+          backgroundColor: 'background.paper',
           display: 'flex',
           flexDirection: 'column'
         }}

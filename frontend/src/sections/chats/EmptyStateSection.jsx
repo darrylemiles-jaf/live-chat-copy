@@ -1,8 +1,10 @@
 import React from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { MessageOutlined, TeamOutlined } from '@ant-design/icons';
 
 const EmptyStateSection = () => {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -13,7 +15,7 @@ const EmptyStateSection = () => {
         flexDirection: 'column',
         gap: 3,
         p: 4,
-        background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+        background: theme.vars.palette.background.default
       }}
     >
       {/* Illustration */}
@@ -34,7 +36,7 @@ const EmptyStateSection = () => {
             width: 180,
             height: 180,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(0, 142, 134, 0.08) 0%, rgba(0, 142, 134, 0.03) 100%)',
+            background: 'linear-gradient(135deg, rgba(var(--palette-primary-mainChannel) / 0.08) 0%, rgba(var(--palette-primary-mainChannel) / 0.03) 100%)',
             animation: 'pulse 2s ease-in-out infinite'
           }}
         />
@@ -44,7 +46,7 @@ const EmptyStateSection = () => {
             width: 140,
             height: 140,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(0, 142, 134, 0.12) 0%, rgba(0, 142, 134, 0.05) 100%)'
+            background: 'linear-gradient(135deg, rgba(var(--palette-primary-mainChannel) / 0.12) 0%, rgba(var(--palette-primary-mainChannel) / 0.05) 100%)'
           }}
         />
         <Box
@@ -53,11 +55,11 @@ const EmptyStateSection = () => {
             width: 100,
             height: 100,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #008E86 0%, #064856 100%)',
+            background: `linear-gradient(135deg, ${theme.vars.palette.primary.main} 0%, ${theme.vars.palette.primary.dark} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(0, 142, 134, 0.35)'
+            boxShadow: '0 8px 32px rgba(var(--palette-primary-mainChannel) / 0.35)'
           }}
         >
           <MessageOutlined style={{ fontSize: 40, color: 'white' }} />
@@ -72,15 +74,15 @@ const EmptyStateSection = () => {
             width: 40,
             height: 40,
             borderRadius: '50%',
-            bgcolor: 'white',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            bgcolor: 'background.paper',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             animation: 'float 3s ease-in-out infinite'
           }}
         >
-          <TeamOutlined style={{ fontSize: 18, color: '#008E86' }} />
+          <TeamOutlined style={{ fontSize: 18, color: theme.vars.palette.primary.main }} />
         </Box>
 
         <Box
@@ -91,8 +93,8 @@ const EmptyStateSection = () => {
             width: 32,
             height: 32,
             borderRadius: '50%',
-            bgcolor: '#22c55e',
-            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+            bgcolor: 'success.main',
+            boxShadow: '0 4px 12px rgba(var(--palette-success-mainChannel) / 0.3)',
             animation: 'float 2.5s ease-in-out infinite 0.5s'
           }}
         />

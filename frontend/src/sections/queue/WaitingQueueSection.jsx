@@ -22,13 +22,14 @@ function getAvatarBg(palette, item) {
   return palette.primary.main;
 }
 
-const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onViewMore }) => (
+const WaitingQueueSection = ({ palette, isDark, queue, selectedId, setSelectedId, onViewMore }) => (
   <Paper
     elevation={0}
     sx={{
       height: '100%',
       borderRadius: 1,
-      border: `1px solid rgba(6, 72, 86, 0.15)`,
+      border: '1px solid',
+      borderColor: 'divider',
       backgroundColor: palette.background.paper,
       boxShadow: 'none',
       display: 'flex',
@@ -46,7 +47,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
       }}
     >
       <Stack direction="row" spacing={2} alignItems="center">
-        <Typography variant="subtitle1" color='#000' sx={{ fontWeight: 600 }}>
+        <Typography variant="subtitle1" color='text.primary' sx={{ fontWeight: 600 }}>
           Waiting Queue
         </Typography>
         <Badge
@@ -83,11 +84,16 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                 py: 1.2,
                 borderRadius: 1,
                 cursor: 'pointer',
-                backgroundColor: isSelected ? withAlpha(palette.primary.lighter, 0.45) : 'transparent',
-                border: isSelected ? `1px solid ${withAlpha(palette.primary.main, 0.2)}` : '1px solid transparent',
+                backgroundColor: isSelected
+                  ? 'primary.lighter'
+                  : 'transparent',
+                border: isSelected ? `1px solid` : '1px solid transparent',
+                borderColor: isSelected
+                  ? 'primary.light'
+                  : 'transparent',
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                  backgroundColor: withAlpha(palette.primary.lighter, 0.35)
+                  backgroundColor: 'action.hover'
                 }
               }}
             >
@@ -114,7 +120,7 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
                     sx={{
                       fontWeight: 700,
                       fontSize: '0.7rem',
-                      color: position <= 2 ? '#fff' : palette.text.secondary,
+                      color: position <= 2 ? palette.primary.contrastText : palette.text.secondary,
                       lineHeight: 1
                     }}
                   >
@@ -190,9 +196,14 @@ const WaitingQueueSection = ({ palette, queue, selectedId, setSelectedId, onView
         onClick={onViewMore}
         sx={{
           borderRadius: 1,
-          borderColor: '#025869',
-          color: '#025869',
-          fontWeight: 600
+          borderColor: 'primary.main',
+          color: 'primary.main',
+          fontWeight: 600,
+          '&.Mui-disabled': {
+            bgcolor: 'action.disabledBackground',
+            borderColor: 'divider',
+            color: 'text.disabled'
+          }
         }}
       >
         View More

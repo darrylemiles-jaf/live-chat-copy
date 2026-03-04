@@ -18,17 +18,18 @@ import {
   FormControl
 } from '@mui/material';
 import { SearchOutlined, MessageOutlined } from '@ant-design/icons';
-
-const STATUS_FILTERS = [
-  { value: 'active', label: 'Active', color: '#22c55e' },
-  { value: 'ended',  label: 'Ended',  color: '#94a3b8' },
-  { value: 'all',    label: 'All',    color: '#008E86' },
-
-];
+import { useTheme } from '@mui/material/styles';
 
 const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', onSearchChange, statusFilter = 'all', onStatusFilterChange }) => {
+  const theme = useTheme();
   const [sortOrder, setSortOrder] = useState('newest');
   const [concernFilter, setConcernFilter] = useState('all');
+
+  const STATUS_FILTERS = [
+    { value: 'active', label: 'Active', color: theme.vars.palette.success.main },
+    { value: 'ended',  label: 'Ended',  color: theme.vars.palette.text.disabled },
+    { value: 'all',    label: 'All',    color: theme.vars.palette.primary.main },
+  ];
 
   // Build unique concern list from current chats
   const concernOptions = ['all', ...Array.from(
@@ -37,10 +38,10 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return '#22c55e';
-      case 'queued': return '#f59e0b';
-      case 'ended': return '#94a3b8';
-      default: return '#94a3b8';
+      case 'active': return theme.vars.palette.success.main;
+      case 'queued': return theme.vars.palette.warning.main;
+      case 'ended': return theme.vars.palette.text.disabled;
+      default: return theme.vars.palette.text.disabled;
     }
   };
 
@@ -67,10 +68,10 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        bgcolor: '#fafbfc'
+        bgcolor: 'background.default'
       }}
     >
-      <Box sx={{ p: 2.5, pb: 2, bgcolor: 'white' }}>
+      <Box sx={{ p: 2.5, pb: 2, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" fontWeight={700} color="text.primary">
             Messages
@@ -84,7 +85,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                 sx={{
                   fontSize: '0.75rem',
                   height: 28,
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
                   '& .MuiSelect-select': { py: 0.25, px: 1 }
                 }}
               >
@@ -105,7 +106,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
             mb: 1.5,
             '& .MuiOutlinedInput-root': {
               borderRadius: 3,
-              bgcolor: '#f1f5f9',
+              bgcolor: 'action.hover',
               border: 'none',
               '& fieldset': { borderColor: 'transparent' },
               '&:hover fieldset': { borderColor: 'primary.light' },
@@ -115,7 +116,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchOutlined style={{ fontSize: 18, color: '#94a3b8' }} />
+                <SearchOutlined style={{ fontSize: 18, color: theme.vars.palette.text.disabled }} />
               </InputAdornment>
             )
           }}
@@ -140,7 +141,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                         px: 0.5,
                         py: 0.15,
                         borderRadius: 0.75,
-                        bgcolor: selected ? 'rgba(255,255,255,0.3)' : `${f.color}20`,
+                        bgcolor: selected ? 'rgba(255,255,255,0.3)' : `color-mix(in srgb, ${f.color} 12%, transparent)`,
                         color: selected ? 'white' : f.color,
                       }}
                     >
@@ -162,7 +163,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                   bgcolor: selected ? f.color : 'transparent',
                   '& .MuiChip-label': { px: 0.75 },
                   '&:hover': {
-                    bgcolor: selected ? f.color : `${f.color}18`,
+                    bgcolor: selected ? f.color : `color-mix(in srgb, ${f.color} 9%, transparent)`,
                   }
                 }}
               />
@@ -181,13 +182,13 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                 fontSize: '0.78rem',
                 height: 32,
                 borderRadius: 2,
-                color: concernFilter === 'all' ? '#64748b' : '#0369a1',
-                fontWeight: concernFilter === 'all' ? 400 : 600,
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: concernFilter === 'all' ? '#e2e8f0' : '#0369a1',
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#0369a1' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0369a1' },
+              color: concernFilter === 'all' ? theme.vars.palette.text.secondary : theme.vars.palette.info.dark,
+              fontWeight: concernFilter === 'all' ? 400 : 600,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: concernFilter === 'all' ? theme.vars.palette.divider : theme.vars.palette.info.dark,
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.vars.palette.info.dark },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.vars.palette.info.dark },
                 '& .MuiSelect-select': { py: 0.5, px: 1.25 },
               }}
             >
@@ -208,7 +209,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                       <Box component="span" sx={{
                         fontSize: '0.65rem', fontWeight: 700,
                         px: 0.6, py: 0.1, borderRadius: 0.75,
-                        bgcolor: '#e0f2fe', color: '#0369a1',
+                        bgcolor: 'primary.lighter', color: 'primary.dark',
                       }}>{count}</Box>
                     </Box>
                   </MenuItem>
@@ -238,14 +239,14 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: '#f1f5f9',
+                bgcolor: 'action.hover',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mb: 2
               }}
             >
-              <MessageOutlined style={{ fontSize: 28, color: '#94a3b8' }} />
+              <MessageOutlined style={{ fontSize: 28, color: theme.vars.palette.text.disabled }} />
             </Box>
             <Typography variant="body2" color="text.secondary">
               {searchQuery || statusFilter !== 'all' ? 'No conversations found' : 'No conversations yet'}
@@ -269,7 +270,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
               borderLeft: selectedChat?.id === chat.id ? '3px solid' : '3px solid transparent',
               borderLeftColor: selectedChat?.id === chat.id ? 'primary.main' : 'transparent',
               '&:hover': {
-                bgcolor: selectedChat?.id === chat.id ? 'primary.lighter' : '#f1f5f9',
+                bgcolor: selectedChat?.id === chat.id ? 'primary.lighter' : 'action.hover',
                 transform: 'translateX(2px)'
               },
               '&.Mui-selected': {
@@ -291,7 +292,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    border: '2px solid white',
+                    border: `2px solid ${theme.vars.palette.background.paper}`,
                     boxShadow: `0 0 0 1px ${getStatusColor(chat.status)}30`
                   }
                 }}
@@ -359,9 +360,10 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                         display: 'inline-block',
                         fontSize: '10px',
                         fontWeight: 600,
-                        color: '#0369a1',
-                        bgcolor: '#e0f2fe',
-                        border: '1px solid #bae6fd',
+                        color: 'primary.dark',
+                        bgcolor: 'primary.lighter',
+                        border: '1px solid',
+                        borderColor: 'primary.light',
                         borderRadius: '20px',
                         px: '6px',
                         py: '1px',

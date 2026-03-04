@@ -92,7 +92,6 @@ const Queue = () => {
         selectedId={selectedId}
         onSelect={setSelectedId}
         palette={palette}
-        withAlpha={withAlpha}
         getAvatarBg={getAvatarBg}
         getInitials={getInitials}
       />

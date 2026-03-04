@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, CircularProgress } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import NotificationItem from './NotificationItem';
 
 const NotificationListSection = ({
@@ -15,19 +16,28 @@ const NotificationListSection = ({
   onMarkAllAsRead,
   onLoadMore,
 }) => {
+  const theme = useTheme();
+
+  const bg = theme.vars.palette.background.paper;
+  const border = `1px solid ${theme.vars.palette.divider}`;
+  const headerBorder = theme.vars.palette.divider;
+  const textPrimary = theme.vars.palette.text.primary;
+  const textSecondary = theme.vars.palette.text.secondary;
+  const textMuted = theme.vars.palette.text.disabled;
+
   if (initialLoading) {
     return (
       <Box
         sx={{
-          backgroundColor: '#fff',
-          border: '1px solid #E2E8F0',
+          backgroundColor: bg,
+          border,
           borderRadius: '4px',
           padding: '60px 20px',
           textAlign: 'center',
         }}
       >
-        <CircularProgress size={32} sx={{ color: '#008E86' }} />
-        <p style={{ fontSize: '14px', color: '#718096', marginTop: '12px' }}>
+        <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+        <p style={{ fontSize: '14px', color: textSecondary, marginTop: '12px' }}>
           Loading notifications...
         </p>
       </Box>
@@ -36,13 +46,12 @@ const NotificationListSection = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 1.5 } }}>
-      {/* Grouped notification rows */}
       {groupKeys.map((dateLabel) => (
         <div
           key={dateLabel}
           style={{
-            backgroundColor: '#fff',
-            border: '1px solid #E2E8F0',
+            backgroundColor: bg,
+            border: `1px solid ${theme.vars.palette.divider}`,
             borderRadius: '4px',
             overflow: 'hidden',
           }}
@@ -51,7 +60,7 @@ const NotificationListSection = ({
           <Box
             sx={{
               padding: { xs: '10px 12px', sm: '14px 16px' },
-              borderBottom: '1px solid #E6EBEE',
+              borderBottom: `1px solid ${headerBorder}`,
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: 1, sm: 0 },
@@ -59,9 +68,9 @@ const NotificationListSection = ({
               alignItems: { xs: 'stretch', sm: 'center' },
             }}
           >
-            <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0, color: '#2C3E50' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0, color: textPrimary }}>
               {dateLabel}
-              <span style={{ fontSize: '12px', fontWeight: 400, color: '#A0AEC0', marginLeft: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 400, color: textMuted, marginLeft: '8px' }}>
                 ({groupedNotifications[dateLabel].length})
               </span>
             </h3>
@@ -71,21 +80,21 @@ const NotificationListSection = ({
                 onClick={onMarkAllAsRead}
                 style={{
                   padding: '7px 12px',
-                  backgroundColor: '#fff',
-                  color: '#008E86',
-                  border: '1px solid #008E86',
+                  backgroundColor: theme.vars.palette.background.paper,
+                  color: theme.vars.palette.primary.main,
+                  border: `1px solid ${theme.vars.palette.primary.main}`,
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: 500,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#008E86';
-                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.backgroundColor = theme.vars.palette.primary.main;
+                  e.currentTarget.style.color = theme.vars.palette.primary.contrastText;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fff';
-                  e.currentTarget.style.color = '#008E86';
+                  e.currentTarget.style.backgroundColor = theme.vars.palette.background.paper;
+                  e.currentTarget.style.color = theme.vars.palette.primary.main;
                 }}
               >
                 Mark all as Read
@@ -93,7 +102,6 @@ const NotificationListSection = ({
             )}
           </Box>
 
-          {/* Notification rows */}
           <div>
             {groupedNotifications[dateLabel].map((notification) => (
               <NotificationItem
@@ -113,21 +121,21 @@ const NotificationListSection = ({
             onClick={onLoadMore}
             style={{
               padding: '9px 24px',
-              backgroundColor: '#fff',
-              color: '#008E86',
-              border: '1px solid #008E86',
+              backgroundColor: theme.vars.palette.background.paper,
+              color: theme.vars.palette.primary.main,
+              border: `1px solid ${theme.vars.palette.primary.main}`,
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '13px',
               fontWeight: 600,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#008E86';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.backgroundColor = theme.vars.palette.primary.main;
+              e.currentTarget.style.color = theme.vars.palette.primary.contrastText;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#fff';
-              e.currentTarget.style.color = '#008E86';
+              e.currentTarget.style.backgroundColor = theme.vars.palette.background.paper;
+              e.currentTarget.style.color = theme.vars.palette.primary.main;
             }}
           >
             Load More
@@ -135,29 +143,27 @@ const NotificationListSection = ({
         </div>
       )}
 
-      {/* Inline loading spinner */}
       {loading && !initialLoading && (
         <Box sx={{ textAlign: 'center', py: 2 }}>
-          <CircularProgress size={24} sx={{ color: '#008E86' }} />
+          <CircularProgress size={24} sx={{ color: 'primary.main' }} />
         </Box>
       )}
 
-      {/* Empty state */}
       {filteredNotifications.length === 0 && !loading && (
         <Box
           sx={{
-            backgroundColor: '#fff',
-            border: '1px solid #E2E8F0',
+            backgroundColor: bg,
+            border,
             borderRadius: '4px',
             padding: { xs: '40px 20px', sm: '60px 20px' },
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '16px', color: '#CBD5E0' }}>🔔</div>
-          <p style={{ fontSize: '16px', color: '#718096', margin: 0 }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', color: textMuted }}>🔔</div>
+          <p style={{ fontSize: '16px', color: textSecondary, margin: 0 }}>
             {selectedTab === 'Unread' ? 'No unread notifications' : 'No notifications yet'}
           </p>
-          <p style={{ fontSize: '13px', color: '#A0AEC0', margin: '8px 0 0' }}>
+          <p style={{ fontSize: '13px', color: textMuted, margin: '8px 0 0' }}>
             {selectedTab === 'Unread'
               ? "You're all caught up!"
               : 'Notifications will appear here when clients message you or chats are assigned.'}

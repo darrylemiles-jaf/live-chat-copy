@@ -13,18 +13,18 @@ import MainCard from '../../components/MainCard';
  *  - formatDuration {function}  (seconds) => string
  */
 const StatsChartSection = ({ title, stats, theme, formatDuration }) => (
-  <MainCard sx={{ p: 2.5, height: '100%', minHeight: 280, display: 'flex', flexDirection: 'column', border: '1px solid #008E86' }}>
+  <MainCard sx={{ p: 2.5, height: '100%', minHeight: 280, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'primary.main' }}>
     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
       {title}
     </Typography>
     <Divider sx={{ mb: 2 }} />
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#4653F2' }} />
+        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'info.main' }} />
         <Typography variant="caption">Requests</Typography>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />
+        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'warning.main' }} />
         <Typography variant="caption">Resolved</Typography>
       </Box>
     </Box>
@@ -37,8 +37,8 @@ const StatsChartSection = ({ title, stats, theme, formatDuration }) => (
         yAxis={[{ tickSize: 7, disableLine: true }]}
         margin={{ left: 20, right: 20 }}
         series={[
-          { type: 'line', data: stats.newChats, label: 'Requests', id: 'requests', stroke: '#2196f3', strokeWidth: 2, showMark: true },
-          { type: 'line', data: stats.closedChats, label: 'Resolved', id: 'resolved', stroke: '#ff9800', strokeWidth: 2, showMark: true }
+          { type: 'line', data: stats.newChats, label: 'Requests', id: 'requests', stroke: 'var(--palette-info-main)', strokeWidth: 2, showMark: true },
+          { type: 'line', data: stats.closedChats, label: 'Resolved', id: 'resolved', stroke: 'var(--palette-warning-main)', strokeWidth: 2, showMark: true }
         ]}
         sx={{
           '& .MuiChartsGrid-line': { strokeDasharray: '4 4', stroke: theme.vars.palette.divider },

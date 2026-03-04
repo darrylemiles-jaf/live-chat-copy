@@ -13,13 +13,13 @@ import {
   Tab
 } from '@mui/material';
 import { CloseOutlined, UserOutlined } from '@ant-design/icons';
-import { customGreen, customGold, customRed, customOrange } from '../themes/palette';
+
 
 const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, actions = [] }) => {
   const theme = useTheme();
-  const accentColor = customGreen[5];
-  const accentColorDark = customGreen[7];
-  const accentColorLight = customGreen[0];
+  const accentColor = theme.vars.palette.primary.main;
+  const accentColorDark = theme.vars.palette.primary.dark;
+  const accentColorLight = theme.vars.palette.primary.lighter;
   const [tabValue, setTabValue] = useState(0);
 
   if (!data) return null;
@@ -137,7 +137,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
         )}
       </Box>
 
-      <DialogContent sx={{ p: 0, bgcolor: 'white' }}>
+      <DialogContent sx={{ p: 0, bgcolor: 'background.paper' }}>
         <Box sx={{ px: { xs: 2, sm: 4 }, py: { xs: 2, sm: 3 } }}>
           {infoSections && infoSections.length > 0 && (
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 4 } }}>
@@ -177,7 +177,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                         <Typography 
                           variant="caption" 
                           sx={{ 
-                            color: theme.palette.grey[400],
+                            color: theme.vars.palette.text.disabled,
                             fontWeight: 400,
                             fontSize: '0.75rem',
                             letterSpacing: '0.3px',
@@ -193,7 +193,7 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
                             variant="body1" 
                             sx={{ 
                               fontWeight: 500,
-                              color: theme.palette.grey[800],
+                              color: theme.vars.palette.text.primary,
                               fontSize: { xs: '0.9375rem', sm: '1rem' },
                               lineHeight: 1.5,
                               ...field.valueStyle 
@@ -249,8 +249,8 @@ const UserDetailsView = ({ open = false, onClose, data = {}, viewConfig = {}, ac
         <DialogActions sx={{ 
           px: { xs: 2, sm: 3 }, 
           py: 2, 
-          bgcolor: 'white', 
-          borderTop: `1px solid ${theme.palette.grey[200]}`,
+          bgcolor: 'background.paper', 
+          borderTop: `1px solid ${theme.vars.palette.divider}`,
           flexDirection: { xs: 'column', sm: 'row' },
           gap: { xs: 1, sm: 0 },
           '& > :not(style) + :not(style)': {

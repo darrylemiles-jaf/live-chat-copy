@@ -13,11 +13,10 @@ import {
   MenuItem
 } from '@mui/material';
 import { PlusOutlined } from '@ant-design/icons';
-import { customGreen } from '../../themes/palette';
 
 const AgentCreateDialog = ({ open, formData, onClose, onCreate, onFormChange }) => (
   <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-    <DialogTitle sx={{ color: customGreen[8], fontWeight: 700 }}>Create New Agent</DialogTitle>
+    <DialogTitle sx={{ color: 'primary.main', fontWeight: 700 }}>Create New Agent</DialogTitle>
     <DialogContent sx={{ pt: 2 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
         <TextField
@@ -63,7 +62,7 @@ const AgentCreateDialog = ({ open, formData, onClose, onCreate, onFormChange }) 
         onClick={onCreate}
         variant="contained"
         startIcon={<PlusOutlined />}
-        sx={{ bgcolor: customGreen[8], color: '#fff', fontWeight: 600, '&:hover': { bgcolor: customGreen[7] } }}
+        sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 600, '&:hover': { bgcolor: 'primary.dark' } }}
       >
         Create Agent
       </Button>

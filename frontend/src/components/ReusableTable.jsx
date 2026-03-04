@@ -143,21 +143,21 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchOutlined style={{ color: '#6b7280' }} />
+                    <SearchOutlined style={{ color: theme.vars.palette.text.secondary }} />
                   </InputAdornment>
                 )
               }}
               sx={{
                 width: { xs: '100%', sm: '300px' },
-                backgroundColor: '#fff',
+                backgroundColor: theme.vars.palette.background.paper,
                 borderRadius: '12px',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: '#e5e7eb' },
-                  '&:hover fieldset': { borderColor: '#6366f1' },
+                  '& fieldset': { borderColor: theme.vars.palette.divider },
+                  '&:hover fieldset': { borderColor: theme.vars.palette.primary.main },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#4f46e5',
-                    boxShadow: '0 0 0 3px rgba(79,70,229,0.15)'
+                    borderColor: theme.vars.palette.primary.main,
+                    boxShadow: `0 0 0 3px ${theme.vars.palette.primary.lighter}`
                   }
                 }
               }}
@@ -209,7 +209,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
             <TableHead>
               <TableRow
                 sx={{
-                  background: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.background.default
+                  background: theme.vars.palette.background.default
                 }}
               >
                 {columns
@@ -221,9 +221,9 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                       sortDirection={orderBy === column.id ? order : false}
                       sx={{
                         fontWeight: 'bold',
-                        color: theme.palette.primary.dark,
-                        backgroundColor: orderBy === column.id ? theme.palette.action.hover : 'transparent',
-                        borderRight: `1px solid ${theme.palette.divider}`,
+                        color: theme.vars.palette.primary.dark,
+                        backgroundColor: orderBy === column.id ? theme.vars.palette.action.hover : 'transparent',
+                        borderRight: `1px solid ${theme.vars.palette.divider}`,
                         '&:last-of-type': { borderRight: 'none' }
                       }}
                     >
@@ -232,8 +232,8 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                         direction={orderBy === column.id ? order : 'asc'}
                         onClick={() => handleRequestSort(column.id)}
                         sx={{
-                          '&.Mui-active': { color: theme.palette.primary.main },
-                          '&:hover': { color: theme.palette.primary.dark }
+                          '&.Mui-active': { color: theme.vars.palette.primary.main },
+                          '&:hover': { color: theme.vars.palette.primary.dark }
                         }}
                       >
                         <Typography variant="subtitle1">{column.label}</Typography>
@@ -257,7 +257,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
               ) : filteredRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={visibleColumns.length} align="center">
-                    <Typography variant="body1" sx={{ py: 3, color: theme.palette.text.secondary }}>
+                    <Typography variant="body1" sx={{ py: 3, color: theme.vars.palette.text.secondary }}>
                       {noMessage}
                     </Typography>
                   </TableCell>
@@ -269,7 +269,9 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                       hover
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
                       sx={{
-                        backgroundColor: index % 2 === 0 ? theme.palette.background.paper : theme.palette.action.hover,
+                        backgroundColor: index % 2 === 0
+                          ? theme.vars.palette.background.paper
+                          : theme.vars.palette.action.hover,
                         transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                         animation: 'fadeIn 0.3s ease-in-out',
                         cursor: onRowClick ? 'pointer' : 'default',
@@ -278,7 +280,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                           to: { opacity: 1, transform: 'translateY(0)' }
                         },
                         '&:hover': {
-                          backgroundColor: theme.palette.action.selected,
+                          backgroundColor: theme.vars.palette.action.selected,
                           transform: 'translateY(-2px)',
                           boxShadow: theme.shadows[1]
                         }
@@ -291,7 +293,7 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
                           key={column.id}
                           align={column.align || 'center'}
                           sx={{
-                            borderRight: `1px solid ${theme.palette.divider}`,
+                            borderRight: `1px solid ${theme.vars.palette.divider}`,
                             '&:last-of-type': { borderRight: 'none' },
                             maxWidth: column.minWidth || 120
                           }}
@@ -335,18 +337,18 @@ const ReusableTable = ({ columns, rows, settings, isLoading, searchableColumns =
               labelRowsPerPage="Rows:"
               sx={{
                 paddingRight: '2rem !important',
-                backgroundColor: theme.palette.background.default,
-                borderTop: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.vars.palette.background.default,
+                borderTop: `1px solid ${theme.vars.palette.divider}`,
                 '& .MuiTablePagination-actions button': {
                   borderRadius: '12px',
                   transition: 'all 0.25s ease',
                   marginRight: '0.5rem',
-                  backgroundColor: theme.palette.action.hover,
-                  color: theme.palette.primary.dark,
+                  backgroundColor: theme.vars.palette.action.hover,
+                  color: theme.vars.palette.primary.dark,
                   '&:hover': {
-                    backgroundColor: theme.palette.primary.light,
+                    backgroundColor: theme.vars.palette.primary.light,
                     transform: 'scale(1.15)',
-                    boxShadow: `0px 3px 6px ${theme.palette.primary.main}50`
+                    boxShadow: `0px 3px 6px ${theme.vars.palette.primary.main}50`
                   }
                 }
               }}

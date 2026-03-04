@@ -51,9 +51,9 @@ export default function NotFound() {
                   size="large"
                   onClick={() => window.open(COMPANY_URL, '_blank')}
                   sx={{
-                    bgcolor: '#008E86',
+                    bgcolor: 'primary.main',
                     '&:hover': {
-                      bgcolor: '#007670'
+                      bgcolor: 'primary.dark'
                     }
                   }}
                 >
@@ -64,11 +64,11 @@ export default function NotFound() {
                   size="large"
                   onClick={() => navigate('/portal/dashboard')}
                   sx={{
-                    color: '#008E86',
-                    borderColor: '#008E86',
+                    color: 'primary.main',
+                    borderColor: 'primary.main',
                     '&:hover': {
-                      borderColor: '#007670',
-                      bgcolor: 'rgba(0, 142, 134, 0.04)'
+                      borderColor: 'primary.dark',
+                      bgcolor: 'action.hover'
                     }
                   }}
                 >

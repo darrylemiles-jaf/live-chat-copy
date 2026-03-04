@@ -112,7 +112,7 @@ export default function Profile() {
         </ButtonBase>
       </Tooltip>
 
-      <Box component="span" sx={{ fontWeight: "bold", color: "black" }}>
+      <Box component="span" sx={{ fontWeight: "bold", color: "text.primary" }}>
         {user?.name || user?.username || 'User'}
       </Box>
       <Popper

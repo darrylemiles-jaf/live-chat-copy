@@ -6,7 +6,8 @@ export const MINI_DRAWER_WIDTH = 60;
 
 
 const config = {
-  fontFamily: `'Public Sans', sans-serif`
+  fontFamily: `'Public Sans', sans-serif`,
+  presetColor: 'default'
 };
 
 export default config;
