@@ -547,7 +547,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       if (isChatEnded && activeChatId) {
         try {
           const response = await fetch(`${apiUrl}/ratings/chat/${activeChatId}`, {
-            headers: { 'ngrok-skip-browser-warning': 'true' }
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+            }
           });
           const data = await response.json();
           if (data.success && data.data) {
