@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import WidgetEditor from './WidgetEditor';
+import { CHAT_MODES, escalateToAgent } from '../../services/chatService';
 import './ChatWidget.css';
 
 const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
@@ -13,6 +15,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const [agentName, setAgentName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatEnded, setIsChatEnded] = useState(false);
@@ -27,13 +30,19 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
   const [endedChatId, setEndedChatId] = useState(null);
-  const [concern, setConcern] = useState('');
-  const [lastConcern, setLastConcern] = useState('');
-  const [lastIsCustomConcern, setLastIsCustomConcern] = useState(false);
-  const [concernOptions, setConcernOptions] = useState([]);
-  const [concernDropdownOpen, setConcernDropdownOpen] = useState(false);
-  const [isCustomConcern, setIsCustomConcern] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState(null);
+
+  // ── Quick Chats screen ────────────────────────────────────────────────────
+  const [widgetScreen, setWidgetScreen] = useState('quick_chats');
+  const [quickChats, setQuickChats] = useState([]);
+  const [quickChatsLoading, setQuickChatsLoading] = useState(false);
+  const [quickChatSearch, setQuickChatSearch] = useState('');
+  const [showAllQCPills, setShowAllQCPills] = useState(false);
+
+  // ── Escalation state ──────────────────────────────────────────────────────
+  const [chatMode, setChatMode] = useState(CHAT_MODES.BOT);
+  const [escalatedAgentName, setEscalatedAgentName] = useState('');
+  const [isEscalating, setIsEscalating] = useState(false);
 
   const toTitleCase = (str) => {
     if (!str) return '';
@@ -43,35 +52,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   };
-
-  const handleConcernInput = (e) => {
-    const value = e.target.value;
-    if (isCustomConcern) {
-      const hasTrailingSpace = value.endsWith(' ');
-      const transformed = toTitleCase(value);
-      setConcern(hasTrailingSpace && value.trim() ? transformed + ' ' : transformed);
-    } else {
-      setConcern(toTitleCase(value));
-      setConcernDropdownOpen(true);
-    }
-  };
-
-  const STATIC_CONCERNS = [
-    { id: 's1', name: 'General Inquiry' },
-    { id: 's2', name: 'Technical Issue' },
-  ];
-
-  const allConcernOptions = [
-    ...STATIC_CONCERNS,
-    ...concernOptions.filter(
-      opt => !STATIC_CONCERNS.some(s => s.name.toLowerCase() === opt.name.toLowerCase())
-    ),
-    { id: 'other', name: 'Other' }
-  ];
-
-  const filteredConcernOptions = allConcernOptions.filter(opt =>
-    !isCustomConcern || concern === '' || opt.name.toLowerCase().includes(concern.toLowerCase())
-  );
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -85,33 +65,19 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     'Technical issue',
   ];
 
+  const [isEditorEmpty, setIsEditorEmpty] = useState(true);
+
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
   const fileInputRef = useRef(null);
-  const concernRef = useRef(null);
+  const editorRef = useRef(null);
+  const escalationPollRef = useRef(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
   }, [chatId]);
-
-  useEffect(() => {
-    fetch(`${apiUrl}/concern-types`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
-      .then(r => r.json())
-      .then(data => { if (data?.success) setConcernOptions(data.data); })
-      .catch(() => { });
-  }, [apiUrl]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (concernRef.current && !concernRef.current.contains(e.target)) {
-        setConcernDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
 
   useEffect(() => {
     if (!isRegistered) return;
@@ -320,7 +286,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !userId) {
+    if ((isEditorEmpty && !selectedFile) || !userId) {
       console.warn('Cannot send message:', { inputMessage, userId });
       return;
     }
@@ -332,8 +298,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     if (chatId) {
       messagePayload.chat_id = chatId;
-    } else if (concern) {
-      messagePayload.concern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
     }
 
     console.log('Sending message:', messagePayload);
@@ -354,19 +318,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
 
-          if (concern) {
-            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              map[newChatId] = formattedConcern;
-              localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) { }
-            // Update state with formatted concern
-            if (isCustomConcern) {
-              setConcern(formattedConcern);
-            }
-          }
-
           if (data.data) {
             setMessages(prev => {
               if (prev.some(msg => msg.id === data.data.id)) return prev;
@@ -382,7 +333,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             setQueuePosition(data.queue_position);
           }
 
+          setIsBotTyping(true);
           setTimeout(() => {
+            setIsBotTyping(false);
             setMessages(prev => [
               ...prev,
               {
@@ -394,10 +347,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               }
             ]);
             scrollToBottom();
-          }, 600);
+          }, 1400);
         }
 
         setInputMessage('');
+        editorRef.current?.clear();
+        setIsEditorEmpty(true);
       }
     } catch (error) {
       console.error('Send message error:', error);
@@ -454,10 +409,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       formData.append('sender_id', userId);
       if (chatId) {
         formData.append('chat_id', chatId);
-      } else if (concern) {
-        formData.append('concern', isCustomConcern ? toTitleCase(concern.trim()) : concern);
       }
-      if (inputMessage.trim()) {
+      if (inputMessage.trim() && !isEditorEmpty) {
         formData.append('message', inputMessage.trim());
       }
 
@@ -476,18 +429,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
 
-          if (concern) {
-            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              map[newChatId] = formattedConcern;
-              localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) { }
-            if (isCustomConcern) {
-              setConcern(formattedConcern);
-            }
-          }
-
           if (data.data) {
             setMessages(prev => {
               if (prev.some(msg => msg.id === data.data.id)) return prev;
@@ -503,7 +444,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             setQueuePosition(data.queue_position);
           }
 
+          setIsBotTyping(true);
           setTimeout(() => {
+            setIsBotTyping(false);
             setMessages(prev => [
               ...prev,
               {
@@ -514,11 +457,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 isAutoReply: true
               }
             ]);
-          }, 600);
+          }, 1400);
         }
 
         clearSelectedFile();
         setInputMessage('');
+        editorRef.current?.clear();
+        setIsEditorEmpty(true);
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -552,6 +497,35 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       loadChatHistory();
     }
   }, [userId, isRegistered]);
+
+  /* switch to chat screen whenever an active chatId is set */
+  useEffect(() => {
+    if (chatId) setWidgetScreen('chat');
+  }, [chatId]);
+
+  /* switch to chat screen when a previously-ended chat is loaded */
+  useEffect(() => {
+    if (isChatEnded) setWidgetScreen('chat');
+  }, [isChatEnded]);
+
+  /* fetch quick chats once the user is registered */
+  useEffect(() => {
+    if (!isRegistered) return;
+    let cancelled = false;
+    const load = async () => {
+      setQuickChatsLoading(true);
+      try {
+        const res = await fetch(`${apiUrl}/quick-chats`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const data = await res.json();
+        if (!cancelled && data.success) setQuickChats(data.data || []);
+      } catch { /* non-critical */ }
+      finally { if (!cancelled) setQuickChatsLoading(false); }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [isRegistered, apiUrl]);
 
   useEffect(() => {
     const checkExistingRating = async () => {
@@ -591,14 +565,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         if (activeChat) {
           setChatId(activeChat.id);
-          if (!activeChat.concern) {
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              if (map[activeChat.id]) setConcern(map[activeChat.id]);
-            } catch (_) { }
-          } else {
-            setConcern(activeChat.concern);
-          }
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
             const seenMsgs = activeChat.messages.filter(m => m.sender_role === 'client' && m.is_seen);
@@ -629,9 +595,105 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
+  // ── Quick chat click → inject bot reply locally, switch to chat screen ──
+  const handleQuickChatSelect = (qc) => {
+    const now = Date.now();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `qc-user-${now}`,
+        sender_id: userId,
+        sender_role: 'client',
+        message: qc.title,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    setWidgetScreen('chat');
+    setIsBotTyping(true);
+    setTimeout(() => {
+      setIsBotTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `qc-bot-${now + 1}`,
+          sender_role: 'bot',
+          message: qc.response,
+          created_at: new Date().toISOString(),
+          isAutoReply: true,
+        },
+      ]);
+      scrollToBottom();
+    }, 1400);
+  };
+
+  // ── Escalation handler ──────────────────────────────────────────────────
+  const handleEscalateToAgent = useCallback(async () => {
+    if (chatMode !== CHAT_MODES.BOT || isEscalating) return;
+
+    if (!chatId) {
+      showToast('Please send a message first to start a chat, then we can connect you with an agent.');
+      return;
+    }
+
+    setIsEscalating(true);
+    setChatMode(CHAT_MODES.PENDING_AGENT);
+
+    // Track resolved state in local mutable ref so the interval sees fresh values
+    let resolved = false;
+
+    const attempt = async () => {
+      if (resolved) return;
+      try {
+        const result = await escalateToAgent(apiUrl, userId, chatId);
+
+        if (result.status === 'assigned') {
+          resolved = true;
+          setChatMode(CHAT_MODES.LIVE_AGENT);
+          setEscalatedAgentName(result.agentName || 'an Agent');
+          setIsEscalating(false);
+          clearInterval(escalationPollRef.current);
+          escalationPollRef.current = null;
+        }
+        // 'no_agent_available' → stay in PENDING_AGENT, polling continues
+      } catch (err) {
+        resolved = true;
+        console.error('Escalation error:', err);
+        setChatMode(CHAT_MODES.BOT);
+        setIsEscalating(false);
+        clearInterval(escalationPollRef.current);
+        escalationPollRef.current = null;
+        showToast(err.message || 'Could not connect to an agent. Please try again.');
+      }
+    };
+
+    // First immediate attempt
+    await attempt();
+
+    // If not yet resolved, start polling every 10 s
+    if (!resolved) {
+      escalationPollRef.current = setInterval(async () => {
+        if (resolved) {
+          clearInterval(escalationPollRef.current);
+          escalationPollRef.current = null;
+          return;
+        }
+        await attempt();
+      }, 10000);
+    }
+  }, [chatMode, isEscalating, apiUrl, userId, chatId]);
+
+  // Cleanup escalation poll on unmount or chat end
+  useEffect(() => {
+    if (isChatEnded) {
+      clearInterval(escalationPollRef.current);
+      escalationPollRef.current = null;
+    }
+    return () => {
+      clearInterval(escalationPollRef.current);
+    };
+  }, [isChatEnded]);
+
   const handleStartNewChat = () => {
-    const prevConcern = concern;
-    const prevIsCustom = isCustomConcern;
     setChatId(null);
     setMessages([]);
     setIsChatEnded(false);
@@ -642,10 +704,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setRatingHover(0);
     setRatingComment('');
     setRatingSubmitted(false);
-    setConcern(prevConcern);
-    setIsCustomConcern(false);
-    setLastConcern(prevConcern);
-    setLastIsCustomConcern(prevIsCustom);
+    // Reset escalation
+    setChatMode(CHAT_MODES.BOT);
+    setEscalatedAgentName('');
+    setIsEscalating(false);
+    clearInterval(escalationPollRef.current);
+    escalationPollRef.current = null;
+    // Return to quick chats screen
+    setWidgetScreen('quick_chats');
+    setQuickChatSearch('');
   };
 
   const handleSubmitRating = async () => {
@@ -691,6 +758,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     return seenDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const filteredQCs = quickChatSearch.trim()
+    ? quickChats.filter(qc =>
+      qc.title.toLowerCase().includes(quickChatSearch.toLowerCase())
+    )
+    : quickChats;
+
   return (
     <div className="chat-widget-container">
       {toast.show && (
@@ -732,29 +805,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <span className="chat-status-text">
                     {isConnected ? 'Online — we’re here to help' : 'Offline'}
                   </span>
-                  {concern && (
-                    <span
-                      className="chat-concern-badge"
-                      style={!chatId ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' } : {}}
-                      title={!chatId ? 'Click to change concern' : ''}
-                    >
-                      {concern}
-                      {!chatId && (
-                        <button
-                          type="button"
-                          className="chat-concern-badge-clear"
-                          aria-label="Change concern"
-                          onClick={() => {
-                            setConcern('');
-                            setIsCustomConcern(false);
-                            setConcernDropdownOpen(true);
-                          }}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -797,9 +847,135 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             </div>
           )}
 
-          {/* Messages */}
-          {isRegistered && (
+          {/* ── Quick Chats Screen ── */}
+          {isRegistered && widgetScreen === 'quick_chats' && !isChatEnded && (
+            <div className="cw-qc-screen">
+              <div className="cw-qc-header">
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    className="cw-qc-back-btn"
+                    onClick={() => setWidgetScreen('chat')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Back to chat
+                  </button>
+                )}
+                <div className="cw-qc-header-icon">💬</div>
+                <h4 className="cw-qc-title">Quick Answers</h4>
+                <p className="cw-qc-subtitle">
+                  Pick a topic below to get an instant answer, or talk to a real person.
+                </p>
+              </div>
+
+              <div className="cw-qc-search-wrap">
+                <span className="cw-qc-search-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="cw-qc-search"
+                  placeholder="Search answers…"
+                  value={quickChatSearch}
+                  onChange={(e) => setQuickChatSearch(e.target.value)}
+                />
+                {quickChatSearch && (
+                  <button className="cw-qc-search-clear" type="button" onClick={() => setQuickChatSearch('')}>×</button>
+                )}
+              </div>
+
+              <div className="cw-qc-list">
+                {quickChatsLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="cw-qc-item">
+                      <div className="cw-qc-skeleton-header" />
+                    </div>
+                  ))
+                ) : filteredQCs.length === 0 ? (
+                  <div className="cw-qc-empty">
+                    {quickChatSearch.trim()
+                      ? `No results for "${quickChatSearch}".`
+                      : 'No quick answers available yet.'}
+                  </div>
+                ) : (
+                  filteredQCs.map((qc) => (
+                    <div key={qc.id} className="cw-qc-item">
+                      <button
+                        type="button"
+                        className="cw-qc-item-header"
+                        onClick={() => handleQuickChatSelect(qc)}
+                      >
+                        <span className="cw-qc-item-title">{qc.title}</span>
+                        <svg
+                          className="cw-qc-chevron"
+                          width="14" height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="cw-qc-cta">
+                <p className="cw-qc-cta-label">Still have an issue?</p>
+                <button
+                  type="button"
+                  className="cw-qc-agent-btn"
+                  onClick={() => setWidgetScreen('chat')}
+                >
+                  <svg
+                    width="15" height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Talk to an Agent
+                </button>
+              </div>
+
+              <div className="chat-widget-footer">
+                Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
+              </div>
+            </div>
+          )}
+
+          {/* ── Chat Screen ── */}
+          {isRegistered && (widgetScreen === 'chat' || isChatEnded) && (
             <>
+              {/* Back navigation bar */}
+              {!isChatEnded && (
+                <div className="cw-chat-back-nav">
+                  <button
+                    type="button"
+                    className="cw-chat-back-btn"
+                    onClick={() => setWidgetScreen('quick_chats')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Quick Answers
+                  </button>
+                </div>
+              )}
               <div className="chat-widget-messages">
                 {messages.length === 0 && !chatId && !isChatEnded && (
                   <div className="chat-empty-state">
@@ -866,7 +1042,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                                 )}
                               </div>
                             )}
-                            {msg.message && <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>}
+                            {msg.message && (
+                              msg.message.startsWith('<')
+                                ? <div className="cw-rich-msg" dangerouslySetInnerHTML={{ __html: msg.message }} />
+                                : <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                            )}
                           </div>
                         </div>
                         {showSeen && (
@@ -883,14 +1063,63 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   });
                 })()}
 
-                {isTyping && (
+                {(isTyping || isBotTyping) && (
                   <div className="chat-typing-indicator">
-                    <span>typing</span>
+                    <span>{isBotTyping ? '' : (agentName || 'Agent')}</span>
                     <div className="typing-dots">
                       <span></span>
                       <span></span>
                       <span></span>
                     </div>
+                  </div>
+                )}
+
+                {/* ── Escalation prompt (shown after bot replies, only before real chat starts) ── */}
+                {!isChatEnded &&
+                  !chatId &&
+                  chatMode === CHAT_MODES.BOT &&
+                  messages.some(m => m.sender_role === 'bot') && (
+                    <div className="chat-escalation-prompt">
+                      <div className="chat-escalation-divider">
+                        <span>or</span>
+                      </div>
+                      <p className="chat-escalation-text">Still having problems?</p>
+                      <button
+                        type="button"
+                        className="chat-escalation-btn"
+                        onClick={handleEscalateToAgent}
+                        disabled={isEscalating}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', flexShrink: 0 }}>
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        Talk to an Agent
+                      </button>
+                    </div>
+                  )}
+
+                {/* ── Pending agent state ── */}
+                {!isChatEnded && chatMode === CHAT_MODES.PENDING_AGENT && (
+                  <div className="chat-escalation-pending">
+                    <div className="chat-escalation-spinner" />
+                    <p className="chat-escalation-pending-text">
+                      All agents are currently busy. Please wait&hellip;
+                    </p>
+                    <p className="chat-escalation-pending-sub">
+                      We&rsquo;re looking for an available agent and will connect you automatically.
+                    </p>
+                  </div>
+                )}
+
+                {/* ── Agent connected state ── */}
+                {!isChatEnded && chatMode === CHAT_MODES.LIVE_AGENT && escalatedAgentName && (
+                  <div className="chat-escalation-connected">
+                    <div className="chat-escalation-connected-icon">✓</div>
+                    <p className="chat-escalation-connected-text">
+                      You are now connected to Agent&nbsp;
+                      <strong>{escalatedAgentName}</strong>
+                    </p>
                   </div>
                 )}
 
@@ -967,21 +1196,30 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 </div>
               )}
 
-              {/* Quick Replies */}
-              {!isChatEnded && messages.length === 0 && concern.trim() && (
-                <div className="chat-quick-replies">
-                  <span className="chat-quick-replies-label">Quick replies</span>
-                  <div className="chat-quick-replies-list">
-                    {QUICK_REPLIES.map((text) => (
+              {/* Quick Chat Pills — visible until a real agent chat starts */}
+              {!isChatEnded && !chatId && quickChats.length > 0 && (
+                <div className="chat-quick-chats">
+                  <span className="chat-quick-chats-label">Quick Chats</span>
+                  <div className="chat-quick-chats-list">
+                    {(showAllQCPills ? quickChats : quickChats.slice(0, 5)).map((qc) => (
                       <button
-                        key={text}
+                        key={qc.id}
                         className="chat-quick-reply-btn"
-                        onClick={() => setInputMessage(text)}
                         type="button"
+                        onClick={() => handleQuickChatSelect(qc)}
                       >
-                        {text}
+                        {qc.title}
                       </button>
                     ))}
+                    {quickChats.length > 5 && (
+                      <button
+                        type="button"
+                        className="chat-qc-see-more-btn"
+                        onClick={() => setShowAllQCPills(v => !v)}
+                      >
+                        {showAllQCPills ? 'See less ↑' : `+${quickChats.length - 5} more`}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -1029,52 +1267,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     }}
                     className="chat-widget-input"
                   >
-                    {!chatId && !isChatEnded && (
-                      <div
-                        className="chat-concern-inline"
-                        ref={concernRef}
-                        onClick={() => !isCustomConcern && setConcernDropdownOpen(true)}
-                        style={!isCustomConcern ? { cursor: 'pointer' } : {}}
-                      >
-                        <input
-                          type="text"
-                          placeholder={isCustomConcern ? "Type your concern…" : "Select a concern first…"}
-                          value={concern === 'Other' && !isCustomConcern ? '' : concern}
-                          onChange={handleConcernInput}
-                          onFocus={() => !isCustomConcern && setConcernDropdownOpen(true)}
-                          autoComplete="off"
-                          className="chat-concern-inline-input"
-                          readOnly={!isCustomConcern}
-                          style={!isCustomConcern ? { cursor: 'pointer' } : {}}
-                        />
-                        {!isCustomConcern && <span className="chat-concern-bar-chevron">▾</span>}
-                        {concernDropdownOpen && filteredConcernOptions.length > 0 && !isCustomConcern && (
-                          <ul className="chat-concern-dropdown">
-                            {filteredConcernOptions.map(opt => (
-                              <li
-                                key={opt.id}
-                                className={`chat-concern-option${concern === opt.name ? ' selected' : ''}`}
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  if (opt.name === 'Other') {
-                                    setIsCustomConcern(true);
-                                    setConcern('');
-                                    setConcernDropdownOpen(false);
-                                  } else {
-                                    setConcern(opt.name);
-                                    setIsCustomConcern(false);
-                                    setConcernDropdownOpen(false);
-                                  }
-                                }}
-                              >
-                                {opt.name}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                    <div className="chat-input-row" style={!chatId && !isChatEnded && !concern.trim() ? { display: 'none' } : {}}>
+                    <div className="chat-input-row">
                       <input
                         type="file"
                         ref={fileInputRef}
@@ -1092,19 +1285,19 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                           <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                         </svg>
                       </button>
-                      <input
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => {
-                          setInputMessage(e.target.value);
-                          handleTyping();
+                      <WidgetEditor
+                        ref={editorRef}
+                        onChange={(html, empty) => {
+                          setInputMessage(html);
+                          setIsEditorEmpty(empty);
                         }}
-                        placeholder={selectedFile ? 'Add a message (optional)...' : 'Type a message…'}
-                        className="chat-message-input"
+                        onTyping={handleTyping}
+                        placeholder={selectedFile ? 'Add a message (optional)…' : 'Type a message…'}
+                        disabled={false}
                       />
                       <button
                         type="submit"
-                        disabled={(!inputMessage.trim() && !selectedFile) || isUploading}
+                        disabled={(isEditorEmpty && !selectedFile) || isUploading}
                         className="chat-send-button"
                         aria-label="Send message"
                       >

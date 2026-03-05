@@ -270,8 +270,122 @@ const endChat = async (chat_id) => {
   }
 };
 
+/**
+ * Escalate a chat from bot/automated replies to a live agent.
+ *
+ * - Validates that the conversation belongs to the requesting client.
+ * - Tries to immediately assign an available agent (least-loaded first).
+ * - If no agent is available, marks the chat as 'queued' so the auto-assign
+ *   flow can pick it up later, and returns status 'no_agent_available'.
+ *
+ * @param {string|number} clientId        - client user ID
+ * @param {string|number} conversationId  - chat row ID
+ * @returns {{ status: 'assigned'|'no_agent_available', agentId?: string, agentName?: string }}
+ */
+const escalateChat = async (clientId, conversationId) => {
+  try {
+    // 1. Verify the conversation exists and belongs to this client
+    const [chatRows] = await pool.query(
+      `SELECT id, status, agent_id, client_id FROM chats WHERE id = ? AND client_id = ?`,
+      [conversationId, clientId],
+    );
+
+    if (chatRows.length === 0) {
+      throw new Error("Conversation not found or access denied");
+    }
+
+    const chat = chatRows[0];
+
+    // If already assigned to a live agent there's nothing to escalate
+    if (chat.status === "active" && chat.agent_id) {
+      const [agentRow] = await pool.query(
+        `SELECT id, name FROM users WHERE id = ?`,
+        [chat.agent_id],
+      );
+      return {
+        status: "assigned",
+        agentId: String(chat.agent_id),
+        agentName: agentRow[0]?.name || "Agent",
+      };
+    }
+
+    // 2. Look for an available agent (least active chats first)
+    const [availableAgents] = await pool.query(
+      `SELECT u.id, u.name,
+              COUNT(c.id) AS active_chats
+       FROM users u
+       LEFT JOIN chats c ON u.id = c.agent_id AND c.status = 'active'
+       WHERE u.role IN ('support', 'admin')
+         AND u.status = 'available'
+       GROUP BY u.id
+       ORDER BY active_chats ASC, u.id ASC
+       LIMIT 1`,
+    );
+
+    if (availableAgents.length === 0) {
+      // Ensure the chat is in the queue so auto-assign can pick it up
+      await pool.query(
+        `UPDATE chats SET status = 'queued' WHERE id = ? AND status NOT IN ('active','ended')`,
+        [conversationId],
+      );
+      return { status: "no_agent_available" };
+    }
+
+    const agent = availableAgents[0];
+
+    // 3. Assign the agent
+    await pool.query(
+      `UPDATE chats SET agent_id = ?, status = 'active', started_at = NOW() WHERE id = ?`,
+      [agent.id, conversationId],
+    );
+
+    await pool.query(`UPDATE users SET status = 'busy' WHERE id = ?`, [agent.id]);
+
+    const [agentRowFull] = await pool.query(
+      "SELECT id, name, role, status FROM users WHERE id = ?",
+      [agent.id],
+    );
+    if (agentRowFull.length) emitUserStatusChange(agentRowFull[0]);
+
+    const [chatDetails] = await pool.query(
+      `SELECT c.*, u.name AS client_name, u.email AS client_email
+       FROM chats c
+       JOIN users u ON c.client_id = u.id
+       WHERE c.id = ?`,
+      [conversationId],
+    );
+
+    emitChatAssigned(agent.id, chatDetails[0]);
+    emitChatStatusUpdate(conversationId, "active");
+    await notifyQueuePositionUpdates();
+
+    try {
+      await notificationServices.createNotification({
+        user_id: agent.id,
+        type: "chat_assigned",
+        message: `Escalated chat from ${chatDetails[0]?.client_name || "a client"}`,
+        chat_id: conversationId,
+        reference_id: conversationId,
+      });
+    } catch (e) {
+      console.error("Failed to create escalation notification:", e.message);
+    }
+
+    return {
+      status: "assigned",
+      agentId: String(agent.id),
+      agentName: agent.name,
+    };
+  } catch (error) {
+    console.error("❌ Error in escalateChat service:", error.message);
+    throw new Error(error.message);
+  }
+};
+
 export default {
   autoAssignChat,
   manualAssignChat,
   endChat,
+  escalateChat,
 };
+

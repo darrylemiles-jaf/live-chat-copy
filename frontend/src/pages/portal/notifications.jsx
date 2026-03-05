@@ -1,17 +1,11 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import PageHead from '../../components/PageHead';
 import NotificationFiltersSection from '../../sections/notifications/NotificationFiltersSection';
 import NotificationListSection from '../../sections/notifications/NotificationListSection';
 import NotificationModal from '../../sections/notifications/NotificationModal';
 import useNotifications from '../../hooks/useNotifications';
-
-const breadcrumbLinks = [
-  { title: 'Home', to: '/' },
-  { title: 'Notifications' },
-];
 
 const Notifications = () => {
   const {
@@ -40,12 +34,6 @@ const Notifications = () => {
   return (
     <React.Fragment>
       <PageHead title="Notifications" description="Timora Live Chat, Notifications Overview" />
-      <Breadcrumbs
-        heading="Notifications"
-        links={breadcrumbLinks}
-        subheading={`View and manage your notifications here.${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-      />
-
       <Box
         sx={{
           display: 'flex',

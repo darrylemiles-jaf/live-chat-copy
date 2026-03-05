@@ -1,3 +1,9 @@
+const stripHtml = (html) => {
+  if (!html) return '';
+  if (!html.startsWith('<')) return html;
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
 export const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
   const now = new Date();
@@ -17,10 +23,11 @@ export const formatTimestamp = (timestamp) => {
 export const transformChatData = (chat) => ({
   id: chat.id,
   name: chat.client?.name || chat.client_name || `User ${chat.client_id}`,
-  lastMessage:
+  lastMessage: stripHtml(
     chat.last_message ||
     chat.messages?.[chat.messages.length - 1]?.message ||
-    'No messages yet',
+    'No messages yet'
+  ),
   timestamp: formatTimestamp(chat.updated_at || chat.created_at),
   rawTimestamp: new Date(chat.updated_at || chat.created_at).getTime(),
   avatar: null,
@@ -34,7 +41,6 @@ export const transformChatData = (chat) => ({
   created_at: chat.created_at,
   updated_at: chat.updated_at,
   message_count: chat.messages?.length || 0,
-  concern: chat.concern || null,
 });
 
 export const transformMessageData = (message, agentId) => ({

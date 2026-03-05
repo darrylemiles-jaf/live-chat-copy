@@ -2,11 +2,10 @@
 
 const presetPrimaryMap = {
   default: { lighter: '#E6F7F6', light: '#4DC7BC', main: '#008E86', dark: '#064856', darker: '#0A3A44' },
-  theme1:  { lighter: '#E6F4FF', light: '#69B1FF', main: '#1677FF', dark: '#0958D9', darker: '#003EB3' },
-  theme2:  { lighter: '#F9F0FF', light: '#B37FEB', main: '#722ED1', dark: '#531DAB', darker: '#391085' },
-  theme3:  { lighter: '#FCE8ED', light: '#EE96B3', main: '#B53654', dark: '#82273B', darker: '#4F1823' },
-  theme4:  { lighter: '#FFF7E6', light: '#FFD591', main: '#D46B08', dark: '#AD4E00', darker: '#612500' },
-  theme5:  { lighter: '#E6FFFB', light: '#5CDBD3', main: '#08979C', dark: '#006D75', darker: '#00474F' },
+  theme1:  { lighter: '#B3E7E3', light: '#26AFA6', main: '#3B7080', dark: '#064856', darker: '#0A3A44' },
+  theme2:  { lighter: '#FCE8ED', light: '#EE96B3', main: '#B53654', dark: '#82273B', darker: '#4F1823' },
+  theme3:  { lighter: '#FFF8E5', light: '#FFD65C', main: '#FFB400', dark: '#CC9000', darker: '#996C00' },
+  theme4:  { lighter: '#FEF0EE', light: '#F7A090', main: '#ED7464', dark: '#BD5C50', darker: '#8D443C' },
 };
 
 // ==============================|| PRESET THEME - DEFAULT ||============================== //

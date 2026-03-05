@@ -128,18 +128,24 @@ export function buildPalette(presetColor) {
       ...extendedLight.grey,
       A800: 'transparent'
     },
+    primary:   { ...extendedLight.primary,   lighter: 'rgba(0, 142, 134, 0.15)',   lighterChannel: '0 142 134',   dark: '#26AFA6', darker: '#4DC7BC' },
+    secondary: { ...extendedLight.secondary, lighter: 'rgba(140, 140, 140, 0.12)', lighterChannel: '140 140 140' },
+    error:     { ...extendedLight.error,     lighter: 'rgba(181, 54, 84, 0.15)',   lighterChannel: '181 54 84'   },
+    warning:   { ...extendedLight.warning,   lighter: 'rgba(255, 180, 0, 0.15)',   lighterChannel: '255 180 0',  dark: '#E6A200' },
+    info:      { ...extendedLight.info,      lighter: 'rgba(19, 194, 194, 0.15)',  lighterChannel: '19 194 194'  },
+    success:   { ...extendedLight.success,   lighter: 'rgba(82, 196, 26, 0.15)',   lighterChannel: '82 196 26',  dark: '#73d13d' },
     text: {
-      primary: '#e8eaed',
-      secondary: '#9aa0a6',
-      disabled: '#5f6368'
+      primary: '#ffffff',
+      secondary: '#b0b8c1',
+      disabled: '#8b9298'
     },
     action: {
-      disabled: '#5f6368',
+      disabled: '#8b9298',
       hover: 'rgba(255,255,255,0.06)',
       selected: 'rgba(255,255,255,0.12)',
       disabledBackground: 'rgba(255,255,255,0.08)'
     },
-    divider: 'transparent',
+    divider: 'rgba(255, 255, 255, 0.08)',
     background: {
       paper: '#1e1e2e',
       default: '#13131f'

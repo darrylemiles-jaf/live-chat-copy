@@ -3,6 +3,7 @@ import chatsTable from './chatsTable.js';
 import messagesTable, { messagesTableMigration } from './messagesTable.js';
 import notificationsTable, { notificationsTableMigration } from './notificationsTable.js';
 import ratingsTable from './ratingsTable.js';
+import quickChatsTable from './quickChatsTable.js';
 
 const tables = async (dbConnection) => {
   const queries = [
@@ -19,7 +20,10 @@ const tables = async (dbConnection) => {
     notificationsTable,
 
     // ratings
-    ratingsTable
+    ratingsTable,
+
+    // quick chats
+    quickChatsTable
   ];
 
   for (const query of queries) {

@@ -22,7 +22,7 @@ import { withAlpha } from 'utils/colorUtils';
 export default function DrawerHeader({ open }) {
   const theme = useTheme();
   const STATUS_OPTIONS = [
-    { value: 'available', label: 'Available', color: theme.vars.palette.primary.main },
+    { value: 'available', label: 'Available', color: theme.vars.palette.success.main },
     { value: 'busy', label: 'Busy', color: theme.vars.palette.error.main },
     { value: 'away', label: 'Away', color: theme.vars.palette.warning.main }
   ];

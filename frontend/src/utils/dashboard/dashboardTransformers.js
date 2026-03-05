@@ -1,3 +1,9 @@
+const stripHtml = (html) => {
+  if (!html) return '';
+  if (!html.startsWith('<')) return html;
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
 /**
  * Transform a raw API user to the agent-status shape used on the dashboard.
  * @param {object} user
@@ -26,10 +32,11 @@ export const transformAgentStatus = (user) => {
  */
 export const transformQueueItem = (chat) => {
   const client = chat.client || {};
-  const lastMessage =
+  const lastMessage = stripHtml(
     chat.messages && chat.messages.length > 0
       ? chat.messages[chat.messages.length - 1].message_text
-      : 'Waiting for response...';
+      : 'Waiting for response...'
+  );
 
   const waitTimeMs = chat.waiting_time || 0;
   const waitTimeSeconds = Math.floor(waitTimeMs / 1000);
@@ -62,10 +69,11 @@ export const transformQueueItem = (chat) => {
  */
 export const transformRecentChat = (chat) => {
   const client = chat.client || {};
-  const lastMessage =
+  const lastMessage = stripHtml(
     chat.last_message ||
     chat.messages?.[chat.messages?.length - 1]?.message_text ||
-    'No messages yet';
+    'No messages yet'
+  );
 
   const chatDate = new Date(chat.updated_at || chat.created_at);
   const now = new Date();

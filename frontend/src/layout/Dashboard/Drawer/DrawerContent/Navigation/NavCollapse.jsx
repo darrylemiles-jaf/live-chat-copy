@@ -75,21 +75,24 @@ export default function NavCollapse({ item, level }) {
         disableRipple
         selected={selected === item.id}
         onClick={handleClick}
-        sx={{
+        sx={(theme) => ({
           pl: drawerOpen ? `${level * 28}px` : 1.5,
           py: !drawerOpen && level === 1 ? 1.25 : 1,
           ...(drawerOpen && {
             '&:hover': {
-              bgcolor: 'primary.lighter'
+              bgcolor: 'primary.lighter',
+              ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.12)' })
             },
             '&.Mui-selected': {
               bgcolor: 'primary.lighter',
+              ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.18)' }),
               borderRight: '2px solid',
               borderColor: 'primary.main',
               color: iconSelectedColor,
               '&:hover': {
                 color: iconSelectedColor,
-                bgcolor: 'primary.lighter'
+                bgcolor: 'primary.lighter',
+                ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.22)' })
               }
             }
           }),
@@ -104,7 +107,7 @@ export default function NavCollapse({ item, level }) {
               bgcolor: 'transparent'
             }
           })
-        }}
+        })}
       >
         {itemIcon && (
           <ListItemIcon

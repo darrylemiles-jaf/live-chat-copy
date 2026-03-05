@@ -23,18 +23,12 @@ import { useTheme } from '@mui/material/styles';
 const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', onSearchChange, statusFilter = 'all', onStatusFilterChange }) => {
   const theme = useTheme();
   const [sortOrder, setSortOrder] = useState('newest');
-  const [concernFilter, setConcernFilter] = useState('all');
 
   const STATUS_FILTERS = [
     { value: 'active', label: 'Active', color: theme.vars.palette.success.main },
-    { value: 'ended',  label: 'Ended',  color: theme.vars.palette.text.disabled },
-    { value: 'all',    label: 'All',    color: theme.vars.palette.primary.main },
+    { value: 'ended', label: 'Ended', color: theme.vars.palette.text.disabled },
+    { value: 'all', label: 'All', color: theme.vars.palette.primary.main },
   ];
-
-  // Build unique concern list from current chats
-  const concernOptions = ['all', ...Array.from(
-    new Set(chats.map(c => c.concern).filter(Boolean))
-  )];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,8 +46,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
         (chat.name || '').toLowerCase().includes(query) ||
         (chat.lastMessage || '').toLowerCase().includes(query);
       const matchesStatus = !statusFilter || statusFilter === 'all' || chat.status === statusFilter;
-      const matchesConcern = concernFilter === 'all' || chat.concern === concernFilter;
-      return matchesSearch && matchesStatus && matchesConcern;
+      return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       const tsA = a.rawTimestamp || 0;
@@ -77,7 +70,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
             Messages
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        
+
             <FormControl size="small">
               <Select
                 value={sortOrder}
@@ -170,54 +163,6 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
             );
           })}
         </Stack>
-
-        {/* Concern filter dropdown — only visible when chats have concern values */}
-        {concernOptions.length > 1 && (
-          <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-            <Select
-              value={concernFilter}
-              onChange={(e) => setConcernFilter(e.target.value)}
-              displayEmpty
-              sx={{
-                fontSize: '0.78rem',
-                height: 32,
-                borderRadius: 2,
-              color: concernFilter === 'all' ? theme.vars.palette.text.secondary : theme.vars.palette.info.dark,
-              fontWeight: concernFilter === 'all' ? 400 : 600,
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: concernFilter === 'all' ? theme.vars.palette.divider : theme.vars.palette.info.dark,
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.vars.palette.info.dark },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.vars.palette.info.dark },
-                '& .MuiSelect-select': { py: 0.5, px: 1.25 },
-              }}
-            >
-              {concernOptions.map(opt => {
-                const count = opt === 'all'
-                  ? chats.filter(c => statusFilter === 'all' || c.status === statusFilter).length
-                  : chats.filter(c => c.concern === opt && (statusFilter === 'all' || c.status === statusFilter)).length;
-                
-                // Skip rendering options with 0 count (except 'all')
-                if (count === 0 && opt !== 'all') {
-                  return null;
-                }
-                
-                return (
-                  <MenuItem key={opt} value={opt} sx={{ fontSize: '0.8rem' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 1 }}>
-                      <span>{opt === 'all' ? 'All Concerns' : opt}</span>
-                      <Box component="span" sx={{
-                        fontSize: '0.65rem', fontWeight: 700,
-                        px: 0.6, py: 0.1, borderRadius: 0.75,
-                        bgcolor: 'primary.lighter', color: 'primary.dark',
-                      }}>{count}</Box>
-                    </Box>
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        )}
 
       </Box>
 
@@ -353,28 +298,6 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
                   >
                     {chat.lastMessage}
                   </Typography>
-                  {chat.concern && (
-                    <Box
-                      component="span"
-                      sx={{
-                        display: 'inline-block',
-                        fontSize: '10px',
-                        fontWeight: 600,
-                        color: 'primary.dark',
-                        bgcolor: 'primary.lighter',
-                        border: '1px solid',
-                        borderColor: 'primary.light',
-                        borderRadius: '20px',
-                        px: '6px',
-                        py: '1px',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        ml: 0.5
-                      }}
-                    >
-                      {chat.concern}
-                    </Box>
-                  )}
                 </Box>
               }
               sx={{ ml: 1 }}

@@ -4,7 +4,8 @@ import {
 import {
   autoAssignChat,
   manualAssignChat,
-  endChat
+  endChat,
+  escalateChat,
 } from '../controllers/chatsAssignmentControllers.js'
 import {
   getChatStats,
@@ -26,5 +27,7 @@ router.post('/auto-assign', autoAssignChat);
 router.post('/assign', manualAssignChat);
 
 router.post('/end', endChat);
+
+router.post('/escalate', escalateChat);
 
 export default router

@@ -2,9 +2,9 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 
 const statusStyles = {
-  active: { bgcolor: 'rgba(var(--palette-success-mainChannel) / 0.12)', color: 'success.dark' },
-  queued: { bgcolor: 'rgba(var(--palette-warning-mainChannel) / 0.12)', color: 'warning.dark' },
-  default: { bgcolor: 'rgba(var(--palette-text-secondaryChannel) / 0.12)', color: 'text.secondary' },
+  active: { bgcolor: 'rgba(var(--palette-success-mainChannel) / 0.18)', color: 'success.dark' },
+  queued: { bgcolor: 'rgba(var(--palette-warning-mainChannel) / 0.18)', color: 'warning.dark' },
+  default: { bgcolor: 'rgba(var(--palette-text-secondaryChannel) / 0.15)', color: 'text.secondary' },
 };
 
 const ClientDetailSection = ({ selectedChat, messageCount }) => {

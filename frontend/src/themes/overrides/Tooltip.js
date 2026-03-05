@@ -5,7 +5,10 @@ export default function Tooltip(theme) {
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          color: theme.vars.palette.background.paper
+          color: '#fff',
+          backgroundColor: 'rgba(30, 30, 46, 0.92)',
+          fontSize: '0.75rem',
+          fontWeight: 500
         }
       }
     }

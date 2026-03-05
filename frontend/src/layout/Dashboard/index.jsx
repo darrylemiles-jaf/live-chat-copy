@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { isAuthenticated } from 'utils/auth';
 import { Outlet } from 'react-router-dom';
 
@@ -11,7 +11,6 @@ import Drawer from './Drawer';
 import Header from './Header';
 import Footer from './Footer';
 import Loader from 'components/Loader';
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import LoadingPage from 'components/maintenance/LoadingPage';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
@@ -25,6 +24,7 @@ import AutoLogoutModal from 'components/AutoLogoutModal';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isReady, setIsReady] = useState(false);
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
@@ -34,8 +34,9 @@ export default function DashboardLayout() {
   const { modalOpen: autoLogoutOpen, countdown, handleStayLoggedIn } = useAutoLogout();
 
   useEffect(() => {
-    handlerDrawerOpen(!downXL);
-  }, [downXL]);
+    const isDashboard = location.pathname === '/portal/dashboard';
+    handlerDrawerOpen(isDashboard && !downXL);
+  }, [location.pathname, downXL]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -87,14 +88,12 @@ export default function DashboardLayout() {
         <Toolbar sx={{ mt: 'inherit' }} />
         <Box
           sx={{
-            ...{ px: { xs: 0, sm: 2 } },
             position: 'relative',
             minHeight: 'calc(100vh - 110px)',
             display: 'flex',
             flexDirection: 'column'
           }}
         >
-          <Breadcrumbs />
           <Outlet />
           <Footer />
           <AutoLogoutModal

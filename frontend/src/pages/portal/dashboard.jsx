@@ -14,16 +14,10 @@ import {
 
 import PageHead from '../../components/PageHead';
 import MainCard from '../../components/MainCard';
-import Breadcrumbs from '../../components/@extended/Breadcrumbs';
 import { getChatStats, getDetailedStats } from '../../api/chatApi';
 import { getRatingsLeaderboard, getAgentRatings } from '../../api/ratingsApi';
 import AgentRatingsTab from '../../components/AgentRatingsTab';
 import socketService from '../../services/socketService';
-
-const breadcrumbLinks = [
-  { title: 'Home', to: '/' },
-  { title: 'Dashboard' },
-];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -254,12 +248,6 @@ const Dashboard = () => {
   return (
     <>
       <PageHead title="Dashboard" description="Timora Live Chat Overview" />
-      <Breadcrumbs
-        heading="Dashboard"
-        links={breadcrumbLinks}
-        subheading="Real-time insights into your live chat operations."
-      />
-
       <Box sx={{ mt: 2 }}>
         <Grid container spacing={2.5}>
 
