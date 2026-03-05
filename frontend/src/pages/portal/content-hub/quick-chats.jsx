@@ -10,17 +10,12 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
   Paper,
-  Skeleton,
   Snackbar,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -28,14 +23,19 @@ import {
 } from '@mui/material';
 import {
   BoldOutlined,
+  CalendarOutlined,
+  CloseOutlined,
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   ItalicOutlined,
   LinkOutlined,
+  NumberOutlined,
   OrderedListOutlined,
   PlusOutlined,
   RedoOutlined,
   StrikethroughOutlined,
+  ThunderboltOutlined,
   UndoOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons';
@@ -44,7 +44,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
 import PageHead from '../../../components/PageHead';
-import MainCard from '../../../components/MainCard';
+import ReusableTable from '../../../components/ReusableTable';
 import {
   getQuickChats,
   createQuickChat,
@@ -242,9 +242,10 @@ const formatDate = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
 /* ─── Main Page ──────────────────────────────────────────────────────────── */
-const EMPTY_FORM = { title: '', response: '' };
+const EMPTY_FORM = { title: '', response: '', is_active: true };
 
 const QuickChats = () => {
+  const theme = useTheme();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -253,6 +254,8 @@ const QuickChats = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+
+  const [viewTarget, setViewTarget] = useState(null);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -281,9 +284,17 @@ const QuickChats = () => {
     setDialogOpen(true);
   };
 
+  const handleOpenView = (row) => {
+    setViewTarget(row);
+  };
+
+  const handleCloseView = () => {
+    setViewTarget(null);
+  };
+
   const handleOpenEdit = (row) => {
     setEditTarget(row);
-    setForm({ title: row.title, response: row.response });
+    setForm({ title: row.title, response: row.response, is_active: Boolean(row.is_active) });
     setFormError('');
     setDialogOpen(true);
   };
@@ -291,16 +302,18 @@ const QuickChats = () => {
   const handleSave = async () => {
     if (!form.title.trim()) { setFormError('Title is required.'); return; }
     if (!stripHtml(form.response)) { setFormError('Response content is required.'); return; }
+    if (form.is_active === undefined) { setFormError('Status is required.'); return; }
 
     setSaving(true);
     setFormError('');
+    const payload = { ...form, is_active: form.is_active ? 1 : 0 };
     try {
       if (editTarget) {
-        await updateQuickChat(editTarget.id, form);
-        showSnack('Quick chat updated successfully.');
+        await updateQuickChat(editTarget.id, payload);
+        showSnack('Quick chat updated successfully.', 'info');
       } else {
-        await createQuickChat(form);
-        showSnack('Quick chat created successfully.');
+        await createQuickChat(payload);
+        showSnack('Quick chat created successfully.', 'success');
       }
       setDialogOpen(false);
       fetchQuickChats();
@@ -316,7 +329,7 @@ const QuickChats = () => {
     setDeleting(true);
     try {
       await deleteQuickChat(deleteTarget.id);
-      showSnack('Quick chat deleted.');
+      showSnack('Quick chat deleted.', 'warning');
       setDeleteTarget(null);
       fetchQuickChats();
     } catch {
@@ -330,90 +343,253 @@ const QuickChats = () => {
     <>
       <PageHead title="Quick Chats" description="Manage quick answer cards shown in the chat widget" />
 
-      <MainCard
-        title="Quick Chats"
-        secondary={
-          <Button variant="contained" startIcon={<PlusOutlined />} onClick={handleOpenCreate} size="small">
-            New Quick Chat
-          </Button>
-        }
-      >
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          These answer cards appear in the chat widget so clients can self-serve before talking to an agent.
-        </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        These answer cards appear in the chat widget so clients can self-serve before talking to an agent.
+      </Typography>
 
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, width: '32%' }}>Title</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Response Preview</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: '130px' }}>Created</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: '100px' }} align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 4 }).map((__, j) => (
-                      <TableCell key={j}><Skeleton /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
-                    <Stack alignItems="center" spacing={1}>
-                      <Typography variant="body2" color="text.secondary">No quick chats yet.</Typography>
-                      <Button size="small" startIcon={<PlusOutlined />} onClick={handleOpenCreate}>
-                        Create your first one
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map((row) => {
-                  const preview = stripHtml(row.response);
-                  return (
-                    <TableRow key={row.id} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600}>{row.title}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 340 }}
-                        >
-                          {preview.length > 120 ? `${preview.slice(0, 120)}…` : preview || '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={formatDate(row.created_at)} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Stack direction="row" spacing={0.5} justifyContent="center">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => handleOpenEdit(row)}>
-                              <EditOutlined />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small" color="error" onClick={() => setDeleteTarget(row)}>
-                              <DeleteOutlined />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </MainCard>
+      <ReusableTable
+        rows={rows}
+        isLoading={loading}
+        searchableColumns={['title']}
+        noMessage="No quick chats yet."
+        settings={{
+          otherActionButton: (
+            <Button variant="contained" startIcon={<PlusOutlined />} onClick={handleOpenCreate} size="small">
+              New Quick Chat
+            </Button>
+          )
+        }}
+        columns={[
+          {
+            id: 'title',
+            label: 'Title',
+            align: 'left',
+            renderCell: (row) => (
+              <Typography variant="body2" fontWeight={600}>{row.title}</Typography>
+            )
+          },
+          {
+            id: 'is_active',
+            label: 'Status',
+            align: 'center',
+            renderCell: (row) => (
+              <Chip
+                label={row.is_active ? 'Active' : 'Inactive'}
+                size="small"
+                color={row.is_active ? 'success' : 'default'}
+                variant={row.is_active ? 'filled' : 'outlined'}
+                sx={{
+                  fontWeight: 600,
+                  ...(row.is_active && { bgcolor: '#2e7d32', color: '#fff' })
+                }}
+              />
+            )
+          },
+          {
+            id: 'created_at',
+            label: 'Created',
+            align: 'center',
+            renderCell: (row) => (
+              <Chip label={formatDate(row.created_at)} size="small" variant="outlined" />
+            )
+          },
+          {
+            id: 'actions',
+            label: 'Actions',
+            align: 'center',
+            renderCell: (row) => (
+              <Stack direction="row" spacing={0.5} justifyContent="center">
+                <Tooltip title="View">
+                  <IconButton
+                    size="small"
+                    sx={{
+                      color: 'primary.main',
+                      '&:hover': { bgcolor: 'primary.lighter' }
+                    }}
+                    onClick={(e) => { e.stopPropagation(); handleOpenView(row); }}
+                  >
+                    <EyeOutlined />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Edit">
+                  <IconButton
+                    size="small"
+                    sx={{
+                      color: 'warning.main',
+                      '&:hover': { bgcolor: 'warning.lighter' }
+                    }}
+                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(row); }}
+                  >
+                    <EditOutlined />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete">
+                  <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteTarget(row); }}>
+                    <DeleteOutlined />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            )
+          }
+        ]}
+      />
+
+      {/* ── View Dialog ── */}
+      <Dialog
+        open={Boolean(viewTarget)}
+        onClose={handleCloseView}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 0, sm: 3 },
+            maxHeight: '90vh',
+            overflow: 'hidden',
+            m: { xs: 0, sm: 2 }
+          }
+        }}
+      >
+        {/* Gradient header */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.vars.palette.primary.main} 0%, ${theme.vars.palette.primary.dark} 100%)`,
+            color: 'white',
+            pt: { xs: 3, sm: 4 },
+            pb: { xs: 2.5, sm: 3 },
+            px: { xs: 2, sm: 4 },
+            position: 'relative',
+            textAlign: 'center'
+          }}
+        >
+          <IconButton
+            onClick={handleCloseView}
+            size="small"
+            sx={{
+              position: 'absolute',
+              right: { xs: 8, sm: 16 },
+              top: { xs: 8, sm: 16 },
+              color: 'white',
+              bgcolor: 'rgba(255,255,255,0.12)',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
+            }}
+          >
+            <CloseOutlined />
+          </IconButton>
+
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.15)',
+              border: '3px solid rgba(255,255,255,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2
+            }}
+          >
+            <ThunderboltOutlined style={{ fontSize: '1.75rem', color: 'white' }} />
+          </Box>
+
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, lineHeight: 1.3, px: 4 }}>
+            {viewTarget?.title}
+          </Typography>
+
+          <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
+            <Chip
+              icon={<NumberOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem' }} />}
+              label={`ID #${viewTarget?.id}`}
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+            />
+            <Chip
+              icon={<CalendarOutlined style={{ fontSize: '0.75rem' }} />}
+              label={`Created ${viewTarget ? formatDate(viewTarget.created_at) : ''}`}
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+            />
+            <Chip
+              icon={<CalendarOutlined style={{ fontSize: '0.75rem' }} />}
+              label={`Updated ${viewTarget ? formatDate(viewTarget.updated_at) : ''}`}
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+            />
+            <Chip
+              label={viewTarget?.is_active ? 'Active' : 'Inactive'}
+              size="small"
+              sx={{
+                bgcolor: viewTarget?.is_active ? 'rgba(46,125,50,0.75)' : 'rgba(255,255,255,0.15)',
+                color: 'white',
+                fontWeight: 700,
+                border: '1px solid rgba(255,255,255,0.3)'
+              }}
+            />
+          </Stack>
+        </Box>
+
+        {/* Content */}
+        <DialogContent sx={{ p: 0, bgcolor: theme.vars.palette.background.paper, overflowY: 'auto' }}>
+          <Box sx={{ px: { xs: 2, sm: 4 }, py: { xs: 2.5, sm: 3 } }}>
+            <Typography
+              variant="overline"
+              sx={{
+                color: theme.vars.palette.primary.main,
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                letterSpacing: '1px',
+                display: 'block',
+                mb: 1.5
+              }}
+            >
+              Response
+            </Typography>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: 2,
+                bgcolor: theme.vars.palette.background.default,
+                borderColor: theme.vars.palette.divider,
+                '& a': { color: theme.vars.palette.primary.main, textDecoration: 'underline', cursor: 'pointer' },
+                '& ul': { paddingLeft: '1.5em', margin: '0.3em 0' },
+                '& ol': { paddingLeft: '1.5em', margin: '0.3em 0' },
+                '& li': { marginBottom: '0.25em' },
+                '& p': { marginTop: 0, marginBottom: '0.6em', lineHeight: 1.75 },
+                '& p:last-child': { marginBottom: 0 },
+                '& strong': { fontWeight: 700, color: theme.vars.palette.text.primary },
+                '& em': { fontStyle: 'italic' },
+                '& s': { opacity: 0.6 },
+                fontSize: '0.9rem',
+                color: theme.vars.palette.text.secondary,
+                lineHeight: 1.75,
+                minHeight: 80
+              }}
+              dangerouslySetInnerHTML={{
+                __html: viewTarget?.response || `<p style="color:inherit;opacity:0.5">No response content.</p>`
+              }}
+            />
+          </Box>
+        </DialogContent>
+
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 2, gap: 1, bgcolor: theme.vars.palette.background.paper }}>
+          <Button
+            variant="outlined"
+            sx={{
+              borderColor: 'warning.main',
+              color: 'warning.main',
+              '&:hover': { bgcolor: 'warning.lighter', borderColor: 'warning.main' }
+            }}
+            startIcon={<EditOutlined />}
+            onClick={() => { handleCloseView(); handleOpenEdit(viewTarget); }}
+          >
+            Edit
+          </Button>
+          <Button variant="contained" onClick={handleCloseView}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* ── Create / Edit Dialog ── */}
       <Dialog
@@ -422,31 +598,123 @@ const QuickChats = () => {
         maxWidth="md"
         fullWidth
         disableEscapeKeyDown={saving}
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 0, sm: 3 },
+            maxHeight: '90vh',
+            m: { xs: 0, sm: 2 }
+          }
+        }}
       >
-        <DialogTitle>{editTarget ? 'Edit Quick Chat' : 'New Quick Chat'}</DialogTitle>
-        <Divider />
-        <DialogContent sx={{ pt: 3 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.vars.palette.primary.main} 0%, ${theme.vars.palette.primary.dark} 100%)`,
+            color: 'white',
+            pt: { xs: 2.5, sm: 3 },
+            pb: { xs: 2, sm: 2.5 },
+            px: { xs: 2, sm: 4 },
+            position: 'relative'
+          }}
+        >
+          <IconButton
+            onClick={() => !saving && setDialogOpen(false)}
+            size="small"
+            disabled={saving}
+            sx={{
+              position: 'absolute',
+              right: { xs: 8, sm: 16 },
+              top: { xs: 8, sm: 16 },
+              color: 'white',
+              bgcolor: 'rgba(255,255,255,0.12)',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' },
+              '&.Mui-disabled': { color: 'rgba(255,255,255,0.4)' }
+            }}
+          >
+            <CloseOutlined />
+          </IconButton>
+
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ pr: 5, mb: editTarget ? 0 : 0 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              {editTarget ? <EditOutlined style={{ fontSize: '0.95rem', color: 'white' }} /> : <PlusOutlined style={{ fontSize: '0.95rem', color: 'white' }} />}
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>
+              {editTarget ? 'Edit Quick Chat' : 'New Quick Chat'}
+            </Typography>
+          </Stack>
+
+          {editTarget && (
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1, mt: 1.5 }}>
+              <Chip
+                icon={<NumberOutlined style={{ fontSize: '0.7rem' }} />}
+                label={`ID #${editTarget.id}`}
+                size="small"
+                sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+              />
+              <Chip
+                icon={<CalendarOutlined style={{ fontSize: '0.7rem' }} />}
+                label={`Created ${formatDate(editTarget.created_at)}`}
+                size="small"
+                sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+              />
+              <Chip
+                icon={<CalendarOutlined style={{ fontSize: '0.7rem' }} />}
+                label={`Updated ${formatDate(editTarget.updated_at)}`}
+                size="small"
+                sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', fontWeight: 600, '& .MuiChip-icon': { color: 'rgba(255,255,255,0.85)' } }}
+              />
+            </Stack>
+          )}
+        </Box>
+
+        <DialogContent sx={{ pt: 3, bgcolor: theme.vars.palette.background.paper, overflowY: 'auto' }}>
           <Stack spacing={3}>
             {formError && (
               <Alert severity="error" onClose={() => setFormError('')}>{formError}</Alert>
             )}
-            <TextField
-              label="Title"
-              placeholder="e.g. How do I reset my password?"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              fullWidth
-              required
-              disabled={saving}
-              inputProps={{ maxLength: 255 }}
-              helperText="The question or topic shown on the card in the widget."
-            />
+
+            {/* Title field */}
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Response{' '}
-                <Typography component="span" variant="caption" color="text.secondary">
-                  (rich text — supports bold, italic, lists, and links)
-                </Typography>
+              <Typography
+                variant="overline"
+                sx={{ color: theme.vars.palette.text.secondary, fontWeight: 700, fontSize: '0.7rem', letterSpacing: '1px', display: 'block', mb: 1 }}
+              >
+                Title
+              </Typography>
+              <TextField
+                placeholder="e.g. How do I reset my password?"
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                fullWidth
+                required
+                disabled={saving}
+                inputProps={{ maxLength: 255 }}
+                helperText="The question or topic shown on the card in the widget."
+                size="small"
+              />
+            </Box>
+
+            {/* Response editor */}
+            <Box>
+              <Typography
+                variant="overline"
+                sx={{ color: theme.vars.palette.text.secondary, fontWeight: 700, fontSize: '0.7rem', letterSpacing: '1px', display: 'block', mb: 0.5 }}
+              >
+                Response
+              </Typography>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 1 }}>
+                Rich text — supports bold, italic, lists and links
               </Typography>
               <QuickChatEditor
                 value={form.response}
@@ -455,13 +723,44 @@ const QuickChats = () => {
                 disabled={saving}
               />
             </Box>
+
+            {/* Active toggle */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.5,
+                borderRadius: 2,
+                border: `1px solid ${theme.vars.palette.divider}`,
+                bgcolor: theme.vars.palette.background.default
+              }}
+            >
+              <Box>
+                <Typography variant="body2" fontWeight={600}>
+                  Active
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  When enabled, this quick chat is visible to clients in the widget.
+                </Typography>
+              </Box>
+              <Switch
+                checked={Boolean(form.is_active)}
+                onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
+                disabled={saving}
+                color="success"
+              />
+            </Box>
           </Stack>
         </DialogContent>
+
         <Divider />
-        <DialogActions sx={{ px: 3, py: 2 }}>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: theme.vars.palette.background.paper }}>
           <Button onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>
           <Button
             variant="contained"
+            color="primary"
             onClick={handleSave}
             disabled={saving}
             startIcon={saving ? <CircularProgress size={14} color="inherit" /> : null}
@@ -510,6 +809,16 @@ const QuickChats = () => {
           severity={snack.severity}
           onClose={() => setSnack((s) => ({ ...s, open: false }))}
           variant="filled"
+          sx={{
+            width: '100%',
+            boxShadow: 3,
+            ...(snack.severity === 'success' && { bgcolor: '#2e7d32 !important', color: '#fff !important' }),
+            ...(snack.severity === 'info'    && { bgcolor: '#0288d1 !important', color: '#fff !important' }),
+            ...(snack.severity === 'warning' && { bgcolor: '#d32f2f !important', color: '#fff !important' }),
+            ...(snack.severity === 'error'   && { bgcolor: '#c62828 !important', color: '#fff !important' }),
+            '& .MuiAlert-icon':  { color: '#fff !important' },
+            '& .MuiAlert-action': { color: '#fff !important' }
+          }}
         >
           {snack.message}
         </Alert>

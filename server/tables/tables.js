@@ -3,7 +3,7 @@ import chatsTable from './chatsTable.js';
 import messagesTable, { messagesTableMigration } from './messagesTable.js';
 import notificationsTable, { notificationsTableMigration } from './notificationsTable.js';
 import ratingsTable from './ratingsTable.js';
-import quickChatsTable from './quickChatsTable.js';
+import quickChatsTable, { quickChatsTableMigration } from './quickChatsTable.js';
 
 const tables = async (dbConnection) => {
   const queries = [
@@ -37,7 +37,8 @@ const tables = async (dbConnection) => {
   // Run migrations for existing tables (add new columns)
   const migrations = [
     messagesTableMigration,
-    notificationsTableMigration
+    notificationsTableMigration,
+    quickChatsTableMigration
   ];
 
   for (const migration of migrations) {
