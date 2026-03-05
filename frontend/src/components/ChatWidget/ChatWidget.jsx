@@ -591,16 +591,18 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
   // ── Quick chat click → inject bot reply locally, switch to chat screen ──
   const handleQuickChatSelect = (qc) => {
-    setMessages([
+    const now = Date.now();
+    setMessages((prev) => [
+      ...prev,
       {
-        id: `qc-user-${Date.now()}`,
+        id: `qc-user-${now}`,
         sender_id: userId,
         sender_role: 'client',
         message: qc.title,
         created_at: new Date().toISOString(),
       },
       {
-        id: `qc-bot-${Date.now() + 1}`,
+        id: `qc-bot-${now + 1}`,
         sender_role: 'bot',
         message: qc.response,
         created_at: new Date().toISOString(),
@@ -835,6 +837,18 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           {isRegistered && widgetScreen === 'quick_chats' && !isChatEnded && (
             <div className="cw-qc-screen">
               <div className="cw-qc-header">
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    className="cw-qc-back-btn"
+                    onClick={() => setWidgetScreen('chat')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Back to chat
+                  </button>
+                )}
                 <div className="cw-qc-header-icon">💬</div>
                 <h4 className="cw-qc-title">Quick Answers</h4>
                 <p className="cw-qc-subtitle">
@@ -1031,11 +1045,24 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   </div>
                 )}
 
-                {/* ── Escalation prompt (shown after bot replies) ── */}
+                {/* ── Escalation prompt (shown after bot replies, only before real chat starts) ── */}
                 {!isChatEnded &&
+                  !chatId &&
                   chatMode === CHAT_MODES.BOT &&
                   messages.some(m => m.sender_role === 'bot') && (
                     <div className="chat-escalation-prompt">
+                      {!chatId && (
+                        <button
+                          type="button"
+                          className="cw-more-answers-btn"
+                          onClick={() => setWidgetScreen('quick_chats')}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="15 18 9 12 15 6" />
+                          </svg>
+                          More quick answers
+                        </button>
+                      )}
                       <div className="chat-escalation-divider">
                         <span>or</span>
                       </div>

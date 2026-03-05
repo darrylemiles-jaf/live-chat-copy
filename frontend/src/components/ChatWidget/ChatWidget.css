@@ -1394,6 +1394,32 @@
   border-bottom: 1px solid var(--cw-border);
   flex-shrink: 0;
   text-align: center;
+  position: relative;
+}
+
+/* Back-to-chat button inside quick-chats header */
+.cw-qc-back-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cw-text-muted);
+  font-family: var(--cw-font);
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.cw-qc-back-btn:hover {
+  color: var(--cw-primary);
+  background: var(--cw-surface);
 }
 
 .cw-qc-header-icon {
@@ -1726,6 +1752,28 @@
   gap: 8px;
   margin: 12px 16px 4px;
   animation: cwFadeIn 0.3s ease both;
+}
+
+/* “More quick answers” back link inside escalation prompt */
+.cw-more-answers-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--cw-surface);
+  border: 1.5px solid var(--cw-surface-mid);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cw-primary-dark);
+  font-family: var(--cw-font);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.cw-more-answers-btn:hover {
+  background: var(--cw-surface-mid);
+  border-color: var(--cw-primary);
 }
 
 @keyframes cwFadeIn {
