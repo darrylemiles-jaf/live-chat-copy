@@ -15,6 +15,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const [agentName, setAgentName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatEnded, setIsChatEnded] = useState(false);
@@ -332,7 +333,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             setQueuePosition(data.queue_position);
           }
 
+          setIsBotTyping(true);
           setTimeout(() => {
+            setIsBotTyping(false);
             setMessages(prev => [
               ...prev,
               {
@@ -344,7 +347,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               }
             ]);
             scrollToBottom();
-          }, 600);
+          }, 1400);
         }
 
         setInputMessage('');
@@ -441,7 +444,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             setQueuePosition(data.queue_position);
           }
 
+          setIsBotTyping(true);
           setTimeout(() => {
+            setIsBotTyping(false);
             setMessages(prev => [
               ...prev,
               {
@@ -452,7 +457,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 isAutoReply: true
               }
             ]);
-          }, 600);
+          }, 1400);
         }
 
         clearSelectedFile();
@@ -602,15 +607,23 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         message: qc.title,
         created_at: new Date().toISOString(),
       },
-      {
-        id: `qc-bot-${now + 1}`,
-        sender_role: 'bot',
-        message: qc.response,
-        created_at: new Date().toISOString(),
-        isAutoReply: true,
-      },
     ]);
     setWidgetScreen('chat');
+    setIsBotTyping(true);
+    setTimeout(() => {
+      setIsBotTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `qc-bot-${now + 1}`,
+          sender_role: 'bot',
+          message: qc.response,
+          created_at: new Date().toISOString(),
+          isAutoReply: true,
+        },
+      ]);
+      scrollToBottom();
+    }, 1400);
   };
 
   // ── Escalation handler ──────────────────────────────────────────────────
@@ -948,6 +961,21 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           {/* ── Chat Screen ── */}
           {isRegistered && (widgetScreen === 'chat' || isChatEnded) && (
             <>
+              {/* Back navigation bar */}
+              {!isChatEnded && (
+                <div className="cw-chat-back-nav">
+                  <button
+                    type="button"
+                    className="cw-chat-back-btn"
+                    onClick={() => setWidgetScreen('quick_chats')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Quick Answers
+                  </button>
+                </div>
+              )}
               <div className="chat-widget-messages">
                 {messages.length === 0 && !chatId && !isChatEnded && (
                   <div className="chat-empty-state">
@@ -1035,9 +1063,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   });
                 })()}
 
-                {isTyping && (
+                {(isTyping || isBotTyping) && (
                   <div className="chat-typing-indicator">
-                    <span>typing</span>
+                    <span>{isBotTyping ? '' : (agentName || 'Agent')}</span>
                     <div className="typing-dots">
                       <span></span>
                       <span></span>

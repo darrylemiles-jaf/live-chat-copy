@@ -1441,6 +1441,35 @@
   background: var(--cw-surface);
 }
 
+/* ── Back nav bar in chat screen ── */
+.cw-chat-back-nav {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--cw-border);
+  background: var(--cw-white);
+}
+
+.cw-chat-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cw-text-muted);
+  font-family: var(--cw-font);
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.cw-chat-back-btn:hover {
+  color: var(--cw-primary);
+  background: var(--cw-surface);
+}
+
 .cw-qc-header-icon {
   font-size: 26px;
   line-height: 1.2;
