@@ -212,45 +212,6 @@
   font-weight: 500;
 }
 
-.chat-concern-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: var(--cw-font);
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: var(--cw-white);
-  border-radius: 20px;
-  padding: 1px 8px;
-  margin-left: 4px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.chat-concern-badge-clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.25);
-  border: none;
-  color: var(--cw-white);
-  border-radius: 50%;
-  width: 13px;
-  height: 13px;
-  font-size: 9px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 2px;
-  transition: background 0.15s;
-}
-
-.chat-concern-badge-clear:hover {
-  background: rgba(255, 255, 255, 0.45);
-}
-
 .chat-close-button {
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -362,47 +323,6 @@
   outline: none;
   border-color: var(--cw-primary);
   box-shadow: 0 0 0 3px rgba(0, 142, 134, 0.13);
-}
-
-/* ── Concern autocomplete dropdown ── */
-.chat-concern-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--cw-white);
-  border: 1.5px solid var(--cw-primary);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(6, 72, 86, 0.15);
-  list-style: none;
-  margin: 0;
-  padding: 4px 0;
-  z-index: 10000;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.chat-concern-option {
-  padding: 9px 14px;
-  font-size: 13px;
-  font-family: var(--cw-font);
-  color: var(--cw-text);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.chat-concern-option:hover,
-.chat-concern-option.selected {
-  background: var(--cw-surface);
-  color: var(--cw-primary-dark);
-  font-weight: 600;
-}
-
-.chat-concern-bar-chevron {
-  font-size: 11px;
-  color: #94a3b8;
-  pointer-events: none;
-  user-select: none;
 }
 
 .chat-submit-button {
@@ -672,51 +592,6 @@
   display: flex;
   gap: 8px;
   align-items: center;
-}
-
-/* Concern inline row inside the input bar */
-.chat-concern-inline {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--cw-border);
-  border-radius: 22px;
-  background: var(--cw-bg-chat);
-  padding: 0 12px;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
-.chat-concern-inline:focus-within {
-  border-color: var(--cw-primary);
-  box-shadow: 0 0 0 3px rgba(0, 142, 134, 0.11);
-  background: var(--cw-white);
-}
-
-.chat-concern-inline-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 9px 4px 9px 0;
-  font-size: 13px;
-  font-family: var(--cw-font);
-  color: var(--cw-text);
-}
-
-.chat-concern-inline-input::placeholder {
-  color: #94a3b8;
-}
-
-.chat-concern-inline .chat-concern-bar-chevron {
-  flex-shrink: 0;
-}
-
-/* Dropdown opens upward from the concern inline row */
-.chat-concern-inline .chat-concern-dropdown {
-  bottom: calc(100% + 6px);
-  top: auto;
 }
 
 .chat-message-input {
@@ -1706,15 +1581,14 @@
   color: var(--cw-primary-dark);
 }
 
-/* Chevron icon rotation */
+/* Chevron icon (right arrow — navigate to chat) */
 .cw-qc-chevron {
   flex-shrink: 0;
   color: #94a3b8;
-  transition: transform 0.22s ease, color 0.2s;
+  transition: color 0.2s;
 }
 
-.cw-qc-item.open .cw-qc-chevron {
-  transform: rotate(180deg);
+.cw-qc-item:hover .cw-qc-chevron {
   color: var(--cw-primary);
 }
 

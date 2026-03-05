@@ -29,19 +29,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
   const [endedChatId, setEndedChatId] = useState(null);
-  const [concern, setConcern] = useState('');
-  const [lastConcern, setLastConcern] = useState('');
-  const [lastIsCustomConcern, setLastIsCustomConcern] = useState(false);
-  const [concernOptions, setConcernOptions] = useState([]);
-  const [concernDropdownOpen, setConcernDropdownOpen] = useState(false);
-  const [isCustomConcern, setIsCustomConcern] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState(null);
 
   // ── Quick Chats screen ────────────────────────────────────────────────────
   const [widgetScreen, setWidgetScreen] = useState('quick_chats');
   const [quickChats, setQuickChats] = useState([]);
   const [quickChatsLoading, setQuickChatsLoading] = useState(false);
-  const [expandedQuickChat, setExpandedQuickChat] = useState(null);
   const [quickChatSearch, setQuickChatSearch] = useState('');
 
   // ── Escalation state ──────────────────────────────────────────────────────
@@ -57,35 +50,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   };
-
-  const handleConcernInput = (e) => {
-    const value = e.target.value;
-    if (isCustomConcern) {
-      const hasTrailingSpace = value.endsWith(' ');
-      const transformed = toTitleCase(value);
-      setConcern(hasTrailingSpace && value.trim() ? transformed + ' ' : transformed);
-    } else {
-      setConcern(toTitleCase(value));
-      setConcernDropdownOpen(true);
-    }
-  };
-
-  const STATIC_CONCERNS = [
-    { id: 's1', name: 'General Inquiry' },
-    { id: 's2', name: 'Technical Issue' },
-  ];
-
-  const allConcernOptions = [
-    ...STATIC_CONCERNS,
-    ...concernOptions.filter(
-      opt => !STATIC_CONCERNS.some(s => s.name.toLowerCase() === opt.name.toLowerCase())
-    ),
-    { id: 'other', name: 'Other' }
-  ];
-
-  const filteredConcernOptions = allConcernOptions.filter(opt =>
-    !isCustomConcern || concern === '' || opt.name.toLowerCase().includes(concern.toLowerCase())
-  );
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -106,30 +70,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
   const fileInputRef = useRef(null);
-  const concernRef = useRef(null);
   const editorRef = useRef(null);
   const escalationPollRef = useRef(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
   }, [chatId]);
-
-  useEffect(() => {
-    fetch(`${apiUrl}/concern-types`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
-      .then(r => r.json())
-      .then(data => { if (data?.success) setConcernOptions(data.data); })
-      .catch(() => { });
-  }, [apiUrl]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (concernRef.current && !concernRef.current.contains(e.target)) {
-        setConcernDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
 
   useEffect(() => {
     if (!isRegistered) return;
@@ -350,8 +296,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     if (chatId) {
       messagePayload.chat_id = chatId;
-    } else if (concern) {
-      messagePayload.concern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
     }
 
     console.log('Sending message:', messagePayload);
@@ -371,19 +315,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
-
-          if (concern) {
-            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              map[newChatId] = formattedConcern;
-              localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) { }
-            // Update state with formatted concern
-            if (isCustomConcern) {
-              setConcern(formattedConcern);
-            }
-          }
 
           if (data.data) {
             setMessages(prev => {
@@ -474,8 +405,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       formData.append('sender_id', userId);
       if (chatId) {
         formData.append('chat_id', chatId);
-      } else if (concern) {
-        formData.append('concern', isCustomConcern ? toTitleCase(concern.trim()) : concern);
       }
       if (inputMessage.trim() && !isEditorEmpty) {
         formData.append('message', inputMessage.trim());
@@ -495,18 +424,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           const newChatId = data.chat_id;
           setChatId(newChatId);
           socketRef.current?.emit('join_chat', newChatId);
-
-          if (concern) {
-            const formattedConcern = isCustomConcern ? toTitleCase(concern.trim()) : concern;
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              map[newChatId] = formattedConcern;
-              localStorage.setItem('chat_concern_map', JSON.stringify(map));
-            } catch (_) { }
-            if (isCustomConcern) {
-              setConcern(formattedConcern);
-            }
-          }
 
           if (data.data) {
             setMessages(prev => {
@@ -642,14 +559,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         if (activeChat) {
           setChatId(activeChat.id);
-          if (!activeChat.concern) {
-            try {
-              const map = JSON.parse(localStorage.getItem('chat_concern_map') || '{}');
-              if (map[activeChat.id]) setConcern(map[activeChat.id]);
-            } catch (_) { }
-          } else {
-            setConcern(activeChat.concern);
-          }
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
             const seenMsgs = activeChat.messages.filter(m => m.sender_role === 'client' && m.is_seen);
@@ -680,9 +589,35 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
+  // ── Quick chat click → inject bot reply locally, switch to chat screen ──
+  const handleQuickChatSelect = (qc) => {
+    setMessages([
+      {
+        id: `qc-user-${Date.now()}`,
+        sender_id: userId,
+        sender_role: 'client',
+        message: qc.title,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `qc-bot-${Date.now() + 1}`,
+        sender_role: 'bot',
+        message: qc.response,
+        created_at: new Date().toISOString(),
+        isAutoReply: true,
+      },
+    ]);
+    setWidgetScreen('chat');
+  };
+
   // ── Escalation handler ──────────────────────────────────────────────────
   const handleEscalateToAgent = useCallback(async () => {
     if (chatMode !== CHAT_MODES.BOT || isEscalating) return;
+
+    if (!chatId) {
+      showToast('Please send a message first to start a chat, then we can connect you with an agent.');
+      return;
+    }
 
     setIsEscalating(true);
     setChatMode(CHAT_MODES.PENDING_AGENT);
@@ -743,8 +678,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   }, [isChatEnded]);
 
   const handleStartNewChat = () => {
-    const prevConcern = concern;
-    const prevIsCustom = isCustomConcern;
     setChatId(null);
     setMessages([]);
     setIsChatEnded(false);
@@ -755,19 +688,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setRatingHover(0);
     setRatingComment('');
     setRatingSubmitted(false);
-    setConcern(prevConcern);
-    setIsCustomConcern(false);
-    setLastConcern(prevConcern);
-    setLastIsCustomConcern(prevIsCustom);
     // Reset escalation
     setChatMode(CHAT_MODES.BOT);
     setEscalatedAgentName('');
     setIsEscalating(false);
     clearInterval(escalationPollRef.current);
     escalationPollRef.current = null;
-    // Return to quick chats FAQ view
+    // Return to quick chats screen
     setWidgetScreen('quick_chats');
-    setExpandedQuickChat(null);
     setQuickChatSearch('');
   };
 
@@ -861,29 +789,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <span className="chat-status-text">
                     {isConnected ? 'Online — we’re here to help' : 'Offline'}
                   </span>
-                  {concern && (
-                    <span
-                      className="chat-concern-badge"
-                      style={!chatId ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' } : {}}
-                      title={!chatId ? 'Click to change concern' : ''}
-                    >
-                      {concern}
-                      {!chatId && (
-                        <button
-                          type="button"
-                          className="chat-concern-badge-clear"
-                          aria-label="Change concern"
-                          onClick={() => {
-                            setConcern('');
-                            setIsCustomConcern(false);
-                            setConcernDropdownOpen(true);
-                          }}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -933,7 +838,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 <div className="cw-qc-header-icon">💬</div>
                 <h4 className="cw-qc-title">Quick Answers</h4>
                 <p className="cw-qc-subtitle">
-                  Find instant answers below, or talk to a real person.
+                  Pick a topic below to get an instant answer, or talk to a real person.
                 </p>
               </div>
 
@@ -970,11 +875,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   </div>
                 ) : (
                   filteredQCs.map((qc) => (
-                    <div key={qc.id} className={`cw-qc-item${expandedQuickChat === qc.id ? ' open' : ''}`}>
+                    <div key={qc.id} className="cw-qc-item">
                       <button
                         type="button"
                         className="cw-qc-item-header"
-                        onClick={() => setExpandedQuickChat((prev) => (prev === qc.id ? null : qc.id))}
+                        onClick={() => handleQuickChatSelect(qc)}
                       >
                         <span className="cw-qc-item-title">{qc.title}</span>
                         <svg
@@ -987,17 +892,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         >
-                          <polyline points="6 9 12 15 18 9" />
+                          <polyline points="9 18 15 12 9 6" />
                         </svg>
                       </button>
-                      {expandedQuickChat === qc.id && (
-                        <div className="cw-qc-item-body">
-                          <div
-                            className="cw-qc-rich-content"
-                            dangerouslySetInnerHTML={{ __html: qc.response }}
-                          />
-                        </div>
-                      )}
                     </div>
                   ))
                 )}
@@ -1256,7 +1153,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               )}
 
               {/* Quick Replies */}
-              {!isChatEnded && messages.length === 0 && concern.trim() && (
+              {!isChatEnded && messages.length === 0 && (
                 <div className="chat-quick-chats">
                   <span className="chat-quick-chats-label">Quick Chats</span>
                   <div className="chat-quick-chats-list">
@@ -1323,52 +1220,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     }}
                     className="chat-widget-input"
                   >
-                    {!chatId && !isChatEnded && (
-                      <div
-                        className="chat-concern-inline"
-                        ref={concernRef}
-                        onClick={() => !isCustomConcern && setConcernDropdownOpen(true)}
-                        style={!isCustomConcern ? { cursor: 'pointer' } : {}}
-                      >
-                        <input
-                          type="text"
-                          placeholder={isCustomConcern ? "Type your concern…" : "Select a concern first…"}
-                          value={concern === 'Other' && !isCustomConcern ? '' : concern}
-                          onChange={handleConcernInput}
-                          onFocus={() => !isCustomConcern && setConcernDropdownOpen(true)}
-                          autoComplete="off"
-                          className="chat-concern-inline-input"
-                          readOnly={!isCustomConcern}
-                          style={!isCustomConcern ? { cursor: 'pointer' } : {}}
-                        />
-                        {!isCustomConcern && <span className="chat-concern-bar-chevron">▾</span>}
-                        {concernDropdownOpen && filteredConcernOptions.length > 0 && !isCustomConcern && (
-                          <ul className="chat-concern-dropdown">
-                            {filteredConcernOptions.map(opt => (
-                              <li
-                                key={opt.id}
-                                className={`chat-concern-option${concern === opt.name ? ' selected' : ''}`}
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  if (opt.name === 'Other') {
-                                    setIsCustomConcern(true);
-                                    setConcern('');
-                                    setConcernDropdownOpen(false);
-                                  } else {
-                                    setConcern(opt.name);
-                                    setIsCustomConcern(false);
-                                    setConcernDropdownOpen(false);
-                                  }
-                                }}
-                              >
-                                {opt.name}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                    <div className="chat-input-row" style={!chatId && !isChatEnded && !concern.trim() ? { display: 'none' } : {}}>
+                    <div className="chat-input-row">
                       <input
                         type="file"
                         ref={fileInputRef}
