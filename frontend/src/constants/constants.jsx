@@ -16,16 +16,16 @@ const SOCKET_URL = import.meta.env.VITE_MODE === 'production'
 
 const ROLES = {
     CENTRAL_ADMIN: {
-        label: 'Central Admin',
-        value: 'CENTRAL_ADMIN'
+        label: 'Admin',
+        value: 'admin'
     },
     CUSTOMER_SUPPORT: {
         label: 'Customer Support',
-        value: 'CUSTOMER_SUPPORT'
+        value: 'support'
     },
-    CUSTOMER: {
-        label: 'Customer',
-        value: 'CUSTOMER'
+    CLIENT: {
+        label: 'Client',
+        value: 'client'
     },
 }
 

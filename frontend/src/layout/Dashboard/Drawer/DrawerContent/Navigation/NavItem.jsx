@@ -48,7 +48,6 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   const Icon = item.icon;
   const itemIcon = item.icon ? (
     <Badge
-      badgeContent={showChatBadge ? chatBadgeCount : 0}
       color="error"
       sx={{
         '& .MuiBadge-badge': {

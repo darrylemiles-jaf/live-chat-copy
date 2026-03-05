@@ -6,11 +6,13 @@ import Box from '@mui/material/Box';
 import NavGroup from './NavGroup';
 import NavCollapse from './NavCollapse';
 import menuItem from 'menu-items';
+import useAuth from '../../../../../hooks/useAuth';
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 export default function Navigation() {
-  const userRole = 'CENTRAL_ADMIN'; //subject to change based on login
+  const { user } = useAuth();
+  const userRole = user?.role
 
   const filterByRole = (items, role) => {
     return items
