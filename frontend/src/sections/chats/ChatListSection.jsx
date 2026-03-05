@@ -211,7 +211,7 @@ const ChatListSection = ({ chats, selectedChat, onSelectChat, searchQuery = '', 
               my: 0.5,
               borderRadius: 2,
               transition: 'all 0.2s ease',
-              bgcolor: selectedChat?.id === chat.id ? 'primary.lighter' : 'transparent',
+              bgcolor: selectedChat?.id === chat.id ? 'action.hover' : 'transparent',
               borderLeft: selectedChat?.id === chat.id ? '3px solid' : '3px solid transparent',
               borderLeftColor: selectedChat?.id === chat.id ? 'primary.main' : 'transparent',
               '&:hover': {
