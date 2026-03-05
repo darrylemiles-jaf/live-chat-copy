@@ -12,7 +12,7 @@ const Clients = Loadable(lazy(() => import('../pages/portal/users/clients')));
 const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
 const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
-
+const QuickReplies = Loadable(lazy(() => import('../pages/portal/content-hub/quick-replies')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -48,6 +48,15 @@ const MainRoutes = {
             {
               path: 'supports',
               element: <SupportAgents />
+            }
+          ]
+        },
+        {
+          path: 'content-hub',
+          children: [
+            {
+              path: 'quick-replies',
+              element: <QuickReplies />
             }
           ]
         },

@@ -1,6 +1,25 @@
 import expressAsync from 'express-async-handler';
 import chatsAssignmentServices from '../services/chatsAssignmentServices.js';
 
+const escalateChat = expressAsync(async (req, res) => {
+  try {
+    const { clientId, conversationId } = req.body;
+
+    if (!clientId || !conversationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'clientId and conversationId are required',
+      });
+    }
+
+    const result = await chatsAssignmentServices.escalateChat(clientId, conversationId);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(`❌ Escalate chat error: ${error.message}`);
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
 const autoAssignChat = expressAsync(async (req, res) => {
   try {
     const { chat_id } = req.body;
@@ -73,5 +92,6 @@ const endChat = expressAsync(async (req, res) => {
 export {
   autoAssignChat,
   manualAssignChat,
-  endChat
+  endChat,
+  escalateChat
 }

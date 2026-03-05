@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import WidgetEditor from './WidgetEditor';
+import { CHAT_MODES, escalateToAgent } from '../../services/chatService';
 import './ChatWidget.css';
 
 const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
@@ -35,6 +36,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [concernDropdownOpen, setConcernDropdownOpen] = useState(false);
   const [isCustomConcern, setIsCustomConcern] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState(null);
+
+  // ── Escalation state ──────────────────────────────────────────────────────
+  const [chatMode, setChatMode] = useState(CHAT_MODES.BOT);
+  const [escalatedAgentName, setEscalatedAgentName] = useState('');
+  const [isEscalating, setIsEscalating] = useState(false);
 
   const toTitleCase = (str) => {
     if (!str) return '';
@@ -95,6 +101,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const fileInputRef = useRef(null);
   const concernRef = useRef(null);
   const editorRef = useRef(null);
+  const escalationPollRef = useRef(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
@@ -637,6 +644,68 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
+  // ── Escalation handler ──────────────────────────────────────────────────
+  const handleEscalateToAgent = useCallback(async () => {
+    if (chatMode !== CHAT_MODES.BOT || isEscalating) return;
+
+    setIsEscalating(true);
+    setChatMode(CHAT_MODES.PENDING_AGENT);
+
+    // Track resolved state in local mutable ref so the interval sees fresh values
+    let resolved = false;
+
+    const attempt = async () => {
+      if (resolved) return;
+      try {
+        const result = await escalateToAgent(apiUrl, userId, chatId);
+
+        if (result.status === 'assigned') {
+          resolved = true;
+          setChatMode(CHAT_MODES.LIVE_AGENT);
+          setEscalatedAgentName(result.agentName || 'an Agent');
+          setIsEscalating(false);
+          clearInterval(escalationPollRef.current);
+          escalationPollRef.current = null;
+        }
+        // 'no_agent_available' → stay in PENDING_AGENT, polling continues
+      } catch (err) {
+        resolved = true;
+        console.error('Escalation error:', err);
+        setChatMode(CHAT_MODES.BOT);
+        setIsEscalating(false);
+        clearInterval(escalationPollRef.current);
+        escalationPollRef.current = null;
+        showToast(err.message || 'Could not connect to an agent. Please try again.');
+      }
+    };
+
+    // First immediate attempt
+    await attempt();
+
+    // If not yet resolved, start polling every 10 s
+    if (!resolved) {
+      escalationPollRef.current = setInterval(async () => {
+        if (resolved) {
+          clearInterval(escalationPollRef.current);
+          escalationPollRef.current = null;
+          return;
+        }
+        await attempt();
+      }, 10000);
+    }
+  }, [chatMode, isEscalating, apiUrl, userId, chatId]);
+
+  // Cleanup escalation poll on unmount or chat end
+  useEffect(() => {
+    if (isChatEnded) {
+      clearInterval(escalationPollRef.current);
+      escalationPollRef.current = null;
+    }
+    return () => {
+      clearInterval(escalationPollRef.current);
+    };
+  }, [isChatEnded]);
+
   const handleStartNewChat = () => {
     const prevConcern = concern;
     const prevIsCustom = isCustomConcern;
@@ -654,6 +723,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setIsCustomConcern(false);
     setLastConcern(prevConcern);
     setLastIsCustomConcern(prevIsCustom);
+    // Reset escalation
+    setChatMode(CHAT_MODES.BOT);
+    setEscalatedAgentName('');
+    setIsEscalating(false);
+    clearInterval(escalationPollRef.current);
+    escalationPollRef.current = null;
   };
 
   const handleSubmitRating = async () => {
@@ -903,6 +978,54 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                       <span></span>
                       <span></span>
                     </div>
+                  </div>
+                )}
+
+                {/* ── Escalation prompt (shown after bot replies) ── */}
+                {!isChatEnded &&
+                  chatMode === CHAT_MODES.BOT &&
+                  messages.some(m => m.sender_role === 'bot') && (
+                    <div className="chat-escalation-prompt">
+                      <div className="chat-escalation-divider">
+                        <span>or</span>
+                      </div>
+                      <p className="chat-escalation-text">Still having problems?</p>
+                      <button
+                        type="button"
+                        className="chat-escalation-btn"
+                        onClick={handleEscalateToAgent}
+                        disabled={isEscalating}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', flexShrink: 0 }}>
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        Talk to an Agent
+                      </button>
+                    </div>
+                  )}
+
+                {/* ── Pending agent state ── */}
+                {!isChatEnded && chatMode === CHAT_MODES.PENDING_AGENT && (
+                  <div className="chat-escalation-pending">
+                    <div className="chat-escalation-spinner" />
+                    <p className="chat-escalation-pending-text">
+                      All agents are currently busy. Please wait&hellip;
+                    </p>
+                    <p className="chat-escalation-pending-sub">
+                      We&rsquo;re looking for an available agent and will connect you automatically.
+                    </p>
+                  </div>
+                )}
+
+                {/* ── Agent connected state ── */}
+                {!isChatEnded && chatMode === CHAT_MODES.LIVE_AGENT && escalatedAgentName && (
+                  <div className="chat-escalation-connected">
+                    <div className="chat-escalation-connected-icon">✓</div>
+                    <p className="chat-escalation-connected-text">
+                      You are now connected to Agent&nbsp;
+                      <strong>{escalatedAgentName}</strong>
+                    </p>
                   </div>
                 )}
 
