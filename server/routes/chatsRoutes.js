@@ -17,17 +17,17 @@ import express from 'express'
 
 const router = express.Router()
 
-router.get('/', getChats);
+router.get('/', protect, getChats);
 
-router.get('/stats', getChatStats);
-router.get('/detailed-stats', getDetailedStats);
+router.get('/stats', protect, getChatStats);
+router.get('/detailed-stats', protect, getDetailedStats);
 
-router.post('/auto-assign', autoAssignChat);
+router.post('/auto-assign', protect, autoAssignChat);
 
-router.post('/assign', manualAssignChat);
+router.post('/assign', protect, manualAssignChat);
 
-router.post('/end', endChat);
+router.post('/end', protect, endChat);
 
-router.post('/escalate', escalateChat);
+router.post('/escalate', protect, escalateChat);
 
 export default router

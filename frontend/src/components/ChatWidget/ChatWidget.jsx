@@ -31,6 +31,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isRatingSubmitting, setIsRatingSubmitting] = useState(false);
   const [endedChatId, setEndedChatId] = useState(null);
   const [lastSeenAt, setLastSeenAt] = useState(null);
+  const [widgetToken, setWidgetToken] = useState(null);
 
   // ── Quick Chats screen ────────────────────────────────────────────────────
   const [widgetScreen, setWidgetScreen] = useState('quick_chats');
@@ -251,6 +252,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       } else if (data.success) {
         userIdToStore = data.data?.id;
         setUserId(userIdToStore);
+        if (data.token) setWidgetToken(data.token);
         console.log('User logged in:', userIdToStore);
       }
 
@@ -268,7 +270,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         JSON.stringify({
           id: userIdToStore,
           name: userName,
-          email: userEmail
+          email: userEmail,
+          token: data.token || null
         })
       );
 
@@ -302,7 +305,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     try {
       const response = await fetch(`${apiUrl}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+        },
         body: JSON.stringify(messagePayload)
       });
 
@@ -413,7 +420,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
       const response = await fetch(`${apiUrl}/messages/upload`, {
         method: 'POST',
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+        },
         body: formData
       });
 
@@ -479,6 +489,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         setUserId(user.id);
         setUserName(user.name || user.email.split('@')[0]);
         setUserEmail(user.email);
+        if (user.token) setWidgetToken(user.token);
         setIsRegistered(true);
       } catch (error) {
         console.error('Error parsing saved user:', error);
@@ -556,7 +567,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const loadChatHistory = async () => {
     try {
       const response = await fetch(`${apiUrl}/chats?user_id=${userId}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+        }
       });
       const data = await response.json();
 
@@ -985,15 +999,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   const uid = Number(userId);
                   const lastSeenSentIdx = lastSeenAt
                     ? messages.reduce((acc, msg, i) => {
-                        if (
-                          Number(msg.sender_id) === uid &&
-                          msg.sender_role !== 'bot' &&
-                          msg.created_at &&
-                          new Date(msg.created_at) <= new Date(lastSeenAt)
-                        )
-                          return i;
-                        return acc;
-                      }, -1)
+                      if (
+                        Number(msg.sender_id) === uid &&
+                        msg.sender_role !== 'bot' &&
+                        msg.created_at &&
+                        new Date(msg.created_at) <= new Date(lastSeenAt)
+                      )
+                        return i;
+                      return acc;
+                    }, -1)
                     : -1;
 
                   return messages.map((msg, index) => {

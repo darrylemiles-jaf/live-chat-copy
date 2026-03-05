@@ -8,7 +8,7 @@ import express from 'express'
 
 const router = express.Router()
 
-router.get('/', getQueue);
-router.get('/available-agents', getAvailableAgents);
+router.get('/', protect, getQueue);
+router.get('/available-agents', protect, getAvailableAgents);
 
 export default router

@@ -12,12 +12,12 @@ import express from 'express'
 const router = express.Router()
 
 // GET /messages - Get messages by chat_id or sender_id
-router.get('/', getMessages);
+router.get('/', protect, getMessages);
 
 // POST /messages - Create a new message (JSON body)
-router.post('/', createMessage);
+router.post('/', protect, createMessage);
 
 // POST /messages/upload - Create a message with file attachment (multipart/form-data)
-router.post('/upload', upload.single('attachment'), createMessageWithAttachment);
+router.post('/upload', protect, upload.single('attachment'), createMessageWithAttachment);
 
 export default router

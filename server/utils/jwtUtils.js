@@ -32,12 +32,10 @@ export const verifyToken = (token) => {
  * @returns {String} 
  */
 export const generateUserToken = (user) => {
-  return generateToken({
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    name: user.name || user.username,
-    role: user.role,
-    phone: user.phone
-  });
+  const { id, email, ...userObj } = user;
+  return jwt.sign(
+    { userId: id, emailAddress: email, ...userObj },
+    JWT_SECRET,
+    { expiresIn: '1d' }
+  );
 };

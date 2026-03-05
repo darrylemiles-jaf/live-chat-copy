@@ -17,7 +17,7 @@ export const protect = async (req, res, next) => {
 
       const [users] = await pool.query(
         'SELECT id, username, email, name, role, status FROM users WHERE id = ?',
-        [decoded.id]
+        [decoded.userId]
       );
 
       if (users.length === 0) {

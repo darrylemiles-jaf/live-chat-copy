@@ -3,6 +3,7 @@ import pool from "../config/db.js";
 import axios from "axios";
 import bcrypt from "bcryptjs";
 import { API_VALIDATOR_URL } from "../constants/constants.js";
+import { emitUserStatusChange } from "../socket/socketHandler.js";
 
 const getUsers = async (query = {}) => {
   try {
@@ -240,7 +241,6 @@ const authUser = async (email, password) => {
     );
 
     // Emit status change via socket
-    const { emitUserStatusChange } = await import("../socket/socketHandler.js");
     emitUserStatusChange(userData[0]);
 
     // Generate JWT token

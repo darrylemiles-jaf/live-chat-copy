@@ -15,8 +15,8 @@ export const getCurrentUser = () => {
     const decodedPayload = JSON.parse(atob(payload));
 
     return {
-      id: decodedPayload.id,
-      email: decodedPayload.email,
+      id: decodedPayload.userId,
+      email: decodedPayload.emailAddress,
       username: decodedPayload.username,
       role: decodedPayload.role,
       name: decodedPayload.name || decodedPayload.username,

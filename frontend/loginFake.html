@@ -348,8 +348,9 @@
           // Store user credentials in localStorage for the chat widget
           localStorage.setItem('chat_widget_user', JSON.stringify({
             id: data.data.id,
-            name: data.data.first_name || email.split('@')[0],
-            email: data.data.email || email
+            name: data.data.name || email.split('@')[0],
+            email: data.data.email || email,
+            token: data.token
           }));
 
           console.log('User logged in and saved to localStorage:', data.data);
