@@ -1104,9 +1104,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
               {/* Quick Replies */}
               {!isChatEnded && messages.length === 0 && concern.trim() && (
-                <div className="chat-quick-replies">
-                  <span className="chat-quick-replies-label">Quick replies</span>
-                  <div className="chat-quick-replies-list">
+                <div className="chat-quick-chats">
+                  <span className="chat-quick-chats-label">Quick Chats</span>
+                  <div className="chat-quick-chats-list">
                     {QUICK_REPLIES.map((text) => (
                       <button
                         key={text}

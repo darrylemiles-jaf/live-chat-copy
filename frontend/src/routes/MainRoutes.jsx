@@ -12,7 +12,7 @@ const Clients = Loadable(lazy(() => import('../pages/portal/users/clients')));
 const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
 const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
-const QuickReplies = Loadable(lazy(() => import('../pages/portal/content-hub/quick-replies')));
+const QuickChats = Loadable(lazy(() => import('../pages/portal/content-hub/quick-chats')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -55,8 +55,8 @@ const MainRoutes = {
           path: 'content-hub',
           children: [
             {
-              path: 'quick-replies',
-              element: <QuickReplies />
+              path: 'quick-chats',
+              element: <QuickChats />
             }
           ]
         },

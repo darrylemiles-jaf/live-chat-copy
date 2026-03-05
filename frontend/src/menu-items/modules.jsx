@@ -126,9 +126,9 @@ const modules = [
     children: [
       {
         id: 'content-hub',
-        title: 'Quick Replies',
+        title: 'Quick Chats',
         type: 'item',
-        url: '/portal/content-hub/quick-replies',
+        url: '/portal/content-hub/quick-chats',
         icon: icons.MessageAlertOutline,
         breadcrumbs: false,
         access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
