@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
@@ -16,15 +16,15 @@ export default defineConfig({
         entryFileNames: 'live-chat-widget.js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
-            return 'live-chat-widget.css';
+            return 'live-chat-widget.css'
           }
-          return assetInfo.name;
+          return assetInfo.name
         },
         inlineDynamicImports: true
       }
     },
-    outDir: 'dist-widget',
-    emptyOutDir: true,
+    outDir: 'dist/widget',
+    emptyOutDir: false,
     minify: 'terser',
     terserOptions: {
       compress: {
@@ -35,4 +35,4 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': JSON.stringify('production')
   }
-});
+})
