@@ -19,6 +19,7 @@ import chatsRoutes from './routes/chatsRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
 import notificationsRoutes from './routes/notificationsRoutes.js';
 import ratingsRoutes from './routes/ratingsRoutes.js';
+import quickChatsRoutes from './routes/quickChatsRoutes.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use(`/api/${API_VERSION}/chats`, chatsRoutes)
 app.use(`/api/${API_VERSION}/queue`, queueRoutes)
 app.use(`/api/${API_VERSION}/notifications`, notificationsRoutes)
 app.use(`/api/${API_VERSION}/ratings`, ratingsRoutes)
+app.use(`/api/${API_VERSION}/quick-chats`, quickChatsRoutes)
 
 app.use(notFound);
 app.use(errorHandler);

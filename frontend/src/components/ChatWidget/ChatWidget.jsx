@@ -37,6 +37,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [isCustomConcern, setIsCustomConcern] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState(null);
 
+  // ── Quick Chats screen ────────────────────────────────────────────────────
+  const [widgetScreen, setWidgetScreen] = useState('quick_chats');
+  const [quickChats, setQuickChats] = useState([]);
+  const [quickChatsLoading, setQuickChatsLoading] = useState(false);
+  const [expandedQuickChat, setExpandedQuickChat] = useState(null);
+  const [quickChatSearch, setQuickChatSearch] = useState('');
+
   // ── Escalation state ──────────────────────────────────────────────────────
   const [chatMode, setChatMode] = useState(CHAT_MODES.BOT);
   const [escalatedAgentName, setEscalatedAgentName] = useState('');
@@ -568,6 +575,35 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   }, [userId, isRegistered]);
 
+  /* switch to chat screen whenever an active chatId is set */
+  useEffect(() => {
+    if (chatId) setWidgetScreen('chat');
+  }, [chatId]);
+
+  /* switch to chat screen when a previously-ended chat is loaded */
+  useEffect(() => {
+    if (isChatEnded) setWidgetScreen('chat');
+  }, [isChatEnded]);
+
+  /* fetch quick chats whenever the quick-chats screen becomes visible */
+  useEffect(() => {
+    if (!isRegistered || widgetScreen !== 'quick_chats') return;
+    let cancelled = false;
+    const load = async () => {
+      setQuickChatsLoading(true);
+      try {
+        const res = await fetch(`${apiUrl}/quick-chats`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const data = await res.json();
+        if (!cancelled && data.success) setQuickChats(data.data || []);
+      } catch { /* non-critical */ }
+      finally { if (!cancelled) setQuickChatsLoading(false); }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [isRegistered, widgetScreen, apiUrl]);
+
   useEffect(() => {
     const checkExistingRating = async () => {
       const activeChatId = chatId || endedChatId;
@@ -729,6 +765,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setIsEscalating(false);
     clearInterval(escalationPollRef.current);
     escalationPollRef.current = null;
+    // Return to quick chats FAQ view
+    setWidgetScreen('quick_chats');
+    setExpandedQuickChat(null);
+    setQuickChatSearch('');
   };
 
   const handleSubmitRating = async () => {
@@ -773,6 +813,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     if (diffMs < 60000) return 'just now';
     return seenDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
+
+  const filteredQCs = quickChatSearch.trim()
+    ? quickChats.filter(qc =>
+      qc.title.toLowerCase().includes(quickChatSearch.toLowerCase())
+    )
+    : quickChats;
 
   return (
     <div className="chat-widget-container">
@@ -880,8 +926,115 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             </div>
           )}
 
-          {/* Messages */}
-          {isRegistered && (
+          {/* ── Quick Chats Screen ── */}
+          {isRegistered && widgetScreen === 'quick_chats' && !isChatEnded && (
+            <div className="cw-qc-screen">
+              <div className="cw-qc-header">
+                <div className="cw-qc-header-icon">💬</div>
+                <h4 className="cw-qc-title">Quick Answers</h4>
+                <p className="cw-qc-subtitle">
+                  Find instant answers below, or talk to a real person.
+                </p>
+              </div>
+
+              <div className="cw-qc-search-wrap">
+                <span className="cw-qc-search-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="cw-qc-search"
+                  placeholder="Search answers…"
+                  value={quickChatSearch}
+                  onChange={(e) => setQuickChatSearch(e.target.value)}
+                />
+                {quickChatSearch && (
+                  <button className="cw-qc-search-clear" type="button" onClick={() => setQuickChatSearch('')}>×</button>
+                )}
+              </div>
+
+              <div className="cw-qc-list">
+                {quickChatsLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="cw-qc-item">
+                      <div className="cw-qc-skeleton-header" />
+                    </div>
+                  ))
+                ) : filteredQCs.length === 0 ? (
+                  <div className="cw-qc-empty">
+                    {quickChatSearch.trim()
+                      ? `No results for "${quickChatSearch}".`
+                      : 'No quick answers available yet.'}
+                  </div>
+                ) : (
+                  filteredQCs.map((qc) => (
+                    <div key={qc.id} className={`cw-qc-item${expandedQuickChat === qc.id ? ' open' : ''}`}>
+                      <button
+                        type="button"
+                        className="cw-qc-item-header"
+                        onClick={() => setExpandedQuickChat((prev) => (prev === qc.id ? null : qc.id))}
+                      >
+                        <span className="cw-qc-item-title">{qc.title}</span>
+                        <svg
+                          className="cw-qc-chevron"
+                          width="14" height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                      {expandedQuickChat === qc.id && (
+                        <div className="cw-qc-item-body">
+                          <div
+                            className="cw-qc-rich-content"
+                            dangerouslySetInnerHTML={{ __html: qc.response }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="cw-qc-cta">
+                <p className="cw-qc-cta-label">Still have an issue?</p>
+                <button
+                  type="button"
+                  className="cw-qc-agent-btn"
+                  onClick={() => setWidgetScreen('chat')}
+                >
+                  <svg
+                    width="15" height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Talk to an Agent
+                </button>
+              </div>
+
+              <div className="chat-widget-footer">
+                Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
+              </div>
+            </div>
+          )}
+
+          {/* ── Chat Screen ── */}
+          {isRegistered && (widgetScreen === 'chat' || isChatEnded) && (
             <>
               <div className="chat-widget-messages">
                 {messages.length === 0 && !chatId && !isChatEnded && (
