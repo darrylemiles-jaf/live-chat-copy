@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { getTypeInfo, formatTimeAgo } from '../../utils/notifications/notificationTransformers';
+import { getTypeInfo, formatTimeAgo, parseNotificationMessage } from '../../utils/notifications/notificationTransformers';
 import NotificationIcon from './NotificationIcon';
 
 const NotificationModal = ({ notification, onClose, onGoToChat }) => {
@@ -81,7 +81,7 @@ const NotificationModal = ({ notification, onClose, onGoToChat }) => {
         {/* Body */}
         <div style={{ marginBottom: '14px' }}>
           <p style={{ fontSize: '13px', color: 'inherit', marginBottom: '10px', lineHeight: '1.5' }}>
-            {notification.message}
+            {parseNotificationMessage(notification.message)}
           </p>
 
           <div style={{ fontSize: '12px', color: 'inherit', lineHeight: '1.6' }}>

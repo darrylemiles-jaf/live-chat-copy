@@ -4,6 +4,7 @@ import { Link, useLocation, matchPath } from 'react-router-dom';
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
 import Chip from '@mui/material/Chip';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -14,6 +15,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 // project imports
 import IconButton from 'components/@extended/IconButton';
+import { useNotificationBadge } from 'contexts/NotificationBadgeContext';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
@@ -22,6 +24,8 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 export default function NavItem({ item, level, isParents = false, setSelectedID }) {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const { chatBadgeCount } = useNotificationBadge();
+  const showChatBadge = item.id === 'messages' && chatBadgeCount > 0;
 
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
@@ -43,12 +47,25 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
 
   const Icon = item.icon;
   const itemIcon = item.icon ? (
-    <Icon
-      style={{
-        fontSize: drawerOpen ? '1rem' : '1.25rem',
-        ...(isParents && { fontSize: 20, stroke: '1.5' })
+    <Badge
+      badgeContent={showChatBadge ? chatBadgeCount : 0}
+      color="error"
+      sx={{
+        '& .MuiBadge-badge': {
+          fontSize: '10px',
+          minWidth: '16px',
+          height: '16px',
+          padding: '0 4px',
+        },
       }}
-    />
+    >
+      <Icon
+        style={{
+          fontSize: drawerOpen ? '1rem' : '1.25rem',
+          ...(isParents && { fontSize: 20, stroke: '1.5' })
+        }}
+      />
+    </Badge>
   ) : (
     false
   );
@@ -117,13 +134,13 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                   }),
                   ...(!drawerOpen &&
                     isSelected && {
+                    bgcolor: 'primary.lighter',
+                    ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.18)' }),
+                    '&:hover': {
                       bgcolor: 'primary.lighter',
-                      ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.18)' }),
-                      '&:hover': {
-                        bgcolor: 'primary.lighter',
-                        ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.22)' })
-                      }
-                    })
+                      ...theme.applyStyles('dark', { bgcolor: 'rgba(var(--palette-primary-mainChannel) / 0.22)' })
+                    }
+                  })
                 })}
               >
                 {itemIcon}

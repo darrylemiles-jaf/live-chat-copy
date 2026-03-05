@@ -219,7 +219,8 @@ const createMessage = async (payload) => {
     if (sender_role === 'client' && chatAgentId) {
       const senderName = newMessage[0].sender_name || 'A client';
       const lastMsg = newMessage[0].message;
-      const msgPreview = lastMsg ? (lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : lastMsg) : 'sent an attachment';
+      const strippedMsg = lastMsg ? lastMsg.replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim() : '';
+      const msgPreview = strippedMsg ? (strippedMsg.length > 60 ? strippedMsg.substring(0, 60) + '...' : strippedMsg) : 'sent an attachment';
       try {
         await notificationServices.createNotification({
           user_id: chatAgentId,

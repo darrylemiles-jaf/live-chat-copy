@@ -52,6 +52,21 @@ export const getTypeInfo = (type) => {
   }
 };
 
+// Strip HTML tags and decode basic entities; returns plain text preview.
+// Falls back to 'Sent an attachment' when the cleaned result is empty.
+export const parseNotificationMessage = (message) => {
+  if (!message) return 'Sent an attachment';
+  const stripped = message
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z#0-9]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!stripped) return 'Sent an attachment';
+  // "Name: " with nothing meaningful after → attachment
+  if (/^[^:]+:\s*$/.test(stripped)) return stripped + 'Sent an attachment';
+  return stripped;
+};
+
 export const applyFilters = (notifications, { selectedTab, dateFilter, typeFilters }) => {
   let filtered = [...notifications];
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
-import { getTypeInfo, formatTimeAgo } from '../../utils/notifications/notificationTransformers';
+import { getTypeInfo, formatTimeAgo, parseNotificationMessage } from '../../utils/notifications/notificationTransformers';
 import NotificationIcon from './NotificationIcon';
 
 const NotificationItem = ({ notification, onClick }) => {
@@ -73,7 +73,7 @@ const NotificationItem = ({ notification, onClick }) => {
                 whiteSpace: 'nowrap',
               }}
             >
-              {notification.message}
+              {parseNotificationMessage(notification.message)}
             </div>
           </div>
 

@@ -24,6 +24,8 @@ import Transitions from 'components/@extended/Transitions';
 import { getCurrentUser } from 'utils/auth';
 import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from 'api/chatApi';
 import socketService from 'services/socketService';
+import { useNotificationBadge } from 'contexts/NotificationBadgeContext';
+import { parseNotificationMessage } from 'utils/notifications/notificationTransformers';
 
 // assets
 import BellOutlined from '@ant-design/icons/BellOutlined';
@@ -90,10 +92,11 @@ export default function Notification() {
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  const { bellCount, decrementBell, resetAll } = useNotificationBadge();
 
   const user = getCurrentUser();
 
@@ -109,7 +112,6 @@ export default function Notification() {
         } else {
           setNotifications(result.data);
         }
-        setUnreadCount(result.unread_count || 0);
         setHasMore(pageNum < result.pagination.totalPages);
       }
     } catch (error) {
@@ -124,19 +126,16 @@ export default function Notification() {
     fetchNotifications(1);
   }, [fetchNotifications]);
 
-  // Listen for real-time notifications via socket
+  // Listen for real-time notifications via socket (list updates only — counts managed by NotificationBadgeContext)
   useEffect(() => {
     const handleNewNotification = (notification) => {
-      console.log('🔔 New notification received:', notification);
       setNotifications((prev) => {
         const exists = prev.some((n) => n.id === notification.id);
         if (exists) {
-          // Update in place and move to top
           return [notification, ...prev.filter((n) => n.id !== notification.id)];
         }
         return [notification, ...prev];
       });
-      setUnreadCount((prev) => prev + 1);
     };
 
     let attached = false;
@@ -177,7 +176,7 @@ export default function Notification() {
     try {
       await markAllNotificationsAsRead(user.id);
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
-      setUnreadCount(0);
+      resetAll();
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
@@ -191,7 +190,7 @@ export default function Notification() {
         setNotifications((prev) =>
           prev.map((n) => (n.id === notification.id ? { ...n, is_read: 1 } : n))
         );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        decrementBell(notification);
       } catch (error) {
         console.error('Failed to mark as read:', error);
       }
@@ -229,7 +228,7 @@ export default function Notification() {
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={unreadCount} color="primary">
+        <Badge badgeContent={bellCount} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
@@ -253,7 +252,7 @@ export default function Notification() {
                   content={false}
                   secondary={
                     <>
-                      {unreadCount > 0 && (
+                      {bellCount > 0 && (
                         <Tooltip title="Mark all as read">
                           <IconButton color="success" size="small" onClick={handleMarkAllRead}>
                             <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
@@ -319,7 +318,7 @@ export default function Notification() {
                                   maxWidth: 200
                                 }}
                               >
-                                {style.label}{notification.message ? `: ${notification.message}` : ''}
+                                {style.label}{notification.message ? `: ${parseNotificationMessage(notification.message)}` : ''}
                               </Typography>
                             }
                           />
