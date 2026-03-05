@@ -5,7 +5,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
-import MuiIconButton from '@mui/material/IconButton';
+import IconButton from '@mui/material/IconButton';
 
 // project imports
 import AppBarStyled from './AppBarStyled';
@@ -15,8 +15,8 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from 'config';
 
 // assets
-import MenuFoldOutlined from '@ant-design/icons/MenuFoldOutlined';
-import MenuUnfoldOutlined from '@ant-design/icons/MenuUnfoldOutlined';
+import LeftOutlined from '@ant-design/icons/LeftOutlined';
+import { RightOutlined } from '@ant-design/icons';
 
 // ==============================|| MAIN LAYOUT - HEADER ||============================== //
 
@@ -33,7 +33,7 @@ export default function Header() {
   const mainHeader = (
     <Toolbar>
       <Tooltip title={drawerOpen ? 'Menu fold' : 'Menu unfold'}>
-        <MuiIconButton
+        <IconButton
           aria-label="open drawer"
           onClick={() => handlerDrawerOpen(!drawerOpen)}
           edge="start"
@@ -42,11 +42,11 @@ export default function Header() {
             borderRadius: 1,
             bgcolor: !drawerOpen ? theme.vars.palette.action.selected : 'transparent',
             ml: { xs: 0, lg: -2 },
-            '&:hover': { bgcolor: theme.vars.palette.action.selected },
+            '&:hover': { bgcolor: theme.vars.palette.action.selected }
           })}
         >
-          {!drawerOpen ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        </MuiIconButton>
+          {drawerOpen ? <LeftOutlined /> : <RightOutlined />}
+        </IconButton>
       </Tooltip>
       {headerContent}
     </Toolbar>
