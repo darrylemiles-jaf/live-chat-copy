@@ -41,6 +41,8 @@ export const NotificationBadgeProvider = ({ children }) => {
       if (notification.is_read) return;
       // If we already counted this notification ID, it's an upsert update — skip
       if (trackedUnreadIdsRef.current.has(notification.id)) return;
+      // Agent is already watching the chats page — no need to badge them
+      if (window.location.pathname.includes('/chats')) return;
 
       trackedUnreadIdsRef.current.add(notification.id);
       setBellCount((c) => c + 1);
