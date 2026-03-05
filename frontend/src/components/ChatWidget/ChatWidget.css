@@ -957,6 +957,25 @@
   transform: translateY(0);
 }
 
+/* "See more / See less" toggle inside quick chat pills */
+.chat-qc-see-more-btn {
+  padding: 5px 11px;
+  background: none;
+  color: var(--cw-primary);
+  border: 1.5px dashed var(--cw-primary);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  white-space: nowrap;
+  font-family: var(--cw-font);
+}
+
+.chat-qc-see-more-btn:hover {
+  background: var(--cw-surface);
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .chat-widget-container {

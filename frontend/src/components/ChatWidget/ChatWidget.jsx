@@ -36,6 +36,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [quickChats, setQuickChats] = useState([]);
   const [quickChatsLoading, setQuickChatsLoading] = useState(false);
   const [quickChatSearch, setQuickChatSearch] = useState('');
+  const [showAllQCPills, setShowAllQCPills] = useState(false);
 
   // ── Escalation state ──────────────────────────────────────────────────────
   const [chatMode, setChatMode] = useState(CHAT_MODES.BOT);
@@ -502,9 +503,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     if (isChatEnded) setWidgetScreen('chat');
   }, [isChatEnded]);
 
-  /* fetch quick chats whenever the quick-chats screen becomes visible */
+  /* fetch quick chats once the user is registered */
   useEffect(() => {
-    if (!isRegistered || widgetScreen !== 'quick_chats') return;
+    if (!isRegistered) return;
     let cancelled = false;
     const load = async () => {
       setQuickChatsLoading(true);
@@ -519,7 +520,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     };
     load();
     return () => { cancelled = true; };
-  }, [isRegistered, widgetScreen, apiUrl]);
+  }, [isRegistered, apiUrl]);
 
   useEffect(() => {
     const checkExistingRating = async () => {
@@ -1051,18 +1052,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   chatMode === CHAT_MODES.BOT &&
                   messages.some(m => m.sender_role === 'bot') && (
                     <div className="chat-escalation-prompt">
-                      {!chatId && (
-                        <button
-                          type="button"
-                          className="cw-more-answers-btn"
-                          onClick={() => setWidgetScreen('quick_chats')}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="15 18 9 12 15 6" />
-                          </svg>
-                          More quick answers
-                        </button>
-                      )}
                       <div className="chat-escalation-divider">
                         <span>or</span>
                       </div>
@@ -1179,27 +1168,30 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 </div>
               )}
 
-              {/* Quick Replies */}
-              {!isChatEnded && messages.length === 0 && (
+              {/* Quick Chat Pills — visible until a real agent chat starts */}
+              {!isChatEnded && !chatId && quickChats.length > 0 && (
                 <div className="chat-quick-chats">
                   <span className="chat-quick-chats-label">Quick Chats</span>
                   <div className="chat-quick-chats-list">
-                    {QUICK_REPLIES.map((text) => (
+                    {(showAllQCPills ? quickChats : quickChats.slice(0, 5)).map((qc) => (
                       <button
-                        key={text}
+                        key={qc.id}
                         className="chat-quick-reply-btn"
-                        onClick={() => {
-                          const html = `<p>${text}</p>`;
-                          editorRef.current?.setContent(html);
-                          setInputMessage(html);
-                          setIsEditorEmpty(false);
-                          editorRef.current?.focus();
-                        }}
                         type="button"
+                        onClick={() => handleQuickChatSelect(qc)}
                       >
-                        {text}
+                        {qc.title}
                       </button>
                     ))}
+                    {quickChats.length > 5 && (
+                      <button
+                        type="button"
+                        className="chat-qc-see-more-btn"
+                        onClick={() => setShowAllQCPills(v => !v)}
+                      >
+                        {showAllQCPills ? 'See less ↑' : `+${quickChats.length - 5} more`}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
