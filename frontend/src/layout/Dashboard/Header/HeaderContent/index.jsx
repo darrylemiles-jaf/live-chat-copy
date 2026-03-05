@@ -205,12 +205,6 @@ export default function HeaderContent() {
 
   return (
     <>
-      <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button onClick={handleOpenModal} sx={{ color: 'text.primary' }}>
-          Quick Links
-        </Button>
-      </Box>
-
       {!downLG && <Box sx={{ width: '100%' }} />}
       {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
 
@@ -222,6 +216,12 @@ export default function HeaderContent() {
         availableAgentsCount={0}
         unreadNotificationsCount={0}
       />
+
+      <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+        <Button onClick={handleOpenModal} sx={{ color: 'text.primary' }}>
+          Quick Links
+        </Button>
+      </Box>
 
       <Notification />
 
