@@ -1031,14 +1031,14 @@
 }
 
 /* ── Quick Replies ── */
-.chat-quick-replies {
+.chat-quick-chats {
   padding: 8px 12px 6px;
   background: var(--cw-white);
   border-top: 1px solid var(--cw-border);
   flex-shrink: 0;
 }
 
-.chat-quick-replies-label {
+.chat-quick-chats-label {
   display: block;
   font-size: 10.5px;
   font-weight: 600;
@@ -1048,7 +1048,7 @@
   margin-bottom: 6px;
 }
 
-.chat-quick-replies-list {
+.chat-quick-chats-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
