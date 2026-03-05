@@ -21,6 +21,7 @@ import {
   UnorderedListOutlined,
   DashboardOutlined,
   SettingOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 
 export default function QuickLinksDialog({
@@ -56,6 +57,15 @@ export default function QuickLinksDialog({
           badge: pendingChatsCount,
           color: theme.vars.palette.error.main,
           highlight: pendingChatsCount > 0
+        },
+        {
+          id: 'quick-chats',
+          icon: <ThunderboltOutlined />,
+          title: 'Quick Chats',
+          description: 'Use saved quick reply templates',
+          path: '/portal/content-hub/quick-chats',
+          color: theme.vars.palette.warning.main,
+          highlight: false
         }
       ]
     },
