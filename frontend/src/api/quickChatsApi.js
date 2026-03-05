@@ -10,13 +10,13 @@ export const getQuickChatById = async (id) => {
   return response.data;
 };
 
-export const createQuickChat = async ({ title, response }) => {
-  const res = await axiosServices.post('/quick-chats', { title, response });
+export const createQuickChat = async ({ title, response, is_active }) => {
+  const res = await axiosServices.post('/quick-chats', { title, response, is_active });
   return res.data;
 };
 
-export const updateQuickChat = async (id, { title, response }) => {
-  const res = await axiosServices.put(`/quick-chats/${id}`, { title, response });
+export const updateQuickChat = async (id, { title, response, is_active }) => {
+  const res = await axiosServices.put(`/quick-chats/${id}`, { title, response, is_active });
   return res.data;
 };
 

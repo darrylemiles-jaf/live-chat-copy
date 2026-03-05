@@ -49,7 +49,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     return str
       .trim()
       .split(/\s+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   };
 
@@ -58,12 +58,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setTimeout(() => setToast({ show: false, message: '' }), 4000);
   };
 
-  const QUICK_REPLIES = [
-    'Hi, I need help!',
-    'I have an inquiry',
-    'I want to follow up on something',
-    'Technical issue',
-  ];
+  const QUICK_REPLIES = ['Hi, I need help!', 'I have an inquiry', 'I want to follow up on something', 'Technical issue'];
 
   const [isEditorEmpty, setIsEditorEmpty] = useState(true);
 
@@ -120,8 +115,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       });
 
       if (msgChatId === currentChatId || !currentChatId) {
-        setMessages(prev => {
-          if (prev.some(msg => msg.id === message.id)) {
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === message.id)) {
             console.log('⚠️ Widget: Duplicate message, skipping');
             return prev;
           }
@@ -179,10 +174,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     socketRef.current.on('queue_position_update', ({ position }) => {
       console.log('🔢 Widget received queue position update:', position);
-      setQueuePosition(prev => {
+      setQueuePosition((prev) => {
         if (prev !== null && prev !== position) {
           const posLabel = position === 1 ? '1st' : position === 2 ? '2nd' : position === 3 ? '3rd' : `${position}th`;
-          setMessages(msgs => [
+          setMessages((msgs) => [
             ...msgs,
             {
               id: `queue-update-${Date.now()}`,
@@ -268,14 +263,16 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
       setIsRegistered(true);
 
-      localStorage.setItem('chat_widget_user', JSON.stringify({
-        id: userIdToStore,
-        name: userName,
-        email: userEmail
-      }));
+      localStorage.setItem(
+        'chat_widget_user',
+        JSON.stringify({
+          id: userIdToStore,
+          name: userName,
+          email: userEmail
+        })
+      );
 
       console.log('User registered and saved to localStorage:', { id: userIdToStore, name: userName, email: userEmail });
-
     } catch (error) {
       console.error('Registration error:', error);
       showToast('Failed to connect. Please try again.');
@@ -319,8 +316,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           socketRef.current?.emit('join_chat', newChatId);
 
           if (data.data) {
-            setMessages(prev => {
-              if (prev.some(msg => msg.id === data.data.id)) return prev;
+            setMessages((prev) => {
+              if (prev.some((msg) => msg.id === data.data.id)) return prev;
               return [...prev, data.data];
             });
           }
@@ -336,7 +333,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setIsBotTyping(true);
           setTimeout(() => {
             setIsBotTyping(false);
-            setMessages(prev => [
+            setMessages((prev) => [
               ...prev,
               {
                 id: `auto-reply-${Date.now()}`,
@@ -430,8 +427,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           socketRef.current?.emit('join_chat', newChatId);
 
           if (data.data) {
-            setMessages(prev => {
-              if (prev.some(msg => msg.id === data.data.id)) return prev;
+            setMessages((prev) => {
+              if (prev.some((msg) => msg.id === data.data.id)) return prev;
               return [...prev, data.data];
             });
           }
@@ -447,7 +444,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setIsBotTyping(true);
           setTimeout(() => {
             setIsBotTyping(false);
-            setMessages(prev => [
+            setMessages((prev) => [
               ...prev,
               {
                 id: `auto-reply-${Date.now()}`,
@@ -519,12 +516,18 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           headers: { 'ngrok-skip-browser-warning': 'true' }
         });
         const data = await res.json();
-        if (!cancelled && data.success) setQuickChats(data.data || []);
-      } catch { /* non-critical */ }
-      finally { if (!cancelled) setQuickChatsLoading(false); }
+        const quickChats = data?.data?.filter((f) => f.is_active);
+        if (!cancelled && data.success) setQuickChats(quickChats || []);
+      } catch {
+        /* non-critical */
+      } finally {
+        if (!cancelled) setQuickChatsLoading(false);
+      }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isRegistered, apiUrl]);
 
   useEffect(() => {
@@ -558,16 +561,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       const data = await response.json();
 
       if (data.success && data.data && data.data.length > 0) {
-        const activeChat = data.data.find(chat =>
-          chat.status === 'active' || chat.status === 'queued'
-        );
+        const activeChat = data.data.find((chat) => chat.status === 'active' || chat.status === 'queued');
         const latestChat = data.data[0];
 
         if (activeChat) {
           setChatId(activeChat.id);
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
-            const seenMsgs = activeChat.messages.filter(m => m.sender_role === 'client' && m.is_seen);
+            const seenMsgs = activeChat.messages.filter((m) => m.sender_role === 'client' && m.is_seen);
             if (seenMsgs.length > 0) {
               const latestSeen = seenMsgs[seenMsgs.length - 1];
               setLastSeenAt(latestSeen.created_at);
@@ -605,8 +606,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         sender_id: userId,
         sender_role: 'client',
         message: qc.title,
-        created_at: new Date().toISOString(),
-      },
+        created_at: new Date().toISOString()
+      }
     ]);
     setWidgetScreen('chat');
     setIsBotTyping(true);
@@ -619,8 +620,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           sender_role: 'bot',
           message: qc.response,
           created_at: new Date().toISOString(),
-          isAutoReply: true,
-        },
+          isAutoReply: true
+        }
       ]);
       scrollToBottom();
     }, 1400);
@@ -759,9 +760,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   };
 
   const filteredQCs = quickChatSearch.trim()
-    ? quickChats.filter(qc =>
-      qc.title.toLowerCase().includes(quickChatSearch.toLowerCase())
-    )
+    ? quickChats.filter((qc) => qc.title.toLowerCase().includes(quickChatSearch.toLowerCase()))
     : quickChats;
 
   return (
@@ -769,27 +768,28 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       {toast.show && (
         <div className="chat-widget-toast">
           <span>{toast.message}</span>
-          <button onClick={() => setToast({ show: false, message: '' })} className="chat-toast-close">×</button>
+          <button onClick={() => setToast({ show: false, message: '' })} className="chat-toast-close">
+            ×
+          </button>
         </div>
       )}
 
-      <button
-        className="chat-widget-button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Open chat"
-      >
+      <button className="chat-widget-button" onClick={() => setIsOpen(!isOpen)} aria-label="Open chat">
         {isOpen ? (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" />
           </svg>
         ) : (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         )}
-        {!isOpen && messages.length > 0 && (
-          <span className="chat-notification-badge">{messages.length}</span>
-        )}
+        {!isOpen && messages.length > 0 && <span className="chat-notification-badge">{messages.length}</span>}
       </button>
 
       {isOpen && (
@@ -802,17 +802,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 <h3>Customer Support</h3>
                 <div className="chat-status-row">
                   <span className={`chat-status-dot ${isConnected ? 'online' : 'offline'}`} />
-                  <span className="chat-status-text">
-                    {isConnected ? 'Online — we’re here to help' : 'Offline'}
-                  </span>
+                  <span className="chat-status-text">{isConnected ? 'Online — we’re here to help' : 'Offline'}</span>
                 </div>
               </div>
             </div>
-            <button
-              className="chat-close-button"
-              onClick={() => setIsOpen(false)}
-              aria-label="Close chat"
-            >
+            <button className="chat-close-button" onClick={() => setIsOpen(false)} aria-label="Close chat">
               ×
             </button>
           </div>
@@ -836,11 +830,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     className="chat-input-field"
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="chat-submit-button"
-                >
+                <button type="submit" disabled={isLoading} className="chat-submit-button">
                   {isLoading ? 'Connecting…' : 'Start Chat →'}
                 </button>
               </form>
@@ -852,12 +842,17 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             <div className="cw-qc-screen">
               <div className="cw-qc-header">
                 {messages.length > 0 && (
-                  <button
-                    type="button"
-                    className="cw-qc-back-btn"
-                    onClick={() => setWidgetScreen('chat')}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <button type="button" className="cw-qc-back-btn" onClick={() => setWidgetScreen('chat')}>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <polyline points="15 18 9 12 15 6" />
                     </svg>
                     Back to chat
@@ -865,15 +860,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 )}
                 <div className="cw-qc-header-icon">💬</div>
                 <h4 className="cw-qc-title">Quick Answers</h4>
-                <p className="cw-qc-subtitle">
-                  Pick a topic below to get an instant answer, or talk to a real person.
-                </p>
+                <p className="cw-qc-subtitle">Pick a topic below to get an instant answer, or talk to a real person.</p>
               </div>
 
               <div className="cw-qc-search-wrap">
                 <span className="cw-qc-search-icon">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
                   </svg>
                 </span>
                 <input
@@ -884,7 +878,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   onChange={(e) => setQuickChatSearch(e.target.value)}
                 />
                 {quickChatSearch && (
-                  <button className="cw-qc-search-clear" type="button" onClick={() => setQuickChatSearch('')}>×</button>
+                  <button className="cw-qc-search-clear" type="button" onClick={() => setQuickChatSearch('')}>
+                    ×
+                  </button>
                 )}
               </div>
 
@@ -897,22 +893,17 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   ))
                 ) : filteredQCs.length === 0 ? (
                   <div className="cw-qc-empty">
-                    {quickChatSearch.trim()
-                      ? `No results for "${quickChatSearch}".`
-                      : 'No quick answers available yet.'}
+                    {quickChatSearch.trim() ? `No results for "${quickChatSearch}".` : 'No quick answers available yet.'}
                   </div>
                 ) : (
                   filteredQCs.map((qc) => (
                     <div key={qc.id} className="cw-qc-item">
-                      <button
-                        type="button"
-                        className="cw-qc-item-header"
-                        onClick={() => handleQuickChatSelect(qc)}
-                      >
+                      <button type="button" className="cw-qc-item-header" onClick={() => handleQuickChatSelect(qc)}>
                         <span className="cw-qc-item-title">{qc.title}</span>
                         <svg
                           className="cw-qc-chevron"
-                          width="14" height="14"
+                          width="14"
+                          height="14"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -930,13 +921,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
               <div className="cw-qc-cta">
                 <p className="cw-qc-cta-label">Still have an issue?</p>
-                <button
-                  type="button"
-                  className="cw-qc-agent-btn"
-                  onClick={() => setWidgetScreen('chat')}
-                >
+                <button type="button" className="cw-qc-agent-btn" onClick={() => setWidgetScreen('chat')}>
                   <svg
-                    width="15" height="15"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -953,7 +941,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               </div>
 
               <div className="chat-widget-footer">
-                Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
+                Powered by{' '}
+                <a href="#" tabIndex="-1">
+                  Timora Live Chat
+                </a>
               </div>
             </div>
           )}
@@ -964,12 +955,17 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               {/* Back navigation bar */}
               {!isChatEnded && (
                 <div className="cw-chat-back-nav">
-                  <button
-                    type="button"
-                    className="cw-chat-back-btn"
-                    onClick={() => setWidgetScreen('quick_chats')}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <button type="button" className="cw-chat-back-btn" onClick={() => setWidgetScreen('quick_chats')}>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <polyline points="15 18 9 12 15 6" />
                     </svg>
                     Quick Answers
@@ -989,14 +985,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   const uid = Number(userId);
                   const lastSeenSentIdx = lastSeenAt
                     ? messages.reduce((acc, msg, i) => {
-                      if (
-                        Number(msg.sender_id) === uid &&
-                        msg.sender_role !== 'bot' &&
-                        msg.created_at &&
-                        new Date(msg.created_at) <= new Date(lastSeenAt)
-                      ) return i;
-                      return acc;
-                    }, -1)
+                        if (
+                          Number(msg.sender_id) === uid &&
+                          msg.sender_role !== 'bot' &&
+                          msg.created_at &&
+                          new Date(msg.created_at) <= new Date(lastSeenAt)
+                        )
+                          return i;
+                        return acc;
+                      }, -1)
                     : -1;
 
                   return messages.map((msg, index) => {
@@ -1006,9 +1003,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     const showSeen = Boolean(lastSeenAt) && index === lastSeenSentIdx && isSent;
                     return (
                       <React.Fragment key={index}>
-                        <div
-                          className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}
-                        >
+                        <div className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}>
                           {isBot && (
                             <div className="chat-bot-label">
                               <span className="chat-bot-icon">⚡</span> Automated Reply
@@ -1026,34 +1021,46 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                                     />
                                   </a>
                                 ) : (
-                                  <a
-                                    href={msg.attachment_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="chat-attachment-file"
-                                  >
+                                  <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="chat-attachment-file">
                                     <span className="chat-file-icon">
-                                      {msg.attachment_type === 'video' ? '🎬' :
-                                        msg.attachment_type === 'audio' ? '🎵' :
-                                          msg.attachment_type === 'archive' ? '📦' : '📄'}
+                                      {msg.attachment_type === 'video'
+                                        ? '🎬'
+                                        : msg.attachment_type === 'audio'
+                                          ? '🎵'
+                                          : msg.attachment_type === 'archive'
+                                            ? '📦'
+                                            : '📄'}
                                     </span>
                                     <span className="chat-file-name">{msg.attachment_name || 'Download file'}</span>
                                   </a>
                                 )}
                               </div>
                             )}
-                            {msg.message && (
-                              msg.message.startsWith('<')
-                                ? <div className="cw-rich-msg" dangerouslySetInnerHTML={{ __html: msg.message }} />
-                                : <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
-                            )}
+                            {msg.message &&
+                              (msg.message.startsWith('<') ? (
+                                <div className="cw-rich-msg" dangerouslySetInnerHTML={{ __html: msg.message }} />
+                              ) : (
+                                <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                              ))}
                           </div>
                         </div>
                         {showSeen && (
                           <div className="chat-message-seen">
                             <svg width="14" height="10" viewBox="0 0 16 11" fill="none" aria-hidden="true">
-                              <path d="M1 5.5L5.5 10L15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M6 5.5L10.5 10L20 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                              <path
+                                d="M1 5.5L5.5 10L15 1"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M6 5.5L10.5 10L20 1"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                             Seen {formatSeenTime(lastSeenAt)}
                           </div>
@@ -1065,7 +1072,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
                 {(isTyping || isBotTyping) && (
                   <div className="chat-typing-indicator">
-                    <span>{isBotTyping ? '' : (agentName || 'Agent')}</span>
+                    <span>{isBotTyping ? '' : agentName || 'Agent'}</span>
                     <div className="typing-dots">
                       <span></span>
                       <span></span>
@@ -1075,37 +1082,37 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 )}
 
                 {/* ── Escalation prompt (shown after bot replies, only before real chat starts) ── */}
-                {!isChatEnded &&
-                  !chatId &&
-                  chatMode === CHAT_MODES.BOT &&
-                  messages.some(m => m.sender_role === 'bot') && (
-                    <div className="chat-escalation-prompt">
-                      <div className="chat-escalation-divider">
-                        <span>or</span>
-                      </div>
-                      <p className="chat-escalation-text">Still having problems?</p>
-                      <button
-                        type="button"
-                        className="chat-escalation-btn"
-                        onClick={handleEscalateToAgent}
-                        disabled={isEscalating}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', flexShrink: 0 }}>
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        Talk to an Agent
-                      </button>
+                {!isChatEnded && !chatId && chatMode === CHAT_MODES.BOT && messages.some((m) => m.sender_role === 'bot') && (
+                  <div className="chat-escalation-prompt">
+                    <div className="chat-escalation-divider">
+                      <span>or</span>
                     </div>
-                  )}
+                    <p className="chat-escalation-text">Still having problems?</p>
+                    <button type="button" className="chat-escalation-btn" onClick={handleEscalateToAgent} disabled={isEscalating}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ marginRight: '6px', flexShrink: 0 }}
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      Talk to an Agent
+                    </button>
+                  </div>
+                )}
 
                 {/* ── Pending agent state ── */}
                 {!isChatEnded && chatMode === CHAT_MODES.PENDING_AGENT && (
                   <div className="chat-escalation-pending">
                     <div className="chat-escalation-spinner" />
-                    <p className="chat-escalation-pending-text">
-                      All agents are currently busy. Please wait&hellip;
-                    </p>
+                    <p className="chat-escalation-pending-text">All agents are currently busy. Please wait&hellip;</p>
                     <p className="chat-escalation-pending-sub">
                       We&rsquo;re looking for an available agent and will connect you automatically.
                     </p>
@@ -1142,8 +1149,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                           <button
                             key={star}
                             type="button"
-                            className={`chat-star-btn ${star <= (ratingHover || ratingValue) ? 'active' : ''
-                              }`}
+                            className={`chat-star-btn ${star <= (ratingHover || ratingValue) ? 'active' : ''}`}
                             onClick={() => setRatingValue(star)}
                             onMouseEnter={() => setRatingHover(star)}
                             onMouseLeave={() => setRatingHover(0)}
@@ -1154,9 +1160,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                         ))}
                       </div>
                       {ratingValue > 0 && (
-                        <div className="chat-rating-labels">
-                          {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][ratingValue]}
-                        </div>
+                        <div className="chat-rating-labels">{['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][ratingValue]}</div>
                       )}
                       {ratingValue > 0 && (
                         <textarea
@@ -1169,12 +1173,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                         />
                       )}
                       {ratingValue > 0 && (
-                        <button
-                          type="button"
-                          className="chat-rating-submit-btn"
-                          onClick={handleSubmitRating}
-                          disabled={isRatingSubmitting}
-                        >
+                        <button type="button" className="chat-rating-submit-btn" onClick={handleSubmitRating} disabled={isRatingSubmitting}>
                           {isRatingSubmitting ? 'Submitting…' : 'Submit Rating'}
                         </button>
                       )}
@@ -1183,7 +1182,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     <div className="chat-rating-thankyou">
                       <div className="chat-rating-thankyou-stars">
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <span key={s} className={s <= ratingValue ? 'filled' : ''}>★</span>
+                          <span key={s} className={s <= ratingValue ? 'filled' : ''}>
+                            ★
+                          </span>
                         ))}
                       </div>
                       <p className="chat-rating-thankyou-text">Thanks for your feedback! 🙏</p>
@@ -1202,21 +1203,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <span className="chat-quick-chats-label">Quick Chats</span>
                   <div className="chat-quick-chats-list">
                     {(showAllQCPills ? quickChats : quickChats.slice(0, 5)).map((qc) => (
-                      <button
-                        key={qc.id}
-                        className="chat-quick-reply-btn"
-                        type="button"
-                        onClick={() => handleQuickChatSelect(qc)}
-                      >
+                      <button key={qc.id} className="chat-quick-reply-btn" type="button" onClick={() => handleQuickChatSelect(qc)}>
                         {qc.title}
                       </button>
                     ))}
                     {quickChats.length > 5 && (
-                      <button
-                        type="button"
-                        className="chat-qc-see-more-btn"
-                        onClick={() => setShowAllQCPills(v => !v)}
-                      >
+                      <button type="button" className="chat-qc-see-more-btn" onClick={() => setShowAllQCPills((v) => !v)}>
                         {showAllQCPills ? 'See less ↑' : `+${quickChats.length - 5} more`}
                       </button>
                     )}
@@ -1235,22 +1227,14 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                           <img src={filePreview} alt="Preview" className="chat-file-preview-image" />
                         ) : (
                           <div className="chat-file-preview-icon">
-                            {selectedFile.type.startsWith('video/') ? '🎬' :
-                              selectedFile.type.startsWith('audio/') ? '🎵' : '📄'}
+                            {selectedFile.type.startsWith('video/') ? '🎬' : selectedFile.type.startsWith('audio/') ? '🎵' : '📄'}
                           </div>
                         )}
                         <div className="chat-file-preview-info">
                           <span className="chat-file-preview-name">{selectedFile.name}</span>
-                          <span className="chat-file-preview-size">
-                            {(selectedFile.size / 1024).toFixed(1)} KB
-                          </span>
+                          <span className="chat-file-preview-size">{(selectedFile.size / 1024).toFixed(1)} KB</span>
                         </div>
-                        <button
-                          type="button"
-                          className="chat-file-preview-remove"
-                          onClick={clearSelectedFile}
-                          aria-label="Remove file"
-                        >
+                        <button type="button" className="chat-file-preview-remove" onClick={clearSelectedFile} aria-label="Remove file">
                           ×
                         </button>
                       </div>
@@ -1268,13 +1252,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     className="chat-widget-input"
                   >
                     <div className="chat-input-row">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        style={{ display: 'none' }}
-                        accept="image/*"
-                      />
+                      <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{ display: 'none' }} accept="image/*" />
                       <button
                         type="button"
                         className="chat-attach-button"
@@ -1314,7 +1292,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 </>
               )}
               <div className="chat-widget-footer">
-                Powered by <a href="#" tabIndex="-1">Timora Live Chat</a>
+                Powered by{' '}
+                <a href="#" tabIndex="-1">
+                  Timora Live Chat
+                </a>
               </div>
             </>
           )}

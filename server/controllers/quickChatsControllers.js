@@ -19,7 +19,7 @@ const getQuickChatById = expressAsync(async (req, res) => {
 
 // POST /quick-chats — create (admin protected)
 const createQuickChat = expressAsync(async (req, res) => {
-  const { title, response } = req.body;
+  const { title, response, is_active } = req.body;
 
   if (!title?.trim()) {
     return res.status(400).json({ success: false, message: 'Title is required' });
@@ -28,14 +28,14 @@ const createQuickChat = expressAsync(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Response is required' });
   }
 
-  const data = await quickChatsServices.create({ title, response });
+  const data = await quickChatsServices.create({ title, response, is_active });
   res.status(201).json({ success: true, message: 'Quick chat created', data });
 });
 
 // PUT /quick-chats/:id — update (admin protected)
 const updateQuickChat = expressAsync(async (req, res) => {
   const { id } = req.params;
-  const { title, response } = req.body;
+  const { title, response, is_active } = req.body;
 
   if (!title?.trim()) {
     return res.status(400).json({ success: false, message: 'Title is required' });
@@ -45,7 +45,7 @@ const updateQuickChat = expressAsync(async (req, res) => {
   }
 
   try {
-    const data = await quickChatsServices.update(parseInt(id), { title, response });
+    const data = await quickChatsServices.update(parseInt(id), { title, response, is_active });
     res.status(200).json({ success: true, message: 'Quick chat updated', data });
   } catch (error) {
     res.status(404).json({ success: false, message: error.message });
