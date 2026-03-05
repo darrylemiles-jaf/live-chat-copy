@@ -88,7 +88,6 @@ export default function DashboardLayout() {
         <Toolbar sx={{ mt: 'inherit' }} />
         <Box
           sx={{
-            ...{ px: { xs: 0, sm: 2 } },
             position: 'relative',
             minHeight: 'calc(100vh - 110px)',
             display: 'flex',
