@@ -62,7 +62,7 @@ export default function HeaderContent() {
   const isDark = colorSchemeMode === 'dark';
 
   const STATUS_COLORS = {
-    available: theme.vars.palette.primary.main,
+    available: theme.vars.palette.success.main,
     busy: theme.vars.palette.error.main,
     away: theme.vars.palette.warning.main
   };
