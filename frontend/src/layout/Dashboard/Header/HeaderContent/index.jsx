@@ -1,17 +1,4 @@
-// material-ui
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useColorScheme, useTheme } from '@mui/material/styles';
-import Switch from '@mui/material/Switch';
-import { mutate } from 'swr';
-
-// project import
-import Profile from './Profile';
-import Notification from './Notification';
-import MobileSection from './MobileSection';
-import QuickLinksDialog from 'components/QuickLinksDialog/QuickLinksDialog';
 import {
-  Button,
-  Stack,
   Snackbar,
   Alert,
   Typography,
@@ -22,39 +9,38 @@ import {
   IconButton,
   Box
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useColorScheme, useTheme } from '@mui/material/styles';
+import { mutate } from 'swr';
+import { AppstoreOutlined, SettingOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { getCurrentUser, logout } from 'utils/auth';
-import Users from 'api/users';
 import { getChats } from 'api/chatApi';
+
+import Users from 'api/users';
 import socketService from 'services/socketService';
 import useConfig from 'hooks/useConfig';
-import {
-  SettingOutlined
-} from '@ant-design/icons';
-
-// ==============================|| THEME PRESET COLORS ||============================== //
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Switch from '@mui/material/Switch';
+import Profile from './Profile';
+import Notification from './Notification';
+import MobileSection from './MobileSection';
+import QuickLinksDrawer from '../../../../components/quick-links/QuickLinksDrawer';
 
 const PRESET_COLORS = [
-  { key: 'default', label: 'Teal',      color: '#008E86' },
-  { key: 'theme1',  label: 'Dark Teal', color: '#3B7080' },
-  { key: 'theme3',  label: 'Gold',      color: '#FFB400' },
+  { key: 'default', label: 'Teal', color: '#008E86' },
+  { key: 'theme1', label: 'Dark Teal', color: '#3B7080' },
+  { key: 'theme3', label: 'Gold', color: '#FFB400' },
 ];
-
-// ==============================|| HEADER - CONTENT ||============================== //
 
 export default function HeaderContent() {
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
   const theme = useTheme();
-  const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('available');
   const [statusLoading, setStatusLoading] = useState(false);
   const [activeChatsCount, setActiveChatsCount] = useState(0);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', color: null });
 
   const { mode: colorSchemeMode, setMode } = useColorScheme();
@@ -208,20 +194,19 @@ export default function HeaderContent() {
       {!downLG && <Box sx={{ width: '100%' }} />}
       {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
 
-      <QuickLinksDialog
+      <QuickLinksDrawer
         open={openModal}
         onClose={handleCloseModal}
         activeChatsCount={activeChatsCount}
         pendingChatsCount={0}
-        availableAgentsCount={0}
         unreadNotificationsCount={0}
       />
 
-      <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <Button onClick={handleOpenModal} sx={{ color: 'text.primary' }}>
-          Quick Links
-        </Button>
-      </Box>
+      <Tooltip title="Timora Apps" disableInteractive>
+        <IconButton onClick={handleOpenModal} sx={{ color: 'text.primary', ml: 0.5, marginInline: 1 }} size="small">
+          <AppstoreOutlined style={{ fontSize: 18 }} />
+        </IconButton>
+      </Tooltip>
 
       <Notification />
 
