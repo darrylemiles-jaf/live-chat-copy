@@ -12,6 +12,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -231,6 +232,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
       const data = await response.json();
       let userIdToStore;
+      let roleToStore = 'client';
 
       if (!data.success && response.status === 404) {
         const createResponse = await fetch(`${apiUrl}/users`, {
@@ -247,13 +249,15 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         const createData = await createResponse.json();
         userIdToStore = createData.data?.id;
+        roleToStore = createData.data?.role || 'client';
         setUserId(userIdToStore);
-        console.log('New user created:', userIdToStore);
+        console.log('New user created:', userIdToStore, 'role:', roleToStore);
       } else if (data.success) {
         userIdToStore = data.data?.id;
+        roleToStore = data.data?.role || 'client';
         setUserId(userIdToStore);
         if (data.token) setWidgetToken(data.token);
-        console.log('User logged in:', userIdToStore);
+        console.log('User logged in:', userIdToStore, 'role:', roleToStore);
       }
 
       if (!userIdToStore) {
@@ -263,6 +267,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         return;
       }
 
+      setUserRole(roleToStore);
       setIsRegistered(true);
 
       localStorage.setItem(
@@ -271,11 +276,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           id: userIdToStore,
           name: userName,
           email: userEmail,
+          role: roleToStore,
           token: data.token || null
         })
       );
 
-      console.log('User registered and saved to localStorage:', { id: userIdToStore, name: userName, email: userEmail });
+      console.log('User registered and saved to localStorage:', { id: userIdToStore, name: userName, email: userEmail, role: roleToStore });
     } catch (error) {
       console.error('Registration error:', error);
       showToast('Failed to connect. Please try again.');
@@ -491,6 +497,27 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         setUserEmail(user.email);
         if (user.token) setWidgetToken(user.token);
         setIsRegistered(true);
+
+        if (user.role) {
+          setUserRole(user.role);
+        } else if (user.id && apiUrl) {
+          // Role missing from old/external session — fetch from server
+          fetch(`${apiUrl}/users/${user.id}`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              ...(user.token ? { Authorization: `Bearer ${user.token}` } : {})
+            }
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.success && d.data?.role) {
+                setUserRole(d.data.role);
+                const updated = { ...user, role: d.data.role };
+                localStorage.setItem('chat_widget_user', JSON.stringify(updated));
+              }
+            })
+            .catch((err) => console.error('Failed to fetch user role:', err));
+        }
       } catch (error) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('chat_widget_user');
@@ -854,8 +881,42 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             </div>
           )}
 
+          {/* ── Access Restricted Screen ── */}
+          {isRegistered && userRole && userRole !== 'client' && (
+            <div className="cw-restricted">
+              <div className="cw-restricted-icon">🔒</div>
+              <h4 className="cw-restricted-title">Access Restricted</h4>
+              <p className="cw-restricted-body">
+                This support widget is for clients only.
+                <br />
+                Your account type (<strong>{userRole}</strong>) doesn&rsquo;t have access here.
+              </p>
+              <button
+                type="button"
+                className="cw-restricted-btn"
+                onClick={() => {
+                  localStorage.removeItem('chat_widget_user');
+                  setIsRegistered(false);
+                  setUserRole('');
+                  setUserId(null);
+                  setUserEmail('');
+                  setUserName('');
+                  setWidgetToken(null);
+                }}
+              >
+                Sign in with a different account
+              </button>
+              <div className="chat-widget-footer" style={{ marginTop: 'auto' }}>
+                Powered by{' '}
+                <a href="#" tabIndex="-1">
+                  Timora Live Chat
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* ── Quick Chats Screen ── */}
-          {isRegistered && widgetScreen === 'quick_chats' && !isChatEnded && (
+          {isRegistered && userRole === 'client' && widgetScreen === 'quick_chats' && !isChatEnded && (
             <div className="cw-qc-screen">
               <div className="cw-qc-header">
                 {messages.length > 0 && (
@@ -967,7 +1028,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           )}
 
           {/* ── Chat Screen ── */}
-          {isRegistered && (widgetScreen === 'chat' || isChatEnded) && (
+          {isRegistered && userRole === 'client' && (widgetScreen === 'chat' || isChatEnded) && (
             <>
               {/* Back navigation bar */}
               {!isChatEnded && (

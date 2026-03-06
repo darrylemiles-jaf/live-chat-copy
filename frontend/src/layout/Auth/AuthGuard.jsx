@@ -45,8 +45,11 @@ const AuthGuard = ({ children }) => {
 
   const [tokenError] = useState(() => processUrlToken());
 
+  const userData = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
+  const isUnauthorized = userData?.role && userData.role !== 'admin' && userData.role !== 'support';
+
   useEffect(() => {
-    if (tokenError) {
+    if (tokenError || isUnauthorized) {
       navigate('/unauthorized-access', { replace: true });
       return;
     }
@@ -60,7 +63,7 @@ const AuthGuard = ({ children }) => {
     if (!isAuthenticated()) {
       navigate('/unauthorized-access', { replace: true });
     }
-  }, [navigate, searchParams, setSearchParams, tokenError]);
+  }, [navigate, searchParams, setSearchParams, tokenError, isUnauthorized]);
 
   if (!isAuthenticated() && !searchParams.get('token')) {
     return null;
