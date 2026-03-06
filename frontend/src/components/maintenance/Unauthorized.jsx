@@ -71,28 +71,6 @@ export default function Unauthorized() {
         }} />
 
         <Box sx={{ px: { xs: 4, sm: 6 }, pt: 5, pb: 6, width: '100%', textAlign: 'center' }}>
-
-          {/* Status badge */}
-          <Box sx={{
-            display: 'inline-flex', alignItems: 'center', gap: 0.75,
-            bgcolor: `rgba(var(--palette-primary-mainChannel) / 0.08)`, border: `1px solid rgba(var(--palette-primary-mainChannel) / 0.2)`,
-            borderRadius: 99, px: 2, py: 0.5, mb: 4
-          }}>
-            <Box sx={{
-              width: 7, height: 7, borderRadius: '50%',
-              bgcolor: theme.vars.palette.primary.main,
-              boxShadow: `0 0 0 3px rgba(var(--palette-primary-mainChannel) / 0.2)`,
-              animation: 'ping 2s ease-in-out infinite',
-              '@keyframes ping': {
-                '0%, 100%': { boxShadow: `0 0 0 0px rgba(var(--palette-primary-mainChannel) / 0.4)` },
-                '50%': { boxShadow: `0 0 0 5px rgba(var(--palette-primary-mainChannel) / 0)` }
-              }
-            }} />
-            <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: theme.vars.palette.primary.main, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Error 401
-            </Typography>
-          </Box>
-
           {/* Icon */}
           <Box sx={{
             mx: 'auto', mb: 3.5,
@@ -171,7 +149,7 @@ export default function Unauthorized() {
               transition: 'all 0.2s ease'
             }}
           >
-            Return to Timora
+            Go to Timora Central Admin
           </Button>
         </Box>
       </Box>
