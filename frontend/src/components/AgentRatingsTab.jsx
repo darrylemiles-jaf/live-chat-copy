@@ -8,17 +8,17 @@ export const Stars = ({ value, size = '1.1rem', color }) => {
   const starColor = color || theme.vars.palette.warning.main;
   const emptyColor = theme.vars.palette.action.disabled;
   return (
-  <Box sx={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
-    {[1, 2, 3, 4, 5].map((s) => (
-      <Box
-        key={s}
-        component="span"
-        sx={{ fontSize: size, color: s <= Math.round(value) ? starColor : emptyColor, lineHeight: 1 }}
-      >
-        &#9733;
-      </Box>
-    ))}
-  </Box>
+    <Box sx={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Box
+          key={s}
+          component="span"
+          sx={{ fontSize: size, color: s <= Math.round(value) ? starColor : emptyColor, lineHeight: 1 }}
+        >
+          &#9733;
+        </Box>
+      ))}
+    </Box>
   );
 };
 
@@ -133,8 +133,7 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, maxHeight: 200, overflowY: 'auto' }}>
             {reviews
               .filter((r) => r.comment)
-              .slice(0, 8)
-              .map((r) => {
+              .map((r, idx) => {
                 const rColor = r.rating >= 4 ? theme.vars.palette.success.main : r.rating === 3 ? theme.vars.palette.warning.main : theme.vars.palette.error.main;
                 return (
                   <Box
@@ -154,7 +153,7 @@ const AgentRatingsTab = ({ ratingData, loading }) => {
                       "{r.comment}"
                     </Typography>
                     <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.25 }}>
-                      — {r.client_name || 'Anonymous'}
+                      — {`Anonymous Client ${idx + 1}`}
                     </Typography>
                   </Box>
                 );

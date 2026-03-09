@@ -4,7 +4,8 @@ import {
   UserOutlined,
   HomeOutlined,
   UsergroupAddOutlined,
-  BellOutlined
+  BellOutlined,
+  StarOutlined
 } from '@ant-design/icons';
 
 import {
@@ -29,7 +30,8 @@ const icons = {
   FaceAgent,
   AccountGroup,
   BellOutlined,
-  MessageAlertOutline
+  MessageAlertOutline,
+  StarOutlined
 }
 
 const modules = [
@@ -130,6 +132,23 @@ const modules = [
         type: 'item',
         url: '/portal/content-hub/quick-chats',
         icon: icons.MessageAlertOutline,
+        breadcrumbs: false,
+        access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
+      }
+    ]
+  },
+  {
+    id: 'group-ratings',
+    title: 'Ratings',
+    type: 'group',
+    access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
+    children: [
+      {
+        id: 'ratings',
+        title: 'Ratings',
+        type: 'item',
+        url: '/portal/ratings',
+        icon: icons.StarOutlined,
         breadcrumbs: false,
         access: [ROLES.CENTRAL_ADMIN.value, ROLES.CUSTOMER_SUPPORT.value],
       }

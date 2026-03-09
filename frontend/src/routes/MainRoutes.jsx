@@ -13,6 +13,7 @@ const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
 const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
 const QuickChats = Loadable(lazy(() => import('../pages/portal/content-hub/quick-chats')));
+const Ratings = Loadable(lazy(() => import('../pages/portal/ratings')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -67,6 +68,10 @@ const MainRoutes = {
         {
           path: 'profile',
           element: <Profile />
+        },
+        {
+          path: 'ratings',
+          element: <Ratings />
         }
       ]
     }
