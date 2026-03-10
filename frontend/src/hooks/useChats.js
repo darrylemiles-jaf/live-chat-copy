@@ -197,7 +197,7 @@ const useChats = () => {
 
           if (prev.some((m) => m.id === transformed.id)) return prev;
 
-          if (!transformed.isSender) {
+          if (!transformed.isSender && document.visibilityState === 'visible') {
             const socket = socketService.socket;
             if (socket) socket.emit('mark_messages_read', { chatId: msgChatId, readerRole: 'agent' });
           }
@@ -275,6 +275,14 @@ const useChats = () => {
     };
     socket.on('messages_seen_by_client', handleMessagesSeen);
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && selectedChatRef.current) {
+        const s = socketService.socket;
+        if (s) s.emit('mark_messages_read', { chatId: selectedChatRef.current.id, readerRole: 'agent' });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
@@ -285,6 +293,7 @@ const useChats = () => {
       socket.off('user_typing', handleUserTyping);
       socket.off('user_stop_typing', handleUserStopTyping);
       socket.off('messages_seen_by_client', handleMessagesSeen);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user?.id]);
 

@@ -71,6 +71,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
   const widgetTokenRef = useRef(widgetToken);
+  const isOpenRef = useRef(isOpen);
   const clientEndedChatRef = useRef(false);
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
@@ -83,6 +84,40 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   useEffect(() => {
     widgetTokenRef.current = widgetToken;
   }, [widgetToken]);
+
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  const canMarkSeen = () =>
+    isOpenRef.current &&
+    document.visibilityState === 'visible' &&
+    chatIdRef.current &&
+    socketRef.current?.connected;
+
+  // When the widget is opened, mark any unread agent messages as seen
+  useEffect(() => {
+    if (canMarkSeen()) {
+      socketRef.current.emit('mark_messages_read', {
+        chatId: chatIdRef.current,
+        readerRole: 'client'
+      });
+    }
+  }, [isOpen]);
+
+  // When the browser tab becomes visible again, mark pending messages as seen
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (canMarkSeen()) {
+        socketRef.current.emit('mark_messages_read', {
+          chatId: chatIdRef.current,
+          readerRole: 'client'
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (!isRegistered) return;
@@ -135,7 +170,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         });
         scrollToBottom();
 
-        if (message.sender_role !== 'client' && message.sender_role !== 'bot' && chatIdRef.current) {
+        if (message.sender_role !== 'client' && message.sender_role !== 'bot' && canMarkSeen()) {
           socketRef.current?.emit('mark_messages_read', {
             chatId: chatIdRef.current,
             readerRole: 'client'
@@ -226,6 +261,13 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     if (socketRef.current?.connected && chatId) {
       socketRef.current.emit('join_chat', chatId);
       console.log(`💬 Widget joined new chat room: chat_${chatId}`);
+      // If the widget is already open and visible when a chat is loaded, mark agent messages as seen
+      if (canMarkSeen()) {
+        socketRef.current.emit('mark_messages_read', {
+          chatId,
+          readerRole: 'client'
+        });
+      }
     }
   }, [chatId]);
 
@@ -636,13 +678,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             if (seenMsgs.length > 0) {
               const latestSeen = seenMsgs[seenMsgs.length - 1];
               setLastSeenAt(latestSeen.created_at);
-            }
-
-            if (socketRef.current?.connected) {
-              socketRef.current.emit('mark_messages_read', {
-                chatId: activeChat.id,
-                readerRole: 'client'
-              });
             }
           }
         } else if (latestChat) {
