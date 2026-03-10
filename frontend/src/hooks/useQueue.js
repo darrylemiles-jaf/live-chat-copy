@@ -150,10 +150,6 @@ const useQueue = () => {
     const handleNewMessage = () => fetchQueueData();
     const handleChatAssigned = () => fetchQueueData();
 
-    socket.off('queue_update');
-    socket.off('new_message');
-    socket.off('chat_assigned');
-
     socket.on('queue_update', handleQueueUpdate);
     socket.on('new_message', handleNewMessage);
     socket.on('chat_assigned', handleChatAssigned);
