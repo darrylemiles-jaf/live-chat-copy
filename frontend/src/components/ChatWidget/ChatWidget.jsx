@@ -165,6 +165,16 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             console.log('⚠️ Widget: Duplicate message, skipping');
             return prev;
           }
+          // Replace optimistic message if this is from the current user
+          if (Number(message.sender_id) === Number(userId)) {
+            const optimisticIdx = prev.findIndex((m) => m.id?.toString().startsWith('optimistic-'));
+            if (optimisticIdx !== -1) {
+              const updated = [...prev];
+              updated[optimisticIdx] = message;
+              console.log('✅ Widget: Replaced optimistic message with real one');
+              return updated;
+            }
+          }
           console.log('✅ Widget: Adding message to UI');
           return [...prev, message];
         });
@@ -278,6 +288,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(scrollToBottom, 50);
+    }
+  }, [isOpen]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -475,6 +491,24 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
     setIsUploading(true);
 
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMsg = {
+      id: optimisticId,
+      sender_id: userId,
+      sender_role: 'client',
+      message: inputMessage.trim() && !isEditorEmpty ? inputMessage.trim() : null,
+      attachment_url: filePreview,
+      attachment_type: selectedFile.type.startsWith('image/') ? 'image'
+        : selectedFile.type.startsWith('video/') ? 'video'
+        : selectedFile.type.startsWith('audio/') ? 'audio'
+        : (selectedFile.type.includes('zip') || selectedFile.type.includes('rar') || selectedFile.type.includes('7z')) ? 'archive'
+        : 'document',
+      attachment_name: selectedFile.name,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+    scrollToBottom();
+
     try {
       const formData = new FormData();
       formData.append('attachment', selectedFile);
@@ -507,6 +541,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           if (data.data) {
             setMessages((prev) => {
               if (prev.some((msg) => msg.id === data.data.id)) return prev;
+              const optimisticIdx = prev.findIndex((m) => m.id?.toString().startsWith('optimistic-'));
+              if (optimisticIdx !== -1) {
+                const updated = [...prev];
+                updated[optimisticIdx] = data.data;
+                return updated;
+              }
               return [...prev, data.data];
             });
           }
@@ -541,6 +581,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         setIsEditorEmpty(true);
       }
     } catch (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       console.error('Upload error:', error);
       showToast('Failed to upload file. Please try again.');
     } finally {
