@@ -784,6 +784,39 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [chatId, isChatEnded, apiUrl]);
 
+  // Auto-end chat when the user session is cleared (logout / session removed)
+  useEffect(() => {
+    const endChatSilently = () => {
+      if (!chatIdRef.current || clientEndedChatRef.current) return;
+      clientEndedChatRef.current = true;
+      fetch(`${apiUrl}/chats/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(widgetTokenRef.current ? { Authorization: `Bearer ${widgetTokenRef.current}` } : {})
+        },
+        body: JSON.stringify({ chat_id: chatIdRef.current }),
+        keepalive: true
+      }).catch(() => { });
+    };
+
+    // Same-tab logout: fake-dashboard dispatches this before clearing localStorage
+    window.addEventListener('user-logout', endChatSilently);
+
+    // Cross-tab logout: storage event fires when another tab removes the key
+    const handleStorage = (e) => {
+      if (e.key === 'chat_widget_user' && !e.newValue) {
+        endChatSilently();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('user-logout', endChatSilently);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [apiUrl]);
+
   const handleEndChat = async () => {
     if (!chatId) return;
     setIsEndingChat(true);
