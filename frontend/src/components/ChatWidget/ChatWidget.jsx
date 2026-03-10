@@ -1159,33 +1159,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   </div>
                 )}
 
-                {/* ── Escalation prompt (shown after bot replies, only before real chat starts) ── */}
-                {!isChatEnded && !chatId && chatMode === CHAT_MODES.BOT && messages.some((m) => m.sender_role === 'bot') && (
-                  <div className="chat-escalation-prompt">
-                    <div className="chat-escalation-divider">
-                      <span>or</span>
-                    </div>
-                    <p className="chat-escalation-text">Still having problems?</p>
-                    <button type="button" className="chat-escalation-btn" onClick={handleEscalateToAgent} disabled={isEscalating}>
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        style={{ marginRight: '6px', flexShrink: 0 }}
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      Talk to an Agent
-                    </button>
-                  </div>
-                )}
-
                 {/* ── Pending agent state ── */}
                 {!isChatEnded && chatMode === CHAT_MODES.PENDING_AGENT && (
                   <div className="chat-escalation-pending">
@@ -1272,25 +1245,6 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   <button className="chat-new-session-btn" onClick={handleStartNewChat}>
                     Start New Chat
                   </button>
-                </div>
-              )}
-
-              {/* Quick Chat Pills — visible until a real agent chat starts */}
-              {!isChatEnded && !chatId && quickChats.length > 0 && (
-                <div className="chat-quick-chats">
-                  <span className="chat-quick-chats-label">Quick Chats</span>
-                  <div className="chat-quick-chats-list">
-                    {(showAllQCPills ? quickChats : quickChats.slice(0, 5)).map((qc) => (
-                      <button key={qc.id} className="chat-quick-reply-btn" type="button" onClick={() => handleQuickChatSelect(qc)}>
-                        {qc.title}
-                      </button>
-                    ))}
-                    {quickChats.length > 5 && (
-                      <button type="button" className="chat-qc-see-more-btn" onClick={() => setShowAllQCPills((v) => !v)}>
-                        {showAllQCPills ? 'See less ↑' : `+${quickChats.length - 5} more`}
-                      </button>
-                    )}
-                  </div>
                 </div>
               )}
 

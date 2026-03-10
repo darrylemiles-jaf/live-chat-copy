@@ -102,14 +102,6 @@ const WidgetEditor = forwardRef(({ onChange, onTyping, placeholder = 'Type a mes
 
   return (
     <div className="cw-editor-wrapper">
-      <div className="cw-editor-toolbar">
-        {btn('Bold', editor.isActive('bold'), () => editor.chain().focus().toggleBold().run())}
-        {btn('Italic', editor.isActive('italic'), () => editor.chain().focus().toggleItalic().run())}
-        {btn('Strike', editor.isActive('strike'), () => editor.chain().focus().toggleStrike().run())}
-        <span className="cw-editor-sep" />
-        {btn('Bullet list', editor.isActive('bulletList'), () => editor.chain().focus().toggleBulletList().run())}
-        {btn('Ordered list', editor.isActive('orderedList'), () => editor.chain().focus().toggleOrderedList().run())}
-      </div>
       <EditorContent editor={editor} className="cw-editor-body" />
     </div>
   );
