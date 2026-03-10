@@ -39,6 +39,7 @@ const useChats = () => {
   const fetchChatsDataRef = useRef(null);
   const fetchMessagesRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const agentEndedChatRef = useRef(false);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const scrollToBottom = () => {
@@ -217,7 +218,31 @@ const useChats = () => {
       fetchChatsDataRef.current?.(true);
     };
 
-    const handleChatStatus = () => fetchChatsDataRef.current?.(true);
+    const handleChatStatus = ({ chatId, status }) => {
+      fetchChatsDataRef.current?.(true);
+      if (
+        status === 'ended' &&
+        selectedChatRef.current &&
+        Number(chatId) === Number(selectedChatRef.current.id) &&
+        !agentEndedChatRef.current
+      ) {
+        const clientName = selectedChatRef.current.name || 'The client';
+        setCurrentMessages((prev) => [
+          ...prev,
+          {
+            id: `system-end-${Date.now()}`,
+            sender: 'System',
+            message: `${clientName} has ended this chat.`,
+            timestamp: 'Just now',
+            created_at: new Date().toISOString(),
+            isSender: false,
+            isBot: false,
+            isSystemMsg: true
+          }
+        ]);
+        setTimeout(scrollToBottom, 100);
+      }
+    };
     const handleQueueUpdate = () => fetchChatsDataRef.current?.(true);
 
     const handleUserTyping = ({ userName, role }) => {
@@ -288,6 +313,7 @@ const useChats = () => {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSelectChat = async (chat) => {
+    agentEndedChatRef.current = false;
     if (chat.status === 'queued') {
       navigate('/portal/queue', { state: { queueId: chat.id } });
       return;
@@ -409,6 +435,7 @@ const useChats = () => {
 
   const handleConfirmEnd = async () => {
     setConfirmDialog((prev) => ({ ...prev, loading: true }));
+    agentEndedChatRef.current = true;
     try {
       await endChat(selectedChat.id);
       setConfirmDialog({ open: false, loading: false });

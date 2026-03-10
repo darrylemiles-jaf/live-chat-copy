@@ -33,6 +33,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const [endedChatId, setEndedChatId] = useState(null);
   const [lastSeenAt, setLastSeenAt] = useState(null);
   const [widgetToken, setWidgetToken] = useState(null);
+  const [showEndChatConfirm, setShowEndChatConfirm] = useState(false);
+  const [isEndingChat, setIsEndingChat] = useState(false);
 
   // ── Quick Chats screen ────────────────────────────────────────────────────
   const [widgetScreen, setWidgetScreen] = useState('quick_chats');
@@ -68,6 +70,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const chatIdRef = useRef(chatId);
+  const widgetTokenRef = useRef(widgetToken);
+  const clientEndedChatRef = useRef(false);
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
   const escalationPollRef = useRef(null);
@@ -75,6 +79,10 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   useEffect(() => {
     chatIdRef.current = chatId;
   }, [chatId]);
+
+  useEffect(() => {
+    widgetTokenRef.current = widgetToken;
+  }, [widgetToken]);
 
   useEffect(() => {
     if (!isRegistered) return;
@@ -166,6 +174,18 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       console.log('🔄 Widget received chat status update:', { chatId: updatedChatId, status });
       if (updatedChatId === chatIdRef.current) {
         if (status === 'ended') {
+          if (!clientEndedChatRef.current) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `system-end-${Date.now()}`,
+                sender_role: 'bot',
+                message: 'The Support agent has ended this chat.',
+                created_at: new Date().toISOString(),
+                isSystemMsg: true
+              }
+            ]);
+          }
           setIsChatEnded(true);
           setEndedChatId(updatedChatId);
         } else if (status === 'active') {
@@ -738,6 +758,76 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     };
   }, [isChatEnded]);
 
+  // Browser leave-warning: prompt when a chat is active
+  useEffect(() => {
+    if (!chatId || isChatEnded) return;
+
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+
+      // Best-effort: end the chat when the user actually leaves
+      if (chatIdRef.current) {
+        fetch(`${apiUrl}/chats/end`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(widgetTokenRef.current ? { Authorization: `Bearer ${widgetTokenRef.current}` } : {})
+          },
+          body: JSON.stringify({ chat_id: chatIdRef.current }),
+          keepalive: true
+        }).catch(() => { });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [chatId, isChatEnded, apiUrl]);
+
+  const handleEndChat = async () => {
+    if (!chatId) return;
+    setIsEndingChat(true);
+    clientEndedChatRef.current = true;
+    try {
+      const response = await fetch(`${apiUrl}/chats/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+        },
+        body: JSON.stringify({ chat_id: chatId })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `system-end-${Date.now()}`,
+            sender_role: 'bot',
+            message: 'You ended this chat.',
+            created_at: new Date().toISOString(),
+            isSystemMsg: true
+          }
+        ]);
+        setIsChatEnded(true);
+        setEndedChatId(chatId);
+        setShowEndChatConfirm(false);
+      } else {
+        clientEndedChatRef.current = false;
+        showToast(data.message || 'Failed to end chat.');
+        setShowEndChatConfirm(false);
+      }
+    } catch (error) {
+      clientEndedChatRef.current = false;
+      console.error('End chat error:', error);
+      showToast('Failed to end chat. Please try again.');
+      setShowEndChatConfirm(false);
+    } finally {
+      setIsEndingChat(false);
+    }
+  };
+
   const handleStartNewChat = () => {
     setChatId(null);
     setMessages([]);
@@ -755,6 +845,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     setIsEscalating(false);
     clearInterval(escalationPollRef.current);
     escalationPollRef.current = null;
+    clientEndedChatRef.current = false;
     // Return to quick chats screen
     setWidgetScreen('quick_chats');
     setQuickChatSearch('');
@@ -838,6 +929,33 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
       {isOpen && (
         <div className="chat-widget-window">
+          {/* End Chat confirmation dialog */}
+          {showEndChatConfirm && (
+            <div className="cw-end-confirm-overlay">
+              <div className="cw-end-confirm-box">
+                <p className="cw-end-confirm-title">End Chat?</p>
+                <p className="cw-end-confirm-msg">Are you sure you want to end this chat?</p>
+                <div className="cw-end-confirm-actions">
+                  <button
+                    type="button"
+                    className="cw-end-confirm-cancel"
+                    onClick={() => setShowEndChatConfirm(false)}
+                    disabled={isEndingChat}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="cw-end-confirm-end"
+                    onClick={handleEndChat}
+                    disabled={isEndingChat}
+                  >
+                    {isEndingChat ? 'Ending…' : 'End Chat'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Header */}
           <div className="chat-widget-header">
             <div className="chat-header-left">
@@ -850,9 +968,21 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 </div>
               </div>
             </div>
-            <button className="chat-close-button" onClick={() => setIsOpen(false)} aria-label="Close chat">
-              ×
-            </button>
+            <div className="cw-header-actions">
+              {chatId && !isChatEnded && (
+                <button
+                  type="button"
+                  className="cw-end-chat-btn"
+                  onClick={() => setShowEndChatConfirm(true)}
+                  aria-label="End chat"
+                >
+                  End Chat
+                </button>
+              )}
+              <button className="chat-close-button" onClick={() => setIsOpen(false)} aria-label="Close chat">
+                ×
+              </button>
+            </div>
           </div>
 
           {!isRegistered && (
@@ -1079,6 +1209,17 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                     const isBot = msg.sender_role === 'bot';
                     const hasAttachment = msg.attachment_url;
                     const showSeen = Boolean(lastSeenAt) && index === lastSeenSentIdx && isSent;
+
+                    if (msg.isSystemMsg) {
+                      return (
+                        <React.Fragment key={index}>
+                          <div className="cw-system-msg">
+                            <span>{msg.message}</span>
+                          </div>
+                        </React.Fragment>
+                      );
+                    }
+
                     return (
                       <React.Fragment key={index}>
                         <div className={`chat-message ${isSent ? 'sent' : isBot ? 'bot' : 'received'}`}>
