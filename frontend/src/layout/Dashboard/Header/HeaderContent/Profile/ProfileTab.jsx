@@ -111,10 +111,6 @@ export default function ProfileTab() {
   return (
     <>
       <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
-        <ListItemButton>
-          <ListItemIcon>
-          </ListItemIcon>
-        </ListItemButton>
         <ListItemButton onClick={handleViewProfile}>
           <ListItemIcon>
             <UserOutlined />
@@ -122,12 +118,12 @@ export default function ProfileTab() {
           <ListItemText primary="View Profile" />
         </ListItemButton>
 
-        {/* <ListItemButton onClick={handleLogout}>
+        <ListItemButton onClick={handleLogout}>
           <ListItemIcon>
             <LogoutOutlined />
           </ListItemIcon>
           <ListItemText primary="Logout" />
-        </ListItemButton> */}
+        </ListItemButton>
       </List>
 
       <UserDetailsView
