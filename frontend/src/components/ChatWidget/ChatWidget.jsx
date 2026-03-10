@@ -957,7 +957,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
             />
           </svg>
         )}
-        {!isOpen && messages.length > 0 && <span className="chat-notification-badge">{messages.length}</span>}
+        {/* {!isOpen && messages.length > 0 && <span className="chat-notification-badge">{messages.length}</span>} */}
       </button>
 
       {isOpen && (
