@@ -71,11 +71,11 @@ const useQueue = () => {
   }, [isLoggedIn, navigate]);
 
   // ── Data fetching ──────────────────────────────────────────────────────────
-  const fetchQueueData = useCallback(async () => {
+  const fetchQueueData = useCallback(async (silent = false) => {
     if (!user?.id) return;
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [queueResponse, agentsResponse] = await Promise.all([
         getQueue(),
         getAvailableAgents(),
@@ -146,9 +146,9 @@ const useQueue = () => {
 
     const socket = socketService.connect(SOCKET_URL, user.id);
 
-    const handleQueueUpdate = () => fetchQueueData();
-    const handleNewMessage = () => fetchQueueData();
-    const handleChatAssigned = () => fetchQueueData();
+    const handleQueueUpdate = () => fetchQueueData(true);
+    const handleNewMessage = () => fetchQueueData(true);
+    const handleChatAssigned = () => fetchQueueData(true);
 
     socket.on('queue_update', handleQueueUpdate);
     socket.on('new_message', handleNewMessage);
