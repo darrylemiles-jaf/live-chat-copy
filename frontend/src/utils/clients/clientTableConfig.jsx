@@ -42,7 +42,7 @@ export const clientViewConfig = {
       title: 'Personal Information',
       columns: '1fr 1fr',
       fields: [
-        { label: 'Customer ID', field: 'id', valueStyle: { color: 'var(--palette-primary-light)' } },
+        { label: 'Client ID', field: 'id', valueStyle: { color: 'var(--palette-primary-light)' } },
         { label: 'Email', field: 'email' },
         { label: 'Name', field: 'name' },
         { label: 'Phone', field: 'phone', defaultValue: 'N/A' }

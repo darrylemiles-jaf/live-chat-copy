@@ -1,59 +1,28 @@
-import React, { useMemo } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem, DialogActions, DialogContent, DialogTitle, Dialog, TextField } from '@mui/material';
 
 import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
-import UserDetailsView from '../../../components/UserDetailsView';
-import AgentRatingsTab from '../../../components/AgentRatingsTab';
 import AgentEditDialog from '../../../sections/agents/AgentEditDialog';
 import AgentCreateDialog from '../../../sections/agents/AgentCreateDialog';
 import { useSupportAgents } from '../../../hooks/useSupportAgents';
-import { agentViewConfig } from '../../../utils/agents/agentTableConfig';
 import { PlusOutlined } from '@ant-design/icons';
 
 
 
 const SupportAgents = () => {
+  const navigate = useNavigate();
   const {
-    openViewModal, openEditModal, openCreateModal,
-    selectedAgent, formData,
+    openEditModal, openCreateModal,
+    formData,
     filterRole, filterStatus,
     usersLoading, usersError,
     filteredRowsForTable, uniqueRoles, columns,
-    handleViewById, handleCloseViewModal,
     handleCloseEditModal, handleCreateClick, handleCloseCreateModal,
-    handleFormChange, handleSave, handleCreate, handleClearFilters,
+    handleFormChange, handleSave, handleCreate,
     setFilterRole, setFilterStatus,
-    agentRatingData, loadingAgentRating
   } = useSupportAgents();
-
-  // Build a viewConfig that includes the live ratings tab
-  const viewConfig = useMemo(() => {
-    const avg = parseFloat(agentRatingData?.stats?.average_rating) || 0;
-    return {
-      ...agentViewConfig,
-      badges: [
-        ...agentViewConfig.badges,
-        ...(avg > 0
-          ? [{
-            render: () => (
-              <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                <Box component="span" sx={{ color: 'var(--palette-warning-main)', fontSize: '0.85rem' }}>&#9733;</Box>
-                <Box component="span" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{avg.toFixed(1)}</Box>
-              </Box>
-            ),
-            sx: { bgcolor: 'var(--palette-warning-darker)', color: 'white' }
-          }]
-          : [])
-      ],
-      tabs: [
-        {
-          label: 'Satisfaction Ratings',
-          content: () => <AgentRatingsTab ratingData={agentRatingData} loading={loadingAgentRating} />
-        }
-      ]
-    };
-  }, [agentRatingData, loadingAgentRating]);
 
 
 
@@ -86,7 +55,7 @@ const SupportAgents = () => {
         columns={columns}
         rows={filteredRowsForTable}
         searchableColumns={['id', 'name', 'email', 'role', 'status']}
-        onRowClick={handleViewById}
+        onRowClick={(row) => navigate(`/portal/users/details/${row.id}`)}
         settings={{
           orderBy: '__originalOrder',
           order: 'asc',
@@ -127,13 +96,6 @@ const SupportAgents = () => {
             </Box>
           )
         }}
-      />
-
-      <UserDetailsView
-        open={openViewModal}
-        onClose={handleCloseViewModal}
-        data={selectedAgent}
-        viewConfig={viewConfig}
       />
 
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
