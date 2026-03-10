@@ -50,7 +50,7 @@ const AuthGuard = ({ children }) => {
 
   useEffect(() => {
     if (tokenError || isUnauthorized) {
-      navigate('/unauthorized-access', { replace: true });
+      navigate('/login', { replace: true });
       return;
     }
 
@@ -61,7 +61,7 @@ const AuthGuard = ({ children }) => {
     }
 
     if (!isAuthenticated()) {
-      navigate('/unauthorized-access', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [navigate, searchParams, setSearchParams, tokenError, isUnauthorized]);
 

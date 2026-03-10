@@ -63,7 +63,7 @@ const useChats = () => {
   useEffect(() => {
     if (!isLoggedIn) {
       console.warn('User not logged in, redirecting to unauthorized page');
-      navigate('/unauthorized-access', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [isLoggedIn, navigate]);
 
@@ -306,7 +306,7 @@ const useChats = () => {
       socket.emit('mark_messages_read', { chatId: chat.id, readerRole: 'agent' });
     }
 
-    setLastSeenAt(null); 
+    setLastSeenAt(null);
     await fetchMessages(chat.id);
   };
 
