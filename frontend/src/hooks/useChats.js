@@ -391,6 +391,8 @@ const useChats = () => {
       id: `optimistic-${Date.now()}`,
       sender: 'You',
       message: messageText || '',
+      timestamp: 'Just now',
+      isSender: true,
       attachment_name: file.name,
       attachment_type: file.type.startsWith('image/')
         ? 'image'
