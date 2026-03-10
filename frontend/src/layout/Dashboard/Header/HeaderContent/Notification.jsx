@@ -313,9 +313,12 @@ export default function Notification() {
                                 sx={{
                                   fontWeight: notification.is_read ? 400 : 600,
                                   overflow: 'hidden',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 10,
+                                  WebkitBoxOrient: 'vertical',
                                   textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  maxWidth: 200
+                                  wordBreak: 'break-word',
+                                  pr: 10,
                                 }}
                               >
                                 {style.label}{notification.message ? `: ${parseNotificationMessage(notification.message)}` : ''}

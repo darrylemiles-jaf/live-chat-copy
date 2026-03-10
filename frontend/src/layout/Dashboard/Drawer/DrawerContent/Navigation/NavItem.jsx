@@ -24,8 +24,13 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 export default function NavItem({ item, level, isParents = false, setSelectedID }) {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
-  const { chatBadgeCount } = useNotificationBadge();
-  const showChatBadge = item.id === 'messages' && chatBadgeCount > 0;
+  const { chatBadgeCount, queueBadgeCount, resetChatBadge, resetQueueBadge } = useNotificationBadge();
+
+  // Badge is suppressed while the agent is actively on the chats page
+  const { pathname } = useLocation();
+  const isOnChatsPage = pathname.includes('/chats');
+  const showChatBadge = item.id === 'messages' && chatBadgeCount > 0 && !isOnChatsPage;
+  const showQueueBadge = item.id === 'queue' && queueBadgeCount > 0;
 
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
@@ -35,8 +40,13 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   }
 
   const itemHandler = () => {
-    // Always close drawer for Chats page, or on small screens for any page
-    if (item.id === 'messages' || downLG) {
+    if (item.id === 'messages') {
+      resetChatBadge();
+      handlerDrawerOpen(false);
+    } else if (item.id === 'queue') {
+      resetQueueBadge();
+      if (downLG) handlerDrawerOpen(false);
+    } else if (downLG) {
       handlerDrawerOpen(false);
     }
 
@@ -48,7 +58,10 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   const Icon = item.icon;
   const itemIcon = item.icon ? (
     <Badge
+      badgeContent={showChatBadge ? chatBadgeCount : showQueueBadge ? queueBadgeCount : 0}
+      invisible={!showChatBadge && !showQueueBadge}
       color="error"
+      max={99}
       sx={{
         '& .MuiBadge-badge': {
           fontSize: '10px',
@@ -69,7 +82,6 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
     false
   );
 
-  const { pathname } = useLocation();
   const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: false }, pathname);
 
   const textColor = 'text.primary';
