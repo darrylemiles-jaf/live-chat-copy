@@ -235,6 +235,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           setEndedChatId(updatedChatId);
         } else if (status === 'active') {
           setQueuePosition(null);
+          setChatMode(CHAT_MODES.LIVE_AGENT);
         }
       }
     });
@@ -646,6 +647,11 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     if (isChatEnded) setWidgetScreen('chat');
   }, [isChatEnded]);
 
+  /* switch to chat screen when agent is assigned — quick chats no longer usable */
+  useEffect(() => {
+    if (chatMode !== CHAT_MODES.BOT) setWidgetScreen('chat');
+  }, [chatMode]);
+
   /* fetch quick chats once the user is registered */
   useEffect(() => {
     if (!isRegistered) return;
@@ -713,6 +719,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
         if (activeChat) {
           setChatId(activeChat.id);
+          if (activeChat.status === 'queued') setChatMode(CHAT_MODES.PENDING_AGENT);
+          else if (activeChat.status === 'active') setChatMode(CHAT_MODES.LIVE_AGENT);
           if (activeChat.messages && activeChat.messages.length > 0) {
             setMessages(activeChat.messages);
             const seenMsgs = activeChat.messages.filter((m) => m.sender_role === 'client' && m.is_seen);
@@ -1155,7 +1163,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           )}
 
           {/* ── Quick Chats Screen ── */}
-          {isRegistered && userRole === 'client' && widgetScreen === 'quick_chats' && !isChatEnded && (
+          {isRegistered && userRole === 'client' && widgetScreen === 'quick_chats' && !isChatEnded && chatMode === CHAT_MODES.BOT && (
             <div className="cw-qc-screen">
               <div className="cw-qc-header">
                 {messages.length > 0 && (
@@ -1236,6 +1244,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                 )}
               </div>
 
+              {chatMode === CHAT_MODES.BOT && (
               <div className="cw-qc-cta">
                 <p className="cw-qc-cta-label">Still have an issue?</p>
                 <button type="button" className="cw-qc-agent-btn" onClick={() => setWidgetScreen('chat')}>
@@ -1256,6 +1265,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                   Talk to an Agent
                 </button>
               </div>
+              )}
 
               <div className="chat-widget-footer">
                 Powered by{' '}
@@ -1270,7 +1280,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
           {isRegistered && userRole === 'client' && (widgetScreen === 'chat' || isChatEnded) && (
             <>
               {/* Back navigation bar */}
-              {!isChatEnded && (
+              {!isChatEnded && chatMode === CHAT_MODES.BOT && !chatId && (
                 <div className="cw-chat-back-nav">
                   <button type="button" className="cw-chat-back-btn" onClick={() => setWidgetScreen('quick_chats')}>
                     <svg
