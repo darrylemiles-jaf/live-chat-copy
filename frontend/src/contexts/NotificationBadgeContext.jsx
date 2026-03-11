@@ -25,6 +25,12 @@ export const NotificationBadgeProvider = ({ children }) => {
   const unreadChatCountsRef = useRef(new Map());
   const agentChatIdsRef = useRef(new Set()); // active chats currently assigned to this agent
   const queuedChatIdsRef = useRef(new Set()); // chat IDs currently in the queue
+  // Counts that were cleared by resetChatBadge — syncChatBadge subtracts these so
+  // old unread messages don't reappear after the agent visits the inbox.
+  const acknowledgedBaselineRef = useRef(new Map());
+  // Deduplicates new_message events: the server emits to both the chat room and
+  // the agent's personal room, so the same message can arrive twice.
+  const seenMessageIdsRef = useRef(new Set());
 
   const user = getCurrentUser();
 
@@ -62,8 +68,15 @@ export const NotificationBadgeProvider = ({ children }) => {
         ).length;
         if (count > 0) unreadMap.set(Number(chat.id), count);
       });
-      unreadChatCountsRef.current = unreadMap;
-      const total = [...unreadMap.values()].reduce((a, b) => a + b, 0);
+      // Subtract acknowledged baseline: don't restore counts the agent already dismissed
+      const adjustedMap = new Map();
+      unreadMap.forEach((count, chatId) => {
+        const acked = acknowledgedBaselineRef.current.get(chatId) || 0;
+        const net = Math.max(0, count - acked);
+        if (net > 0) adjustedMap.set(chatId, net);
+      });
+      unreadChatCountsRef.current = adjustedMap;
+      const total = [...adjustedMap.values()].reduce((a, b) => a + b, 0);
       setChatBadgeCount(total);
     } catch (_) { }
   }, []);
@@ -95,11 +108,22 @@ export const NotificationBadgeProvider = ({ children }) => {
     // New client message → +1 for that chat in real time
     const handleNewMessage = (msg) => {
       if (msg.sender_role !== 'client') return;
+      // The server emits new_message to both the chat room and the agent's personal
+      // room, so deduplicate by message ID to avoid counting the same message twice.
+      if (msg.id) {
+        if (seenMessageIdsRef.current.has(msg.id)) return;
+        seenMessageIdsRef.current.add(msg.id);
+        // Keep the set bounded to avoid unbounded memory growth
+        if (seenMessageIdsRef.current.size > 200) {
+          const [oldest] = seenMessageIdsRef.current;
+          seenMessageIdsRef.current.delete(oldest);
+        }
+      }
       const chatId = Number(msg.chat_id);
       if (agentChatIdsRef.current.has(chatId)) {
         const prev = unreadChatCountsRef.current.get(chatId) || 0;
         unreadChatCountsRef.current.set(chatId, prev + 1);
-        setChatBadgeCount((c) => c + .5);
+        setChatBadgeCount((c) => c + 1);
       }
     };
 
@@ -111,6 +135,8 @@ export const NotificationBadgeProvider = ({ children }) => {
         unreadChatCountsRef.current.delete(cid);
         setChatBadgeCount((c) => Math.max(0, c - count));
       }
+      // Messages were actually read — remove from baseline so future syncs reflect reality
+      acknowledgedBaselineRef.current.delete(cid);
     };
 
     // Chat newly assigned → update tracking sets in real-time, fetch only that chat's messages
@@ -142,6 +168,7 @@ export const NotificationBadgeProvider = ({ children }) => {
       } else {
         // Assigned to another agent — remove from my sets if it was there
         agentChatIdsRef.current.delete(chatId);
+        acknowledgedBaselineRef.current.delete(chatId);
         const count = unreadChatCountsRef.current.get(chatId) || 0;
         if (count > 0) {
           unreadChatCountsRef.current.delete(chatId);
@@ -154,6 +181,7 @@ export const NotificationBadgeProvider = ({ children }) => {
       if (status === 'ended') {
         const cid = Number(chatId);
         agentChatIdsRef.current.delete(cid);
+        acknowledgedBaselineRef.current.delete(cid);
         const count = unreadChatCountsRef.current.get(cid) || 0;
         unreadChatCountsRef.current.delete(cid);
         if (count > 0) setChatBadgeCount((c) => Math.max(0, c - count));
@@ -230,6 +258,10 @@ export const NotificationBadgeProvider = ({ children }) => {
   }, []);
 
   const resetChatBadge = useCallback(() => {
+    // Save current counts as the acknowledged baseline before clearing.
+    // syncChatBadge will subtract these so old unreads don't reappear after
+    // the agent visits the inbox without actually reading every chat.
+    acknowledgedBaselineRef.current = new Map(unreadChatCountsRef.current);
     setChatBadgeCount(0);
     unreadChatCountsRef.current.clear();
   }, []);
@@ -244,6 +276,7 @@ export const NotificationBadgeProvider = ({ children }) => {
     unreadChatCountsRef.current.clear();
     agentChatIdsRef.current.clear();
     queuedChatIdsRef.current.clear();
+    acknowledgedBaselineRef.current.clear();
     setBellCount(0);
     setChatBadgeCount(0);
     setQueueBadgeCount(0);
