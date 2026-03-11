@@ -1,14 +1,4 @@
-import {
-  Snackbar,
-  Alert,
-  Typography,
-  Drawer,
-  Select,
-  MenuItem,
-  Tooltip,
-  IconButton,
-  Box
-} from '@mui/material';
+import { Snackbar, Alert, Typography, Drawer, Select, MenuItem, Tooltip, IconButton, Box } from '@mui/material';
 import { useColorScheme, useTheme } from '@mui/material/styles';
 import { mutate } from 'swr';
 import { AppstoreOutlined, SettingOutlined } from '@ant-design/icons';
@@ -29,7 +19,7 @@ import QuickLinksDrawer from '../../../../components/quick-links/QuickLinksDrawe
 const PRESET_COLORS = [
   { key: 'default', label: 'Teal', color: '#008E86' },
   { key: 'theme1', label: 'Dark Teal', color: '#3B7080' },
-  { key: 'theme3', label: 'Gold', color: '#FFB400' },
+  { key: 'theme3', label: 'Gold', color: '#FFB400' }
 ];
 
 export default function HeaderContent() {
@@ -73,17 +63,17 @@ export default function HeaderContent() {
         if (activeCount > 0 && freshUser.status !== 'busy') {
           try {
             await Users.updateUserStatus(freshUser.id, 'busy');
-          } catch (_) { }
+          } catch (_) {}
           setStatus('busy');
         } else if (activeCount === 0 && freshUser.status === 'busy') {
           try {
             await Users.updateUserStatus(freshUser.id, 'available');
-          } catch (_) { }
+          } catch (_) {}
           setStatus('available');
         } else {
           setStatus(freshUser.status || 'available');
         }
-      } catch (_) { }
+      } catch (_) {}
     };
 
     const handleUserStatusChange = (data) => {
@@ -126,7 +116,7 @@ export default function HeaderContent() {
         setUser(freshUser);
         try {
           localStorage.setItem('user', JSON.stringify(freshUser));
-        } catch (_) { }
+        } catch (_) {}
       } catch (_) {
         logout();
         return;
@@ -202,6 +192,58 @@ export default function HeaderContent() {
         unreadNotificationsCount={0}
       />
 
+      <Select
+        value={status}
+        onChange={(e) => handleToggleStatus(e.target.value)}
+        disabled={statusLoading || activeChatsCount > 0}
+        size="small"
+        title={activeChatsCount > 0 ? `Locked — ${activeChatsCount} active chat${activeChatsCount > 1 ? 's' : ''}` : undefined}
+        variant="standard"
+        disableUnderline
+        sx={{
+          '& .MuiSelect-select': {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            py: 0.5,
+            px: 1,
+            borderRadius: '999px',
+            border: `1.5px solid ${STATUS_COLORS[status]}60`,
+            transition: 'border-color 0.2s, background 0.2s',
+            '&:hover': {
+              borderColor: STATUS_COLORS[status],
+              bgcolor: STATUS_COLORS[status] + '10',
+            },
+          },
+          '&.Mui-disabled .MuiSelect-select': {
+            opacity: 0.6,
+            cursor: 'not-allowed',
+          },
+          '& .MuiSelect-icon': { color: STATUS_COLORS[status], fontSize: 16, top: 'calc(50% - 8px)', right: 4 },
+        }}
+        renderValue={(val) => (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, bgcolor: STATUS_COLORS[val] }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: STATUS_COLORS[val], lineHeight: 1, fontSize: '0.8rem' }}>
+              {val}
+            </Typography>
+          </Box>
+        )}
+      >
+        <MenuItem value="available">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.available }} />
+            <Typography variant="body2" fontWeight={600}>Available</Typography>
+          </Box>
+        </MenuItem>
+        <MenuItem value="away">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.away }} />
+            <Typography variant="body2" fontWeight={600}>Away</Typography>
+          </Box>
+        </MenuItem>
+      </Select>
+
       <Tooltip title="Timora Apps" disableInteractive>
         <IconButton onClick={handleOpenModal} sx={{ color: 'text.primary', ml: 0.5, marginInline: 1 }} size="small">
           <AppstoreOutlined style={{ fontSize: 18 }} />
@@ -247,78 +289,6 @@ export default function HeaderContent() {
           </IconButton>
         </Box>
 
-        <Box sx={{ px: 2.5, pt: 3 }}>
-          <Typography
-            variant="subtitle2"
-            sx={{
-              fontWeight: 700,
-              color: 'text.secondary',
-              textTransform: 'uppercase',
-              fontSize: '0.7rem',
-              letterSpacing: '0.08em',
-              mb: 2
-            }}
-          >
-            Availability Status
-          </Typography>
-          <Select
-            value={status}
-            onChange={(e) => handleToggleStatus(e.target.value)}
-            disabled={statusLoading || activeChatsCount > 0}
-            size="small"
-            fullWidth
-            sx={{
-              borderRadius: 2,
-              fontWeight: 600,
-              color: STATUS_COLORS[status],
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: STATUS_COLORS[status]
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: STATUS_COLORS[status]
-              }
-            }}
-            renderValue={(val) => (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    bgcolor: val === 'available' ? STATUS_COLORS.available : val === 'busy' ? STATUS_COLORS.busy : STATUS_COLORS.away
-                  }}
-                />
-                <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
-                  {val}
-                </Typography>
-              </Box>
-            )}
-          >
-            <MenuItem value="available">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.available }} />
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Available
-                </Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem value="away">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLORS.away }} />
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Away
-                </Typography>
-              </Box>
-            </MenuItem>
-          </Select>
-          {activeChatsCount > 0 && (
-            <Typography variant="caption" sx={{ mt: 1.25, display: 'block', color: 'error.main', fontWeight: 500 }}>
-              Status is locked while you have {activeChatsCount} active chat{activeChatsCount > 1 ? 's' : ''}.
-            </Typography>
-          )}
-        </Box>
-
         {/* ── Dark Mode ── */}
         <Box sx={{ px: 2.5, pt: 3 }}>
           <Typography
@@ -348,7 +318,9 @@ export default function HeaderContent() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>{isDark ? '🌙' : '☀️'}</Box>
+              <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>
+                {isDark ? '🌙' : '☀️'}
+              </Box>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {isDark ? 'Dark Mode' : 'Light Mode'}
               </Typography>

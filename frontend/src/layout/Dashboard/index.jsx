@@ -40,7 +40,7 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      navigate('/unauthorized-access', { replace: true });
+      navigate('/login', { replace: true });
       return;
     }
 

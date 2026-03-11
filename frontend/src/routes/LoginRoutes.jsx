@@ -4,8 +4,7 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 
 // jwt auth
-const LoginPage = Loadable(lazy(() => import('pages/auth/Login')));
-const RegisterPage = Loadable(lazy(() => import('pages/auth/Register')));
+const Login = Loadable(lazy(() => import('pages/auth/Login')));
 
 // ==============================|| AUTH ROUTING ||============================== //
 
@@ -17,12 +16,8 @@ const LoginRoutes = {
       children: [
         {
           path: '/login',
-          element: <LoginPage />
+          element: <Login />
         },
-        {
-          path: '/register',
-          element: <RegisterPage />
-        }
       ]
     }
   ]

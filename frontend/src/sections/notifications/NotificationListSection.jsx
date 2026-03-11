@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import NotificationItem from './NotificationItem';
+import { NotificationOutlined } from '@ant-design/icons';
 
 const NotificationListSection = ({
   initialLoading,
@@ -159,7 +160,7 @@ const NotificationListSection = ({
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '16px', color: textMuted }}>🔔</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px', color: textMuted }}><NotificationOutlined /></div>
           <p style={{ fontSize: '16px', color: textSecondary, margin: 0 }}>
             {selectedTab === 'Unread' ? 'No unread notifications' : 'No notifications yet'}
           </p>

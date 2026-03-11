@@ -9,6 +9,7 @@ const Dashboard = Loadable(lazy(() => import('../pages/portal/dashboard')));
 const Queue = Loadable(lazy(() => import('../pages/portal/queue')));
 const Chats = Loadable(lazy(() => import('../pages/portal/chats')));
 const Clients = Loadable(lazy(() => import('../pages/portal/users/clients')));
+const UserDetails = Loadable(lazy(() => import('../pages/portal/users/details')));
 const SupportAgents = Loadable(lazy(() => import('../pages/portal/users/support-agents')));
 const Notifications = Loadable(lazy(() => import('../pages/portal/notifications')));
 const Profile = Loadable(lazy(() => import('../pages/portal/profile')));
@@ -42,6 +43,15 @@ const MainRoutes = {
         {
           path: 'users',
           children: [
+            {
+              path: 'details',
+              children: [
+                {
+                  path: ':id',
+                  element: <UserDetails />
+                },
+              ]
+            },
             {
               path: 'clients',
               element: <Clients />

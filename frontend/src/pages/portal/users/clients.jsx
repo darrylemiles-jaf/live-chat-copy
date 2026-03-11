@@ -1,20 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageHead from '../../../components/PageHead';
 import ReusableTable from '../../../components/ReusableTable';
-import UserDetailsView from '../../../components/UserDetailsView';
 import { useClients } from '../../../hooks/useClients';
 
 const Clients = () => {
-  const {
-    openViewModal,
-    selectedCustomer,
-    usersLoading,
-    columns,
-    rows,
-    viewConfig,
-    handleViewClick,
-    handleCloseViewModal
-  } = useClients();
+  const navigate = useNavigate();
+  const { usersLoading, columns, rows } = useClients();
 
   return (
     <React.Fragment>
@@ -23,16 +15,9 @@ const Clients = () => {
         columns={columns}
         rows={rows}
         searchableColumns={['id', 'name', 'email', 'phone']}
-        onRowClick={handleViewClick}
+        onRowClick={(row) => navigate(`/portal/users/details/${row.id}`)}
         isLoading={usersLoading}
         settings={{ orderBy: 'id', order: 'asc' }}
-      />
-
-      <UserDetailsView
-        open={openViewModal}
-        onClose={handleCloseViewModal}
-        data={selectedCustomer}
-        viewConfig={viewConfig}
       />
     </React.Fragment>
   );

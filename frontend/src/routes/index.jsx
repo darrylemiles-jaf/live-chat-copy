@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainRoutes from './MainRoutes';
 import NotFound from '../pages/not-found';
 import Unauthorized from '../components/maintenance/Unauthorized';
+import LoginRoutes from './LoginRoutes';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
@@ -20,6 +21,7 @@ const routes = [
     path: '*',
     element: <NotFound />,
   },
+  LoginRoutes,
   MainRoutes
 ];
 
