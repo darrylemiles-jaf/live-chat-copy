@@ -736,6 +736,98 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     }
   };
 
+  // ── Talk to an Agent → send a message instantly then switch to chat ────────
+  const handleTalkToAgent = async () => {
+    if (!userId) {
+      setWidgetScreen('chat');
+      return;
+    }
+
+    const autoMessage = "I'd like to talk to an agent.";
+
+    // Optimistically show the message and switch screen immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: optimisticId,
+        sender_id: userId,
+        sender_role: 'client',
+        message: autoMessage,
+        created_at: new Date().toISOString()
+      }
+    ]);
+    setWidgetScreen('chat');
+
+    try {
+      const payload = { sender_id: userId, message: autoMessage };
+      if (chatId) payload.chat_id = chatId;
+
+      const response = await fetch(`${apiUrl}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          ...(widgetToken ? { Authorization: `Bearer ${widgetToken}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Replace optimistic message with real one
+        if (data.data) {
+          setMessages((prev) => {
+            const idx = prev.findIndex((m) => m.id === optimisticId);
+            if (idx !== -1) {
+              const updated = [...prev];
+              updated[idx] = data.data;
+              return updated;
+            }
+            return prev;
+          });
+        }
+
+        if (!chatId && data.chat_id) {
+          const newChatId = data.chat_id;
+          setChatId(newChatId);
+          socketRef.current?.emit('join_chat', newChatId);
+
+          const autoReplyText = data.is_queued
+            ? `Hi there! 👋 Thanks for reaching out.\n\nYou are currently #${data.queue_position} in the queue. Our support team will be with you as soon as possible. Please hold on!\n\n— This is an automated message`
+            : `Hi there! 👋 Thanks for reaching out. A support agent has been connected and will reply shortly.\n\n— This is an automated message`;
+
+          if (data.is_queued && data.queue_position) setQueuePosition(data.queue_position);
+
+          setIsBotTyping(true);
+          setTimeout(() => {
+            setIsBotTyping(false);
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `auto-reply-${Date.now()}`,
+                sender_role: 'bot',
+                message: autoReplyText,
+                created_at: new Date().toISOString(),
+                isAutoReply: true
+              }
+            ]);
+            scrollToBottom();
+          }, 1400);
+        }
+      } else {
+        // Remove optimistic message on failure
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+        showToast('Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      console.error('Talk to agent error:', error);
+      showToast('Failed to connect. Please try again.');
+    }
+  };
+
   // ── Quick chat click → inject bot reply locally, switch to chat screen ──
   const handleQuickChatSelect = (qc) => {
     const now = Date.now();
@@ -1238,7 +1330,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
 
               <div className="cw-qc-cta">
                 <p className="cw-qc-cta-label">Still have an issue?</p>
-                <button type="button" className="cw-qc-agent-btn" onClick={() => setWidgetScreen('chat')}>
+                <button type="button" className="cw-qc-agent-btn" onClick={handleTalkToAgent}>
                   <svg
                     width="15"
                     height="15"

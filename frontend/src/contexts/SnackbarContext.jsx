@@ -97,7 +97,7 @@ export function SnackbarProvider({ children }) {
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={handleClose}
+                onClick={(e) => { e.stopPropagation(); handleClose(); }}
               >
                 <CloseOutlined />
               </IconButton>
