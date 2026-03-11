@@ -37,6 +37,7 @@ export function SnackbarProvider({ children }) {
       duration: options?.duration ?? (severity === 'error' ? 8000 : 6000),
       action: options?.action,
       anchorOrigin: options?.anchorOrigin,
+      onClick: options?.onClick,
     };
 
     setQueue((prev) => [...prev, newMessage]);
@@ -85,6 +86,11 @@ export function SnackbarProvider({ children }) {
           severity={currentMessage?.severity}
           variant="standard"
           elevation={6}
+          onClick={
+            currentMessage?.onClick
+              ? () => { currentMessage.onClick(); handleClose(); }
+              : undefined
+          }
           action={
             currentMessage?.action || (
               <IconButton
@@ -101,6 +107,7 @@ export function SnackbarProvider({ children }) {
             width: '100%',
             minWidth: { xs: '280px', sm: '380px' },
             maxWidth: '380px',
+            cursor: currentMessage?.onClick ? 'pointer' : 'default',
             '& .MuiAlert-message': {
               width: '100%',
             },

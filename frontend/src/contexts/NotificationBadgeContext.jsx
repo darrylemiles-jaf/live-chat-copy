@@ -4,6 +4,7 @@ import { getNotifications, getQueue, getChats, getChatMessages } from 'api/chatA
 import socketService from 'services/socketService';
 import { SOCKET_URL } from 'constants/constants';
 import { useSnackbar } from 'contexts/SnackbarContext';
+import router from 'routes';
 
 const NotificationBadgeContext = createContext({
   bellCount: 0,
@@ -133,6 +134,7 @@ export const NotificationBadgeProvider = ({ children }) => {
         showSnackbar(`${clientName} has been assigned to you`, 'info', {
           title: 'New Chat Assigned',
           duration: 6000,
+          onClick: () => router.navigate('/portal/chats', { state: { chatId: chatId } }),
         });
         try {
           const res = await getChatMessages(chatId);
