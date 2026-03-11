@@ -224,7 +224,7 @@ export default function HeaderContent() {
         renderValue={(val) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, bgcolor: STATUS_COLORS[val] }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: STATUS_COLORS[val], lineHeight: 1, fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: isDark ? 'common.white' : 'text.primary', lineHeight: 1, fontSize: '0.8rem' }}>
               {val}
             </Typography>
           </Box>
@@ -394,7 +394,9 @@ export default function HeaderContent() {
             width: '100%',
             ...(snackbar.color && {
               bgcolor: snackbar.color,
+              color: 'white',
               '& .MuiAlert-icon': { color: 'white' },
+              '& .MuiAlert-message': { color: 'white' },
               '& .MuiAlert-action .MuiIconButton-root': { color: 'white' }
             })
           }}
