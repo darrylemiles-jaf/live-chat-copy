@@ -39,8 +39,8 @@ import { useNavigate } from 'react-router-dom';
 
 // sx styles
 const avatarSX = {
-  width: 36,
-  height: 36,
+  width: { xs: 32, md: 36 },
+  height: { xs: 32, md: 36 },
   fontSize: '1rem'
 };
 
@@ -243,7 +243,7 @@ export default function Notification() {
       >
         {({ TransitionProps }) => (
           <Transitions type="grow" position={downMD ? 'top' : 'top-right'} in={open} {...TransitionProps}>
-            <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: '100%', minWidth: 285, maxWidth: { xs: 285, md: 420 } })}>
+            <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: { xs: 'calc(100vw - 20px)', sm: 360, md: 420 } })}>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard
                   title="Notifications"
@@ -266,11 +266,11 @@ export default function Notification() {
                     component="nav"
                     sx={{
                       p: 0,
-                      maxHeight: 400,
+                      maxHeight: { xs: 280, sm: 360, md: 400 },
                       overflowY: 'auto',
                       '& .MuiListItemButton-root': {
-                        py: 0.5,
-                        px: 2,
+                        py: { xs: 0.75, md: 0.5 },
+                        px: { xs: 1.5, md: 2 },
                         '&.Mui-selected': { bgcolor: 'action.hover', color: 'text.primary' },
                         '& .MuiAvatar-root': avatarSX,
                         '& .MuiListItemSecondaryAction-root': { ...actionSX, position: 'relative' }
@@ -313,12 +313,8 @@ export default function Notification() {
                                 sx={{
                                   fontWeight: notification.is_read ? 400 : 600,
                                   overflow: 'hidden',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 10,
-                                  WebkitBoxOrient: 'vertical',
                                   textOverflow: 'ellipsis',
-                                  wordBreak: 'break-word',
-                                  pr: 10,
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 {style.label}{notification.message ? `: ${parseNotificationMessage(notification.message)}` : ''}
