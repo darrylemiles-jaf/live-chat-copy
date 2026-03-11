@@ -3,6 +3,8 @@ import { getCurrentUser } from 'utils/auth';
 import { getNotifications, getQueue, getChats, getChatMessages } from 'api/chatApi';
 import socketService from 'services/socketService';
 import { SOCKET_URL } from 'constants/constants';
+import { useSnackbar } from 'contexts/SnackbarContext';
+import router from 'routes';
 
 const NotificationBadgeContext = createContext({
   bellCount: 0,
@@ -15,6 +17,7 @@ const NotificationBadgeContext = createContext({
 });
 
 export const NotificationBadgeProvider = ({ children }) => {
+  const { showSnackbar } = useSnackbar();
   const [bellCount, setBellCount] = useState(0);
   const [chatBadgeCount, setChatBadgeCount] = useState(0);
   const [queueBadgeCount, setQueueBadgeCount] = useState(0);
@@ -152,8 +155,13 @@ export const NotificationBadgeProvider = ({ children }) => {
       }
 
       if (chatData.agent_id == uid) {
-        // This chat is now mine — add to agent set and fetch its unread messages
         agentChatIdsRef.current.add(chatId);
+        const clientName = chatData.client_name || chatData.name || 'A client';
+        showSnackbar(`${clientName} has been assigned to you`, 'info', {
+          title: 'New Chat Assigned',
+          duration: 6000,
+          onClick: () => router.navigate('/portal/chats', { state: { chatId: chatId } }),
+        });
         try {
           const res = await getChatMessages(chatId);
           const msgs = Array.isArray(res) ? res : res?.data || [];
