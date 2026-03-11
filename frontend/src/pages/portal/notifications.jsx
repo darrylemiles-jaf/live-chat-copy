@@ -39,7 +39,7 @@ const Notifications = () => {
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           gap: { xs: 1.5, md: 2.5 },
-          alignItems: 'flex-start',
+          alignItems: { xs: 'stretch', md: 'flex-start' },
           marginBottom: '8px',
         }}
       >
@@ -53,7 +53,7 @@ const Notifications = () => {
           unreadCount={unreadCount}
         />
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
           <NotificationListSection
             initialLoading={initialLoading}
             loading={loading}
@@ -67,7 +67,7 @@ const Notifications = () => {
             onMarkAllAsRead={handleMarkAllAsRead}
             onLoadMore={handleLoadMore}
           />
-        </div>
+        </Box>
       </Box>
 
       {isModalOpen && (
