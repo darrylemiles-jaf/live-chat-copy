@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 
 const getChatsWithMessages = async (user_id, query = {}) => {
   try {
-    const { status, limit = 50 } = query;
+    const { status, limit } = query;
 
     const [userData] = await pool.query(
       `SELECT role FROM users WHERE id = ?`,
@@ -31,8 +31,11 @@ const getChatsWithMessages = async (user_id, query = {}) => {
       params.push(status);
     }
 
-    sql += ` ORDER BY updated_at DESC LIMIT ?`;
-    params.push(parseInt(limit));
+    sql += ` ORDER BY updated_at DESC`;
+    if (limit) {
+      sql += ` LIMIT ?`;
+      params.push(parseInt(limit));
+    }
 
     const [chats] = await pool.query(sql, params);
 
