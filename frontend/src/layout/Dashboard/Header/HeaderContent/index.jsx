@@ -2,9 +2,10 @@ import { Snackbar, Alert, Typography, Drawer, Select, MenuItem, Tooltip, IconBut
 import { useColorScheme, useTheme } from '@mui/material/styles';
 import { mutate } from 'swr';
 import { AppstoreOutlined, SettingOutlined } from '@ant-design/icons';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getCurrentUser, logout } from 'utils/auth';
 import { getChats } from 'api/chatApi';
+import { API_URL } from 'constants/constants';
 
 import Users from 'api/users';
 import socketService from 'services/socketService';
@@ -31,6 +32,8 @@ export default function HeaderContent() {
   const [status, setStatus] = useState('available');
   const [statusLoading, setStatusLoading] = useState(false);
   const [activeChatsCount, setActiveChatsCount] = useState(0);
+  const activeChatsIdsRef = useRef([]);
+  const activeChatsCountRef = useRef(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', color: null });
 
   const { mode: colorSchemeMode, setMode } = useColorScheme();
@@ -58,8 +61,10 @@ export default function HeaderContent() {
         if (!userRes?.success || !userRes?.data) return;
         const freshUser = userRes.data;
         const chats = Array.isArray(chatRes) ? chatRes : chatRes?.data || [];
-        const activeCount = chats.filter((c) => c.status === 'active').length;
+        const activeChats = chats.filter((c) => c.status === 'active');
+        const activeCount = activeChats.length;
         setActiveChatsCount(activeCount);
+        activeChatsIdsRef.current = activeChats.map((c) => c.id);
         if (activeCount > 0 && freshUser.status !== 'busy') {
           try {
             await Users.updateUserStatus(freshUser.id, 'busy');
@@ -149,6 +154,47 @@ export default function HeaderContent() {
     };
   }, []);
 
+  // Keep ref in sync so the single listener below always reads the latest count
+  useEffect(() => {
+    activeChatsCountRef.current = activeChatsCount;
+  }, [activeChatsCount]);
+
+  // Warn agent before closing/refreshing the browser while they have active chats.
+  // Attached once – reads the always-fresh ref instead of a stale closure.
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (activeChatsCountRef.current > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // End all active chats in the DB when the agent actually leaves (confirmed close/navigate away)
+  useEffect(() => {
+    const handlePageHide = () => {
+      const ids = activeChatsIdsRef.current;
+      if (!ids.length) return;
+      const token = localStorage.getItem('serviceToken');
+      const apiVer = import.meta.env.VITE_API_VER || 'v1';
+      ids.forEach((chatId) => {
+        fetch(`${API_URL}/api/${apiVer}/chats/end`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ chat_id: chatId }),
+          keepalive: true
+        }).catch(() => {});
+      });
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
+  }, []);
+
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
 
@@ -216,15 +262,20 @@ export default function HeaderContent() {
             },
           },
           '&.Mui-disabled .MuiSelect-select': {
-            opacity: 0.6,
+            opacity: 1,
             cursor: 'not-allowed',
+            WebkitTextFillColor: isDark ? '#ffffff' : '#000000',
+          },
+          '&.Mui-disabled .MuiSelect-select *': {
+            color: isDark ? '#ffffff' : '#000000',
+            WebkitTextFillColor: isDark ? '#ffffff' : '#000000',
           },
           '& .MuiSelect-icon': { color: STATUS_COLORS[status], fontSize: 16, top: 'calc(50% - 8px)', right: 4 },
         }}
         renderValue={(val) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, bgcolor: STATUS_COLORS[val] }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: isDark ? 'common.white' : 'text.primary', lineHeight: 1, fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: isDark ? '#ffffff' : '#000000', WebkitTextFillColor: isDark ? '#ffffff' : '#000000', lineHeight: 1, fontSize: '0.8rem' }}>
               {val}
             </Typography>
           </Box>
@@ -258,8 +309,8 @@ export default function HeaderContent() {
         </IconButton>
       </Tooltip>
 
-      {!downLG && <Profile />}
-      {downLG && <MobileSection />}
+      {!downLG && <Profile activeChatsCount={activeChatsCount} />}
+      {downLG && <MobileSection activeChatsCount={activeChatsCount} />}
 
       <Drawer
         anchor="right"

@@ -76,6 +76,8 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
   const escalationPollRef = useRef(null);
+  // True whenever the client is in an active (non-ended) chat session
+  const hasActiveChatRef = useRef(false);
 
   useEffect(() => {
     chatIdRef.current = chatId;
@@ -88,6 +90,12 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
   useEffect(() => {
     isOpenRef.current = isOpen;
   }, [isOpen]);
+
+  useEffect(() => {
+    hasActiveChatRef.current = !!(chatId && !isChatEnded);
+    // Expose to host page (e.g. fake-dashboard logout handler)
+    window.__liveChatActive = hasActiveChatRef.current;
+  }, [chatId, isChatEnded]);
 
   const canMarkSeen = () =>
     isOpenRef.current &&
@@ -934,31 +942,40 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
     };
   }, [isChatEnded]);
 
-  // Browser leave-warning: prompt when a chat is active
+  // Browser leave-warning (attached once, reads fresh state via refs)
   useEffect(() => {
-    if (!chatId || isChatEnded) return;
-
+    // Show native "Leave site?" prompt only while a chat is active.
+    // Do NOT call fetch here — beforeunload fires even when the user clicks Cancel.
     const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = '';
-
-      // Best-effort: end the chat when the user actually leaves
-      if (chatIdRef.current) {
-        fetch(`${apiUrl}/chats/end`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(widgetTokenRef.current ? { Authorization: `Bearer ${widgetTokenRef.current}` } : {})
-          },
-          body: JSON.stringify({ chat_id: chatIdRef.current }),
-          keepalive: true
-        }).catch(() => { });
+      if (hasActiveChatRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
       }
     };
 
+    // pagehide fires only after the user has confirmed leaving (or the tab/window
+    // actually closes). Check `e.persisted` to skip back-forward cache entries.
+    const handlePageHide = (e) => {
+      if (e.persisted) return;
+      if (!hasActiveChatRef.current || !chatIdRef.current) return;
+      fetch(`${apiUrl}/chats/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(widgetTokenRef.current ? { Authorization: `Bearer ${widgetTokenRef.current}` } : {})
+        },
+        body: JSON.stringify({ chat_id: chatIdRef.current }),
+        keepalive: true
+      }).catch(() => {});
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [chatId, isChatEnded, apiUrl]);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [apiUrl]);
 
   // Auto-end chat when the user session is cleared (logout / session removed)
   useEffect(() => {
