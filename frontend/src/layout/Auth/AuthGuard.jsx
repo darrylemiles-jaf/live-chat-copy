@@ -53,7 +53,13 @@ const AuthGuard = ({ children }) => {
       // Clear invalid/unauthorized credentials to prevent redirect loop
       localStorage.removeItem('serviceToken');
       localStorage.removeItem('user');
-      navigate('/login', { replace: true });
+      const message =
+        isUnauthorized
+          ? 'You do not have permission to access this page.'
+          : tokenError === 'expired'
+            ? 'Your session has expired. Please log in again.'
+            : 'Invalid session. Please log in again.';
+      navigate('/login', { replace: true, state: { authMessage: message, authSeverity: 'warning' } });
       return;
     }
 
@@ -64,11 +70,11 @@ const AuthGuard = ({ children }) => {
     }
 
     if (!isAuthenticated()) {
-      navigate('/login', { replace: true });
+      navigate('/login', { replace: true, state: { authMessage: 'Please log in to continue.', authSeverity: 'info' } });
     }
   }, [navigate, searchParams, setSearchParams, tokenError, isUnauthorized]);
 
-  if (!isAuthenticated() && !searchParams.get('token')) {
+  if (tokenError || isUnauthorized || (!isAuthenticated() && !searchParams.get('token'))) {
     return null;
   }
 
