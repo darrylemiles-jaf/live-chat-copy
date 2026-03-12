@@ -26,9 +26,6 @@ import Avatar from 'components/@extended/Avatar';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
 
-
-
-
 // ==============================|| UTILITY FUNCTIONS ||============================== //
 
 const getInitials = (name) => {
@@ -58,7 +55,7 @@ function a11yProps(index) {
 
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
-export default function Profile() {
+export default function Profile({ activeChatsCount = 0 }) {
   const theme = useTheme();
   const [user, setUser] = useState(null);
 
@@ -87,7 +84,7 @@ export default function Profile() {
   };
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 'auto', display: 'flex', alignItems: 'center', gap: 1}}>
+    <Box sx={{ flexShrink: 0, ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
       <Tooltip title="Profile" disableInteractive>
         <ButtonBase
           sx={(theme) => ({
@@ -99,22 +96,18 @@ export default function Profile() {
           ref={anchorRef}
           aria-controls={open ? 'profile-grow' : undefined}
           aria-haspopup="true"
-          onClick={handleToggle}
         >
-          <Avatar 
-            alt="profile user" 
-            size="sm" 
-            color="green"
-            sx={{ '&:hover': { outline: '1px solid', outlineColor: 'primary.main' } }}
-          >
-            {getInitials(user?.name || user?.username)}
-          </Avatar>
+          <Stack onClick={handleToggle} flexDirection="row" gap={1} alignItems="center">
+            <Avatar alt="profile user" size="sm" color="green" sx={{ '&:hover': { outline: '1px solid', outlineColor: 'primary.main' } }}>
+              {getInitials(user?.name || user?.username)}
+            </Avatar>
+            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              {user?.name || user?.username || 'User'}
+            </Box>
+          </Stack>
         </ButtonBase>
       </Tooltip>
 
-      <Box component="span" sx={{ fontWeight: "bold", color: "text.primary" }}>
-        {user?.name || user?.username || 'User'}
-      </Box>
       <Popper
         placement="bottom-end"
         open={open}
@@ -142,11 +135,7 @@ export default function Profile() {
                     <Grid container sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                       <Grid>
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
-                          <Avatar 
-                            alt="profile user" 
-                            sx={{ width: 32, height: 32 }}
-                            color="green"
-                          >
+                          <Avatar alt="profile user" sx={{ width: 32, height: 32 }} color="green">
                             {getInitials(user?.name || user?.username)}
                           </Avatar>
                           <Stack>
@@ -161,7 +150,7 @@ export default function Profile() {
                   </CardContent>
 
                   <TabPanel value={value} index={0} dir={theme.direction}>
-                    <ProfileTab />
+                    <ProfileTab activeChatsCount={activeChatsCount} />
                   </TabPanel>
                   <TabPanel value={value} index={1} dir={theme.direction}>
                     <SettingTab />
@@ -177,3 +166,4 @@ export default function Profile() {
 }
 
 TabPanel.propTypes = { children: PropTypes.node, value: PropTypes.number, index: PropTypes.number, other: PropTypes.any };
+Profile.propTypes = { activeChatsCount: PropTypes.number };

@@ -39,6 +39,7 @@ const useChats = () => {
   const fetchChatsDataRef = useRef(null);
   const fetchMessagesRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const agentEndedChatRef = useRef(false);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const scrollToBottom = () => {
@@ -63,7 +64,7 @@ const useChats = () => {
   useEffect(() => {
     if (!isLoggedIn) {
       console.warn('User not logged in, redirecting to unauthorized page');
-      navigate('/unauthorized-access', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [isLoggedIn, navigate]);
 
@@ -131,7 +132,7 @@ const useChats = () => {
           setLastSeenAt(latest.created_at);
         }
 
-        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 0);
       } catch (error) {
         console.error('Error fetching messages:', error);
         setCurrentMessages([]);
@@ -189,19 +190,19 @@ const useChats = () => {
             if (optimisticIdx !== -1) {
               const updated = [...prev];
               updated[optimisticIdx] = transformed;
-              setTimeout(scrollToBottom, 100);
+              setTimeout(scrollToBottom, 0);
               return updated;
             }
           }
 
           if (prev.some((m) => m.id === transformed.id)) return prev;
 
-          if (!transformed.isSender) {
+          if (!transformed.isSender && document.visibilityState === 'visible') {
             const socket = socketService.socket;
             if (socket) socket.emit('mark_messages_read', { chatId: msgChatId, readerRole: 'agent' });
           }
 
-          setTimeout(scrollToBottom, 100);
+          setTimeout(scrollToBottom, 0);
           return [...prev, transformed];
         }
         return prev;
@@ -217,7 +218,31 @@ const useChats = () => {
       fetchChatsDataRef.current?.(true);
     };
 
-    const handleChatStatus = () => fetchChatsDataRef.current?.(true);
+    const handleChatStatus = ({ chatId, status }) => {
+      fetchChatsDataRef.current?.(true);
+      if (
+        status === 'ended' &&
+        selectedChatRef.current &&
+        Number(chatId) === Number(selectedChatRef.current.id) &&
+        !agentEndedChatRef.current
+      ) {
+        const clientName = selectedChatRef.current.name || 'The client';
+        setCurrentMessages((prev) => [
+          ...prev,
+          {
+            id: `system-end-${Date.now()}`,
+            sender: 'System',
+            message: `${clientName} has ended this chat.`,
+            timestamp: 'Just now',
+            created_at: new Date().toISOString(),
+            isSender: false,
+            isBot: false,
+            isSystemMsg: true
+          }
+        ]);
+        setTimeout(scrollToBottom, 100);
+      }
+    };
     const handleQueueUpdate = () => fetchChatsDataRef.current?.(true);
 
     const handleUserTyping = ({ userName, role }) => {
@@ -250,6 +275,14 @@ const useChats = () => {
     };
     socket.on('messages_seen_by_client', handleMessagesSeen);
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && selectedChatRef.current) {
+        const s = socketService.socket;
+        if (s) s.emit('mark_messages_read', { chatId: selectedChatRef.current.id, readerRole: 'agent' });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
@@ -260,6 +293,7 @@ const useChats = () => {
       socket.off('user_typing', handleUserTyping);
       socket.off('user_stop_typing', handleUserStopTyping);
       socket.off('messages_seen_by_client', handleMessagesSeen);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user?.id]);
 
@@ -288,6 +322,7 @@ const useChats = () => {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSelectChat = async (chat) => {
+    agentEndedChatRef.current = false;
     if (chat.status === 'queued') {
       navigate('/portal/queue', { state: { queueId: chat.id } });
       return;
@@ -306,7 +341,7 @@ const useChats = () => {
       socket.emit('mark_messages_read', { chatId: chat.id, readerRole: 'agent' });
     }
 
-    setLastSeenAt(null); 
+    setLastSeenAt(null);
     await fetchMessages(chat.id);
   };
 
@@ -356,6 +391,8 @@ const useChats = () => {
       id: `optimistic-${Date.now()}`,
       sender: 'You',
       message: messageText || '',
+      timestamp: 'Just now',
+      isSender: true,
       attachment_name: file.name,
       attachment_type: file.type.startsWith('image/')
         ? 'image'
@@ -409,6 +446,7 @@ const useChats = () => {
 
   const handleConfirmEnd = async () => {
     setConfirmDialog((prev) => ({ ...prev, loading: true }));
+    agentEndedChatRef.current = true;
     try {
       await endChat(selectedChat.id);
       setConfirmDialog({ open: false, loading: false });

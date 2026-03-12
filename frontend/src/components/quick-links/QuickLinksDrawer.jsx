@@ -9,9 +9,11 @@ import {
   DashboardOutlined,
   SettingOutlined,
   ThunderboltOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons';
 import { COMPANY_URL } from '../../constants/constants';
 import iconLogo from '../../assets/images/logos/icon-logo.png';
+
 
 /* ── App icon tile ── */
 function AppIcon({ icon, imgSrc, title, color, onClick, disabled, badge }) {
@@ -91,8 +93,9 @@ function AppIcon({ icon, imgSrc, title, color, onClick, disabled, badge }) {
 const FAVORITE_APPS = [
   {
     id: 'central-admin',
-    imgSrc: iconLogo,
+    icon: <GlobalOutlined />,
     title: 'Central Admin',
+    color: '#4285F4',
     path: COMPANY_URL,
   },
   {

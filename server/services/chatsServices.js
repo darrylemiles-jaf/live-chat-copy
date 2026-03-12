@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 
 const getChatsWithMessages = async (user_id, query = {}) => {
   try {
-    const { status, limit = 50 } = query;
+    const { status, limit } = query;
 
     const [userData] = await pool.query(
       `SELECT role FROM users WHERE id = ?`,
@@ -31,8 +31,11 @@ const getChatsWithMessages = async (user_id, query = {}) => {
       params.push(status);
     }
 
-    sql += ` ORDER BY updated_at DESC LIMIT ?`;
-    params.push(parseInt(limit));
+    sql += ` ORDER BY updated_at DESC`;
+    if (limit) {
+      sql += ` LIMIT ?`;
+      params.push(parseInt(limit));
+    }
 
     const [chats] = await pool.query(sql, params);
 
@@ -61,11 +64,14 @@ const getChatsWithMessages = async (user_id, query = {}) => {
           agent = agentData[0] || null;
         }
 
+        const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
         return {
           ...chat,
           client_name: client[0]?.name || null,
           client_email: client[0]?.email || null,
-          last_message: messages.length > 0 ? messages[messages.length - 1].message : null,
+          last_message: lastMsg ? lastMsg.message : null,
+          last_message_attachment_type: lastMsg ? lastMsg.attachment_type : null,
           client: client[0] || null,
           agent: agent,
           messages: messages

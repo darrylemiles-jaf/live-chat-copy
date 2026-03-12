@@ -1,4 +1,6 @@
+import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
+import { useColorScheme } from '@mui/material/styles';
 
 // material-ui
 import AppBar from '@mui/material/AppBar';
@@ -18,9 +20,11 @@ import MoreOutlined from '@ant-design/icons/MoreOutlined';
 
 // ==============================|| HEADER CONTENT - MOBILE ||============================== //
 
-export default function MobileSection() {
+export default function MobileSection({ activeChatsCount = 0 }) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
+  const { mode } = useColorScheme();
+  const isDark = mode === 'dark';
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -47,14 +51,14 @@ export default function MobileSection() {
     <>
       <Box sx={{ flexShrink: 0, ml: 0.75 }}>
         <IconButton
-          sx={(theme) => ({
-            color: 'text.primary',
+          sx={{
+            color: isDark ? '#ffffff' : 'text.primary',
             bgcolor: open
-              ? (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'grey.300')
-              : (theme.palette.mode === 'dark' ? 'transparent' : 'grey.100'),
-            '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'grey.200' },
+              ? (isDark ? 'rgba(255, 255, 255, 0.95)' : 'grey.300')
+              : 'transparent',
+            '&:hover': { bgcolor: isDark ? 'rgb(255, 255, 255)' : 'grey.200' },
             '&::after': { background: 'transparent !important', boxShadow: 'none !important' },
-          })}
+          }}
           aria-label="open more menu"
           ref={anchorRef}
           aria-controls={open ? 'menu-list-grow' : undefined}
@@ -91,7 +95,7 @@ export default function MobileSection() {
               <ClickAwayListener onClickAway={handleClose}>
                 <AppBar color="inherit">
                   <Toolbar>
-                    <Profile />
+                    <Profile activeChatsCount={activeChatsCount} />
                   </Toolbar>
                 </AppBar>
               </ClickAwayListener>
@@ -102,3 +106,5 @@ export default function MobileSection() {
     </>
   );
 }
+
+MobileSection.propTypes = { activeChatsCount: PropTypes.number };

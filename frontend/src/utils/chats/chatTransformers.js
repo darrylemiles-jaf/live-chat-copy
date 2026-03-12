@@ -20,14 +20,31 @@ export const formatTimestamp = (timestamp) => {
   return `${diffDays}d ago`;
 };
 
+const getLastMessagePreview = (chat) => {
+  const text = stripHtml(
+    chat.last_message ||
+    chat.messages?.[chat.messages.length - 1]?.message ||
+    ''
+  );
+  if (text) return text;
+
+  const attachType =
+    chat.last_message_attachment_type ||
+    chat.messages?.[chat.messages.length - 1]?.attachment_type ||
+    null;
+
+  if (attachType === 'image') return 'Sent a 📷 Photo';
+  if (attachType === 'video') return 'Sent a 🎬 Video';
+  if (attachType === 'audio') return 'Sent a 🎵 Audio';
+  if (attachType) return 'Sent a 📄 File';
+
+  return 'No messages yet';
+};
+
 export const transformChatData = (chat) => ({
   id: chat.id,
   name: chat.client?.name || chat.client_name || `User ${chat.client_id}`,
-  lastMessage: stripHtml(
-    chat.last_message ||
-    chat.messages?.[chat.messages.length - 1]?.message ||
-    'No messages yet'
-  ),
+  lastMessage: getLastMessagePreview(chat),
   timestamp: formatTimestamp(chat.updated_at || chat.created_at),
   rawTimestamp: new Date(chat.updated_at || chat.created_at).getTime(),
   avatar: null,

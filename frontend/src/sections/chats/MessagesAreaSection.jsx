@@ -304,6 +304,30 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
           const showAvatar = index === 0 || messages[index - 1]?.isSender !== msg.isSender;
           const showSeen = Boolean(lastSeenAt) && msg.isSender && index === lastSeenSentIdx;
 
+          if (msg.isSystemMsg) {
+            return (
+              <Fade in key={msg.id} timeout={300}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 1.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '11px',
+                      fontStyle: 'italic',
+                      bgcolor: theme.vars.palette.action.hover,
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: '20px',
+                      border: `1px solid ${theme.vars.palette.divider}`
+                    }}
+                  >
+                    {msg.message}
+                  </Typography>
+                </Box>
+              </Fade>
+            );
+          }
+
           return (
             <Fade in key={msg.id} timeout={300}>
               <Box
@@ -422,6 +446,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                               component="img"
                               src={msg.attachment_url}
                               alt={msg.attachment_name || 'Image'}
+                              onLoad={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
                               sx={{
                                 maxWidth: '100%',
                                 maxHeight: 200,
