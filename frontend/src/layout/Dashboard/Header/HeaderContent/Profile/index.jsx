@@ -55,7 +55,7 @@ function a11yProps(index) {
 
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
-export default function Profile() {
+export default function Profile({ activeChatsCount = 0 }) {
   const theme = useTheme();
   const [user, setUser] = useState(null);
 
@@ -150,7 +150,7 @@ export default function Profile() {
                   </CardContent>
 
                   <TabPanel value={value} index={0} dir={theme.direction}>
-                    <ProfileTab />
+                    <ProfileTab activeChatsCount={activeChatsCount} />
                   </TabPanel>
                   <TabPanel value={value} index={1} dir={theme.direction}>
                     <SettingTab />
@@ -166,3 +166,4 @@ export default function Profile() {
 }
 
 TabPanel.propTypes = { children: PropTypes.node, value: PropTypes.number, index: PropTypes.number, other: PropTypes.any };
+Profile.propTypes = { activeChatsCount: PropTypes.number };

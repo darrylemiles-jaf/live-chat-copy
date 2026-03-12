@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
 // material-ui
@@ -18,7 +19,7 @@ import MoreOutlined from '@ant-design/icons/MoreOutlined';
 
 // ==============================|| HEADER CONTENT - MOBILE ||============================== //
 
-export default function MobileSection() {
+export default function MobileSection({ activeChatsCount = 0 }) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
 
@@ -91,7 +92,7 @@ export default function MobileSection() {
               <ClickAwayListener onClickAway={handleClose}>
                 <AppBar color="inherit">
                   <Toolbar>
-                    <Profile />
+                    <Profile activeChatsCount={activeChatsCount} />
                   </Toolbar>
                 </AppBar>
               </ClickAwayListener>
@@ -102,3 +103,5 @@ export default function MobileSection() {
     </>
   );
 }
+
+MobileSection.propTypes = { activeChatsCount: PropTypes.number };
