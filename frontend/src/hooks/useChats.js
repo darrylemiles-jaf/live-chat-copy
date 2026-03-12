@@ -132,7 +132,7 @@ const useChats = () => {
           setLastSeenAt(latest.created_at);
         }
 
-        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 0);
       } catch (error) {
         console.error('Error fetching messages:', error);
         setCurrentMessages([]);
@@ -190,7 +190,7 @@ const useChats = () => {
             if (optimisticIdx !== -1) {
               const updated = [...prev];
               updated[optimisticIdx] = transformed;
-              setTimeout(scrollToBottom, 100);
+              setTimeout(scrollToBottom, 0);
               return updated;
             }
           }
@@ -202,7 +202,7 @@ const useChats = () => {
             if (socket) socket.emit('mark_messages_read', { chatId: msgChatId, readerRole: 'agent' });
           }
 
-          setTimeout(scrollToBottom, 100);
+          setTimeout(scrollToBottom, 0);
           return [...prev, transformed];
         }
         return prev;

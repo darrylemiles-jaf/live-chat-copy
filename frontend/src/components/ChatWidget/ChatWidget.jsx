@@ -509,9 +509,9 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
       attachment_url: filePreview,
       attachment_type: selectedFile.type.startsWith('image/') ? 'image'
         : selectedFile.type.startsWith('video/') ? 'video'
-        : selectedFile.type.startsWith('audio/') ? 'audio'
-        : (selectedFile.type.includes('zip') || selectedFile.type.includes('rar') || selectedFile.type.includes('7z')) ? 'archive'
-        : 'document',
+          : selectedFile.type.startsWith('audio/') ? 'audio'
+            : (selectedFile.type.includes('zip') || selectedFile.type.includes('rar') || selectedFile.type.includes('7z')) ? 'archive'
+              : 'document',
       attachment_name: selectedFile.name,
       created_at: new Date().toISOString(),
     };
@@ -966,7 +966,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
         },
         body: JSON.stringify({ chat_id: chatIdRef.current }),
         keepalive: true
-      }).catch(() => {});
+      }).catch(() => { });
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -1354,26 +1354,26 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
               </div>
 
               {chatMode === CHAT_MODES.BOT && (
-              <div className="cw-qc-cta">
-                <p className="cw-qc-cta-label">Still have an issue?</p>
-                <button type="button" className="cw-qc-agent-btn" onClick={handleTalkToAgent}>
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ flexShrink: 0 }}
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Talk to an Agent
-                </button>
-              </div>
+                <div className="cw-qc-cta">
+                  <p className="cw-qc-cta-label">Still have an issue?</p>
+                  <button type="button" className="cw-qc-agent-btn" onClick={handleTalkToAgent}>
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Talk to an Agent
+                  </button>
+                </div>
               )}
 
               <div className="chat-widget-footer">
@@ -1465,6 +1465,7 @@ const ChatWidget = ({ apiUrl = '', socketUrl = '' }) => {
                                       src={msg.attachment_url}
                                       alt={msg.attachment_name || 'Attachment'}
                                       className="chat-attachment-image"
+                                      onLoad={scrollToBottom}
                                     />
                                   </a>
                                 ) : (

@@ -446,6 +446,7 @@ const MessagesAreaSection = ({ messages, messagesEndRef, isLoading = false, isTy
                               component="img"
                               src={msg.attachment_url}
                               alt={msg.attachment_name || 'Image'}
+                              onLoad={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
                               sx={{
                                 maxWidth: '100%',
                                 maxHeight: 200,
