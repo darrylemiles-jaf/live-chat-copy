@@ -35,7 +35,20 @@ export const NotificationBadgeProvider = ({ children }) => {
   // the agent's personal room, so the same message can arrive twice.
   const seenMessageIdsRef = useRef(new Set());
 
-  const user = getCurrentUser();
+  // Reactive user ID — initialised from localStorage on mount. If the user has not
+  // yet logged in (provider mounts before auth), we poll until the token appears so
+  // that badge counts and the socket connection are set up automatically after a
+  // client-side login without requiring a full page refresh.
+  const [userId, setUserId] = useState(() => getCurrentUser()?.id ?? null);
+
+  useEffect(() => {
+    if (userId) return;
+    const timer = setInterval(() => {
+      const id = getCurrentUser()?.id;
+      if (id) setUserId(id);
+    }, 200);
+    return () => clearInterval(timer);
+  }, [userId]);
 
   // Fetch ground-truth queue count from server.
   // Called on initial load, reconnect, and when in doubt.
@@ -86,9 +99,9 @@ export const NotificationBadgeProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchCounts = async () => {
-      if (!user?.id) return;
+      if (!userId) return;
       try {
-        const result = await getNotifications(user.id, 1, 100);
+        const result = await getNotifications(userId, 1, 100);
         if (result?.success) {
           setBellCount(result.unread_count || 0);
           result.data.filter((n) => !n.is_read).forEach((n) => trackedUnreadIdsRef.current.add(n.id));
@@ -98,7 +111,7 @@ export const NotificationBadgeProvider = ({ children }) => {
     fetchCounts();
     syncChatBadge();
     syncQueueCount();
-  }, [user?.id, syncChatBadge, syncQueueCount]);
+  }, [userId, syncChatBadge, syncQueueCount]);
 
   useEffect(() => {
     const handleNotification = (notification) => {
@@ -226,7 +239,7 @@ export const NotificationBadgeProvider = ({ children }) => {
       }
     };
 
-    const uid = user?.id;
+    const uid = userId;
     if (!uid || !SOCKET_URL) return;
 
     const socket = socketService.connect(SOCKET_URL, uid);
@@ -255,7 +268,7 @@ export const NotificationBadgeProvider = ({ children }) => {
       socket.off('queue_update', handleQueueUpdate);
       socket.off('connect', handleReconnect);
     };
-  }, [user?.id, syncQueueCount, syncChatBadge]);
+  }, [userId, syncQueueCount, syncChatBadge]);
 
   const decrementBell = useCallback((notification) => {
     if (!notification) return;
