@@ -262,15 +262,20 @@ export default function HeaderContent() {
             },
           },
           '&.Mui-disabled .MuiSelect-select': {
-            opacity: 0.6,
+            opacity: 1,
             cursor: 'not-allowed',
+            WebkitTextFillColor: isDark ? '#ffffff' : '#000000',
+          },
+          '&.Mui-disabled .MuiSelect-select *': {
+            color: isDark ? '#ffffff' : '#000000',
+            WebkitTextFillColor: isDark ? '#ffffff' : '#000000',
           },
           '& .MuiSelect-icon': { color: STATUS_COLORS[status], fontSize: 16, top: 'calc(50% - 8px)', right: 4 },
         }}
         renderValue={(val) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, bgcolor: STATUS_COLORS[val] }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: isDark ? 'common.white' : 'text.primary', lineHeight: 1, fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize', color: isDark ? '#ffffff' : '#000000', WebkitTextFillColor: isDark ? '#ffffff' : '#000000', lineHeight: 1, fontSize: '0.8rem' }}>
               {val}
             </Typography>
           </Box>
