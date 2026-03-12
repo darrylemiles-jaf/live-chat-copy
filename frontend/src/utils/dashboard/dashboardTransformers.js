@@ -69,11 +69,27 @@ export const transformQueueItem = (chat) => {
  */
 export const transformRecentChat = (chat) => {
   const client = chat.client || {};
-  const lastMessage = stripHtml(
+
+  const rawText = stripHtml(
     chat.last_message ||
     chat.messages?.[chat.messages?.length - 1]?.message_text ||
-    'No messages yet'
+    ''
   );
+  const attachType =
+    chat.last_message_attachment_type ||
+    chat.messages?.[chat.messages?.length - 1]?.attachment_type ||
+    null;
+  const lastMessage = rawText
+    ? rawText
+    : attachType === 'image'
+      ? 'Sent a 📷 Photo'
+      : attachType === 'video'
+        ? 'Sent a 🎬 Video'
+        : attachType === 'audio'
+          ? 'Sent a 🎵 Audio'
+          : attachType
+            ? 'Sent a 📄 File'
+            : 'No messages yet';
 
   const chatDate = new Date(chat.updated_at || chat.created_at);
   const now = new Date();
