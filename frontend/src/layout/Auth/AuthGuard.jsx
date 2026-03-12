@@ -50,6 +50,9 @@ const AuthGuard = ({ children }) => {
 
   useEffect(() => {
     if (tokenError || isUnauthorized) {
+      // Clear invalid/unauthorized credentials to prevent redirect loop
+      localStorage.removeItem('serviceToken');
+      localStorage.removeItem('user');
       navigate('/login', { replace: true });
       return;
     }
